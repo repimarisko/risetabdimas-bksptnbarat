@@ -12,22 +12,22 @@ import { type PropsWithChildren } from 'react';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
+        title: 'Profil',
         href: edit(),
         icon: null,
     },
     {
-        title: 'Password',
+        title: 'Kata Sandi',
         href: editPassword(),
         icon: null,
     },
     {
-        title: 'Two-Factor Auth',
+        title: 'Autentikasi 2 Langkah',
         href: show(),
         icon: null,
     },
     {
-        title: 'Appearance',
+        title: 'Tampilan',
         href: editAppearance(),
         icon: null,
     },
@@ -42,23 +42,23 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const currentPath = window.location.pathname;
 
     return (
-        <div className="px-4 py-6">
+        <div className="mx-auto max-w-7xl px-4 py-8">
             <Heading
-                title="Settings"
-                description="Manage your profile and account settings"
+                title="Pengaturan Akun"
+                description="Kelola profil, keamanan, dan preferensi tampilan"
             />
 
-            <div className="flex flex-col lg:flex-row lg:space-x-12">
-                <aside className="w-full max-w-xl lg:w-48">
-                    <nav className="flex flex-col space-y-1 space-x-0">
+            <div className="mt-6 flex flex-col lg:flex-row lg:space-x-12">
+                <aside className="w-full max-w-xl lg:w-64">
+                    <nav className="flex flex-col space-y-2">
                         {sidebarNavItems.map((item, index) => (
                             <Button
                                 key={`${resolveUrl(item.href)}-${index}`}
                                 size="sm"
-                                variant="ghost"
+                                variant={isSameUrl(currentPath, item.href) ? 'secondary' : 'ghost'}
                                 asChild
-                                className={cn('w-full justify-start', {
-                                    'bg-muted': isSameUrl(
+                                className={cn('w-full justify-start rounded-lg', {
+                                    'bg-blue-50 text-blue-700 hover:bg-blue-100': isSameUrl(
                                         currentPath,
                                         item.href,
                                     ),
@@ -66,7 +66,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                             >
                                 <Link href={item.href}>
                                     {item.icon && (
-                                        <item.icon className="h-4 w-4" />
+                                        <item.icon className="mr-2 h-4 w-4" />
                                     )}
                                     {item.title}
                                 </Link>
@@ -77,8 +77,8 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
                 <Separator className="my-6 lg:hidden" />
 
-                <div className="flex-1 md:max-w-2xl">
-                    <section className="max-w-xl space-y-12">
+                <div className="flex-1">
+                    <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                         {children}
                     </section>
                 </div>

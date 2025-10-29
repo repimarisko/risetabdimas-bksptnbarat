@@ -17,9 +17,11 @@ export default function WelcomeV2({ canRegister = true }: { canRegister?: boolea
                 <header className="border-b border-gray-200 bg-white">
                     <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold text-xl">BKS</span>
-                            </div>
+                            <img
+                                src="/images/bks-ptn-logo.png"
+                                alt="BKS PTN Wilayah Barat"
+                                className="w-12 h-12 object-contain"
+                            />
                             <div>
                                 <h1 className="text-lg font-semibold text-gray-900">BKS PTN Wilayah Barat</h1>
                                 <p className="text-xs text-gray-500">Sistem Informasi Riset & Pengabdian Masyarakat</p>
