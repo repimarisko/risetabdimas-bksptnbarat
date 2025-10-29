@@ -22,8 +22,8 @@ export default function Dashboard() {
                 <div className="mx-auto max-w-7xl px-4">
                     <nav className="flex items-center gap-6 py-3 text-sm font-medium">
                         <div className="flex items-center gap-2">
-                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/10">
-                                <Home className="h-3.5 w-3.5 text-white" />
+                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
+                                <Home className="h-5 w-5 text-white" />
                             </span>
                             <button className="inline-flex items-center gap-1 hover:text-blue-200">
                                 Dashboard
@@ -31,8 +31,8 @@ export default function Dashboard() {
                             </button>
                         </div>
                         <div className="relative group flex items-center gap-2">
-                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/10">
-                                <Monitor className="h-3.5 w-3.5 text-white" />
+                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
+                                <Monitor className="h-5 w-5 text-white" />
                             </span>
                             <button className="inline-flex items-center gap-1 hover:text-blue-200">
                                 Monitoring & Data
@@ -55,23 +55,8 @@ export default function Dashboard() {
                                         </ul>
                                     </div>
 
-                                    <div>
-                                        <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">Monitoring Program Lainnya</h4>
-                                        <ul className="space-y-2 text-sm text-gray-700">
-                                            <li><Link href="#" className="hover:text-blue-700">Usulan Prototipe</Link></li>
-                                            <li><Link href="#" className="hover:text-blue-700">Usulan Kosabangsa</Link></li>
-                                            <li><Link href="#" className="hover:text-blue-700">Usulan Mahasiswa Berdampak</Link></li>
-                                            <li><Link href="#" className="hover:text-blue-700">Usulan Inovasi Seni Nusantara</Link></li>
-                                            <li><Link href="#" className="hover:text-blue-700">Usulan Transformasi Teknologi dan Inovasi</Link></li>
-                                        </ul>
-                                    </div>
+                                
 
-                                    <div>
-                                        <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">Monitoring Minat Katalis</h4>
-                                        <ul className="space-y-2 text-sm text-gray-700">
-                                            <li><Link href="#" className="hover:text-blue-700">Minat Katalis</Link></li>
-                                        </ul>
-                                    </div>
 
                                     <div>
                                         <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">Monev</h4>
@@ -101,6 +86,7 @@ export default function Dashboard() {
                 <h1 className="text-2xl font-bold text-gray-900">
                     Riset dan Pengabdian Masyarakat Kolaborasi BKS PTN Wilayah Barat
                 </h1>
+                <p className="text-sm text-gray-500">Sistem Informasi Penelitian & Pengabdian Masyarakat</p>
             </div>
 
             {/* Content placeholders */}

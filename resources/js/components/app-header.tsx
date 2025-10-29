@@ -36,13 +36,9 @@ import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
+
+//navbar properties
+const mainNavItems: NavItem[] = [];
 
 const rightNavItems: NavItem[] = [
     {
