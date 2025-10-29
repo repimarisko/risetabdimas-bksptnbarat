@@ -24,7 +24,7 @@ export default function WelcomeV2({ canRegister = true }: { canRegister?: boolea
                             />
                             <div>
                                 <h1 className="text-lg font-semibold text-gray-900">BKS PTN Wilayah Barat</h1>
-                                <p className="text-xs text-gray-500">Sistem Informasi Riset & Pengabdian Masyarakat</p>
+                                <p className="text-xs text-gray-500">Sistem Informasi Penelitian & Pengabdian Masyarakat</p>
                             </div>
                         </div>
                     </div>
