@@ -1,99 +1,290 @@
-import { Head, Link, usePage } from '@inertiajs/react';
-import type { SharedData } from '@/types';
 import { login, register } from '@/routes';
+import type { SharedData } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/react';
 
-export default function WelcomeV2({ canRegister = true }: { canRegister?: boolean }) {
+export default function WelcomeV2({
+    canRegister = true,
+}: {
+    canRegister?: boolean;
+}) {
     const { auth } = usePage<SharedData>().props;
 
     // Daftar PTN dengan path logo (39 total)
     const ptnList = [
-        { name: "UNAND", logo: "/images/logos/unand.png" },
-        { name: "UI", logo: "/images/logos/ui.png" },
-        { name: "ITB", logo: "/images/logos/itb.png" },
-        { name: "IPB", logo: "/images/logos/ipb.png" },
-        { name: "UGM", logo: "/images/logos/ugm.png" },
-        { name: "USU", logo: "/images/logos/usu.png" },
-        { name: "UNSRI", logo: "/images/logos/unsri.png" },
-        { name: "UNJA", logo: "/images/logos/unja.png" },
-        { name: "UNTIRTA", logo: "/images/logos/untirta.png" },
-        { name: "UNRI", logo: "/images/logos/unri.png" },
-        { name: "UNIB", logo: "/images/logos/unib.png" },
-        { name: "UNP", logo: "/images/logos/unp.png" },
-        { name: "UNILA", logo: "/images/logos/unila.png" },
-        { name: "UNJ", logo: "/images/logos/unj.png" },
-        { name: "UNY", logo: "/images/logos/uny.png" },
-        { name: "UNNES", logo: "/images/logos/unnes.png" },
-        { name: "UNDIP", logo: "/images/logos/undip.png" },
-        { name: "UB", logo: "/images/logos/ub.png" },
-        { name: "UNEJ", logo: "/images/logos/unej.png" },
-        { name: "UM", logo: "/images/logos/um.png" },
-        { name: "UNS", logo: "/images/logos/uns.png" },
-        { name: "UPI", logo: "/images/logos/upi.png" },
-        { name: "POLBAN", logo: "/images/logos/polban.png" },
-        { name: "POLINUS", logo: "/images/logos/polinus.png" },
-        { name: "POLNEP", logo: "/images/logos/polnep.png" },
-        { name: "POLMED", logo: "/images/logos/polmed.png" },
-        { name: "POLINDEL", logo: "/images/logos/polindel.png" },
-        { name: "POLTEK JAKARTA", logo: "/images/logos/poltek-jakarta.png" },
-        { name: "POLTEK PADANG", logo: "/images/logos/poltek-padang.png" },
-        { name: "POLTEK SRIWIJAYA", logo: "/images/logos/poltek-sriwijaya.png" },
-        { name: "POLTEK BATAM", logo: "/images/logos/poltek-batam.png" },
-        { name: "POLTEK BENGKALIS", logo: "/images/logos/poltek-bengkalis.png" },
-        { name: "POLTEK LAMPUNG", logo: "/images/logos/poltek-lampung.png" },
-        { name: "POLTEK TANJUNG BALAI", logo: "/images/logos/poltek-tanjungbalai.png" },
-        { name: "POLTEK JEMBER", logo: "/images/logos/poltek-jember.png" },
-        { name: "POLTEK SEMARANG", logo: "/images/logos/poltek-semarang.png" },
-        { name: "POLTEK BANDUNG", logo: "/images/logos/poltek-bandung.png" },
-        { name: "POLTEK BANYUWANGI", logo: "/images/logos/poltek-banyuwangi.png" },
-        { name: "POLTEK SUBANG", logo: "/images/logos/poltek-subang.png" }
+        {
+            name: 'UNAND',
+            logo: '/images/logos/unand.png',
+            link: 'https://www.unand.ac.id',
+        },
+        {
+            name: 'USK (UNSYIAH)',
+            logo: '/images/logos/unsyiah.png',
+            link: 'https://www.usk.ac.id',
+        },
+        {
+            name: 'USU',
+            logo: '/images/logos/usu.png',
+            link: 'https://www.usu.ac.id',
+        },
+        {
+            name: 'UNIMED',
+            logo: '/images/logos/unimed.png',
+            link: 'https://www.unimed.ac.id',
+        },
+        {
+            name: 'UNRI',
+            logo: '/images/logos/unri.png',
+            link: 'https://www.unri.ac.id',
+        },
+        {
+            name: 'UNP',
+            logo: '/images/logos/unp.png',
+            link: 'https://www.unp.ac.id',
+        },
+        {
+            name: 'UNJA',
+            logo: '/images/logos/unja.png',
+            link: 'https://www.unja.ac.id',
+        },
+        {
+            name: 'UNSRI',
+            logo: '/images/logos/unsri.png',
+            link: 'https://www.unsri.ac.id',
+        },
+        {
+            name: 'UNILA',
+            logo: '/images/logos/unila.png',
+            link: 'https://www.unila.ac.id',
+        },
+        {
+            name: 'UNTAN',
+            logo: '/images/logos/untan.png',
+            link: 'https://www.untan.ac.id',
+        },
+        {
+            name: 'UNIB',
+            logo: '/images/logos/unib.png',
+            link: 'https://www.unib.ac.id',
+        },
+        {
+            name: 'ISI Padang Panjang',
+            logo: '/images/logos/isi-padangpanjang.png',
+            link: 'https://www.isi-padangpanjang.ac.id',
+        },
+        {
+            name: 'Universitas Palangka Raya',
+            logo: '/images/logos/universitas-palangkaraya.png',
+            link: 'https://www.upr.ac.id',
+        },
+        {
+            name: 'UNJ',
+            logo: '/images/logos/unj.png',
+            link: 'https://www.unj.ac.id',
+        },
+        {
+            name: 'UNMUL',
+            logo: '/images/logos/unmal.png',
+            link: 'https://www.unmul.ac.id',
+        },
+        {
+            name: 'UNTIRTA',
+            logo: '/images/logos/untirta.png',
+            link: 'https://www.untirta.ac.id',
+        },
+        {
+            name: 'UIN Syarif Hidayatullah Jakarta',
+            logo: '/images/logos/uin-jakarta.png',
+            link: 'https://www.uinjkt.ac.id',
+        },
+        {
+            name: 'IPB University',
+            logo: '/images/logos/ipb.png',
+            link: 'https://www.ipb.ac.id',
+        },
+        {
+            name: 'Universitas Indonesia',
+            logo: '/images/logos/ui.png',
+            link: 'https://www.ui.ac.id',
+        },
+        {
+            name: 'UIN Sultan Syarif Kasim Riau',
+            logo: '/images/logos/uin-pekanbaru.png',
+            link: 'https://www.uin-suska.ac.id',
+        },
+        {
+            name: 'UMRAH',
+            logo: '/images/logos/umrah.png',
+            link: 'https://www.umrah.ac.id',
+        },
+        {
+            name: 'UBB',
+            logo: '/images/logos/ubb.png',
+            link: 'https://www.ubb.ac.id',
+        },
+        {
+            name: 'UTU',
+            logo: '/images/logos/utu.png',
+            link: 'https://www.utu.ac.id',
+        },
+        {
+            name: 'UIN Raden Fatah Palembang',
+            logo: '/images/logos/uin-rf-palembang.png',
+            link: 'https://www.radenfatah.ac.id',
+        },
+        {
+            name: 'UIN Ar-Raniry Banda Aceh',
+            logo: '/images/logos/uin-ar-raniry.png',
+            link: 'https://www.ar-raniry.ac.id',
+        },
+        {
+            name: 'ITERA',
+            logo: '/images/logos/itera.png',
+            link: 'https://www.itera.ac.id',
+        },
+        {
+            name: 'ISBI Aceh',
+            logo: '/images/logos/isbi-nad.png',
+            link: 'https://www.isbiaceh.ac.id',
+        },
+        {
+            name: 'UM Samudra',
+            logo: '/images/logos/umsam.png',
+            link: 'https://www.unsam.ac.id',
+        },
+        {
+            name: 'UNHAN',
+            logo: '/images/logos/unhan.png',
+            link: 'https://www.idu.ac.id',
+        },
+        {
+            name: 'UNSIL',
+            logo: '/images/logos/unsil.png',
+            link: 'https://www.unsil.ac.id',
+        },
+        {
+            name: 'UNSIKA',
+            logo: '/images/logos/unsika.png',
+            link: 'https://www.unsika.ac.id',
+        },
+        {
+            name: 'UPN Veteran Jakarta',
+            logo: '/images/logos/upn-veteran-jakarta.png',
+            link: 'https://www.upnvj.ac.id',
+        },
+        {
+            name: 'UIN Sumatera Utara',
+            logo: '/images/logos/uinsu.png',
+            link: 'https://www.uinsu.ac.id',
+        },
+        {
+            name: 'Universitas Terbuka',
+            logo: '/images/logos/ut.png',
+            link: 'https://www.ut.ac.id',
+        },
+        {
+            name: 'IAIN Batusangkar',
+            logo: '/images/logos/iain-batusangkar.png',
+            link: 'https://www.iainbatusangkar.ac.id',
+        },
+        {
+            name: 'UPI',
+            logo: '/images/logos/upi.png',
+            link: 'https://www.upi.edu',
+        },
+        {
+            name: 'ISBI Bandung',
+            logo: '/images/logos/isbi-bandung.png',
+            link: 'https://www.isbi.ac.id',
+        },
+        {
+            name: 'UNPAD',
+            logo: '/images/logos/unpad.png',
+            link: 'https://www.unpad.ac.id',
+        },
+        {
+            name: 'UIN Syekh Ali Hasan Ahmad Addary Padangsidimpuan',
+            logo: '/images/logos/uin-padang-sidempuan.png',
+            link: 'https://www.uinsidimpuan.ac.id',
+        },
     ];
 
     return (
         <>
             <Head title="BKS PTN Wilayah Barat - Selamat Datang">
                 <link rel="preconnect" href="https://fonts.bunny.net" />
-                <link href="https://fonts.bunny.net/css?family=poppins:400,500,600,700" rel="stylesheet" />
+                <link
+                    href="https://fonts.bunny.net/css?family=poppins:400,500,600,700"
+                    rel="stylesheet"
+                />
             </Head>
 
-            <main className="min-h-screen flex flex-col bg-white">
+            <main className="flex min-h-screen flex-col bg-white">
                 {/* Header */}
-                <header className="border-b border-gray-200 bg-white">
-                    <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                <header className="border-b border-gray-200 bg-[#212146]">
+                    <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
                         <div className="flex items-center gap-3">
                             <img
-                                src="/images/bks-ptn-logo.png"
+                                src="/images/bks-ptn-logo-bulat.png"
                                 alt="BKS PTN Wilayah Barat"
-                                className="w-12 h-12 object-contain"
+                                className="h-14 w-14 object-contain"
                             />
                             <div>
-                                <h1 className="text-lg font-semibold text-gray-900">BKS PTN Wilayah Barat</h1>
-                                <p className="text-xs text-gray-500">Sistem Informasi Penelitian & Pengabdian Masyarakat</p>
+                                <h1 className="text-lg font-semibold text-white">
+                                    BKS PTN Wilayah Barat
+                                </h1>
+                                <p className="text-xs text-white">
+                                    Sistem Informasi Penelitian & Pengabdian
+                                    Masyarakat
+                                </p>
                             </div>
                         </div>
                     </div>
                 </header>
 
                 {/* Content Section */}
-                <section className="flex-1 flex items-center justify-center px-6 py-16">
-                    <div className="max-w-6xl w-full">
-                        <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <section className="relative flex flex-1 items-center justify-center overflow-hidden px-6 py-16">
+                    {/* Background Logo */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-3">
+                        <img
+                            src="/images/bks-ptn-logo-bulat.png"
+                            alt=""
+                            className="w-full max-w-md object-contain"
+                        />
+                    </div>
+
+                    {/* Content */}
+                    <div className="relative z-10 w-full max-w-6xl">
+                        <div className="grid items-center gap-16 lg:grid-cols-2">
                             {/* Left - Information */}
-                            <div className="space-y-6">
-                                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-                                    Platform Kolaborasi<br />
+                            <div className="space-y-5">
+                                <h2 className="text-4xl leading-tight font-bold text-gray-900 lg:text-5xl">
+                                    Kolaborasi
+                                    <br />
                                     Riset & Pengabdian Masyarakat
                                 </h2>
-                                <p className="text-lg text-gray-600 leading-relaxed">
-                                    Sistem informasi kolaborasi riset dan pengabdian masyarakat antar perguruan tinggi negeri wilayah barat
+                                <p className="text-base leading-relaxed text-gray-600">
+                                    Sistem informasi kolaborasi riset dan
+                                    pengabdian masyarakat perguruan tinggi
+                                    negeri wilayah barat
                                 </p>
 
-                                <div className="pt-4">
+                                <div className="pt-2">
                                     <Link
                                         href="/panduan"
-                                        className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                        className="inline-flex items-center text-sm font-medium text-blue-600 transition hover:text-blue-700"
                                     >
-                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <svg
+                                            className="mr-2 h-4 w-4"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                            />
                                         </svg>
                                         Lihat Panduan Penggunaan
                                     </Link>
@@ -102,22 +293,29 @@ export default function WelcomeV2({ canRegister = true }: { canRegister?: boolea
 
                             {/* Right - Login Buttons */}
                             <div className="flex items-center justify-center lg:justify-end">
-                                <div className="w-full max-w-md bg-gray-50 rounded-2xl border border-gray-200 p-8 shadow-sm">
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Selamat Datang</h3>
-                                    <p className="text-gray-600 mb-6">Silakan pilih opsi di bawah untuk melanjutkan</p>
+                                <div className="w-full max-w-md space-y-4">
+                                    <div className="space-y-1">
+                                        <h3 className="text-2xl font-bold text-gray-900">
+                                            Masuk
+                                        </h3>
+                                        <p className="text-sm text-gray-600">
+                                            Silakan pilih opsi di bawah untuk
+                                            melanjutkan
+                                        </p>
+                                    </div>
 
-                                    <div className="space-y-3">
+                                    <div className="space-y-3 pt-2">
                                         <Link
                                             href={login()}
-                                            className="block w-full text-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold shadow-sm"
+                                            className="block w-full rounded-full bg-[#03a4ed] px-6 py-3 text-center font-semibold text-white transition hover:bg-blue-700"
                                         >
                                             Masuk ke Sistem
                                         </Link>
-                                        
+
                                         {canRegister && (
                                             <Link
                                                 href={register()}
-                                                className="block w-full text-center px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-blue-600 hover:text-blue-600 transition font-semibold"
+                                                className="block w-full rounded-full border border-gray-300 bg-[#fe3f40] px-6 py-3 text-center font-semibold text-white transition hover:border-gray-400 hover:bg-[#fe3f3f]"
                                             >
                                                 Daftar Akun Baru
                                             </Link>
@@ -130,27 +328,36 @@ export default function WelcomeV2({ canRegister = true }: { canRegister?: boolea
                 </section>
 
                 {/* Supported Universities - Logo Grid */}
-                <section className="bg-gray-50 border-t border-gray-200 py-12">
-                    <div className="max-w-7xl mx-auto px-6">
-                        <h3 className="text-lg font-semibold text-gray-700 mb-8 text-center">
-                            Didukung oleh 39 Perguruan Tinggi Negeri Wilayah Barat
+                <section className="border-t border-gray-200 py-12">
+                    <div className="mx-auto max-w-7xl px-6">
+                        <h3 className="mb-8 text-center text-xl font-semibold text-[#202045]">
+                            Keanggotaan BKS PTN Wilayah Barat
                         </h3>
 
-                        <div className="grid grid-cols-3 lg:grid-cols-13 gap-6 items-center justify-items-center">
+                        <div className="grid grid-cols-3 items-center justify-items-center gap-6 lg:grid-cols-13">
                             {ptnList.map((ptn) => (
                                 <div
                                     key={ptn.name}
-                                    className="flex items-center justify-center w-16 h-16 lg:w-14 lg:h-14 group"
+                                    className="group flex h-16 w-16 items-center justify-center lg:h-14 lg:w-14"
                                     title={ptn.name}
+                                    onClick={() =>
+                                        window.open(
+                                            ptn.link,
+                                            '_blank',
+                                            'noopener,noreferrer',
+                                        )
+                                    }
                                 >
                                     <img
                                         src={ptn.logo}
                                         alt={`Logo ${ptn.name}`}
-                                        className="w-full h-full object-contain grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100"
+                                        className="hover h-full w-full object-contain opacity-90 transition-all duration-300 hover:scale-110 hover:cursor-pointer hover:opacity-100"
                                         onError={(e) => {
                                             // Fallback jika gambar tidak ditemukan
-                                            e.currentTarget.style.display = 'none';
-                                            const parent = e.currentTarget.parentElement;
+                                            e.currentTarget.style.display =
+                                                'none';
+                                            const parent =
+                                                e.currentTarget.parentElement;
                                             if (parent) {
                                                 parent.innerHTML = `<div class="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 text-blue-800 font-bold text-xs">${ptn.name}</div>`;
                                             }
@@ -163,10 +370,14 @@ export default function WelcomeV2({ canRegister = true }: { canRegister?: boolea
                 </section>
 
                 {/* Footer */}
-                <footer className="border-t border-gray-200 py-6 bg-white">
-                    <div className="max-w-7xl mx-auto px-6 text-center">
-                        <p className="text-sm text-gray-600">
-                            © 2025 <span className="font-semibold text-gray-900">Universitas Andalas</span> - BKS PTN Wilayah Barat
+                <footer className="border-t border-gray-200 bg-[#212146] px-6 py-4">
+                    <div className="mx-auto max-w-7xl px-6 text-center">
+                        <p className="text-sm text-white">
+                            © 2025{' '}
+                            <span className="font-semibold text-white">
+                                Universitas Andalas
+                            </span>{' '}
+                            - BKS PTN Wilayah Barat
                         </p>
                     </div>
                 </footer>
