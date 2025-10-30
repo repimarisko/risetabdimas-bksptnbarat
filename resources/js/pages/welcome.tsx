@@ -11,62 +11,200 @@ export default function WelcomeV2({
 
     // Daftar PTN dengan path logo (39 total)
     const ptnList = [
-        { name: 'UNAND', logo: '/images/logos/unand.png' },
-        { name: 'UNSYIAH', logo: '/images/logos/unsyiah.png' },
-        { name: 'USU', logo: '/images/logos/usu.png' },
-        { name: 'UNIMED', logo: '/images/logos/unimed.png' },
-        { name: 'UNRI', logo: '/images/logos/unri.png' },
-        { name: 'UNP', logo: '/images/logos/unp.png' },
-        { name: 'UNJA', logo: '/images/logos/unja.png' },
-        { name: 'UNSRI', logo: '/images/logos/unsri.jpg' },
-        { name: 'UNILA', logo: '/images/logos/unila.png' },
-        { name: 'UNTAN', logo: '/images/logos/untan.png' },
-        { name: 'UNIB', logo: '/images/logos/unib.png' },
         {
-            name: 'ISI PADANG PANJANG',
+            name: 'UNAND',
+            logo: '/images/logos/unand.png',
+            link: 'https://www.unand.ac.id',
+        },
+        {
+            name: 'USK (UNSYIAH)',
+            logo: '/images/logos/unsyiah.png',
+            link: 'https://www.usk.ac.id',
+        },
+        {
+            name: 'USU',
+            logo: '/images/logos/usu.png',
+            link: 'https://www.usu.ac.id',
+        },
+        {
+            name: 'UNIMED',
+            logo: '/images/logos/unimed.png',
+            link: 'https://www.unimed.ac.id',
+        },
+        {
+            name: 'UNRI',
+            logo: '/images/logos/unri.png',
+            link: 'https://www.unri.ac.id',
+        },
+        {
+            name: 'UNP',
+            logo: '/images/logos/unp.png',
+            link: 'https://www.unp.ac.id',
+        },
+        {
+            name: 'UNJA',
+            logo: '/images/logos/unja.png',
+            link: 'https://www.unja.ac.id',
+        },
+        {
+            name: 'UNSRI',
+            logo: '/images/logos/unsri.png',
+            link: 'https://www.unsri.ac.id',
+        },
+        {
+            name: 'UNILA',
+            logo: '/images/logos/unila.png',
+            link: 'https://www.unila.ac.id',
+        },
+        {
+            name: 'UNTAN',
+            logo: '/images/logos/untan.png',
+            link: 'https://www.untan.ac.id',
+        },
+        {
+            name: 'UNIB',
+            logo: '/images/logos/unib.png',
+            link: 'https://www.unib.ac.id',
+        },
+        {
+            name: 'ISI Padang Panjang',
             logo: '/images/logos/isi-padangpanjang.png',
+            link: 'https://www.isi-padangpanjang.ac.id',
         },
         {
-            name: 'UNIVERSITAS PALANGKARAYA',
+            name: 'Universitas Palangka Raya',
             logo: '/images/logos/universitas-palangkaraya.png',
+            link: 'https://www.upr.ac.id',
         },
-        { name: 'UNJ', logo: '/images/logos/unj.png' },
-        { name: 'UNMAL', logo: '/images/logos/unmal.png' },
-        { name: 'UNTIRTA', logo: '/images/logos/untirta.png' },
-        { name: 'UIN JAKARTA', logo: '/images/logos/uin-jakarta.png' },
-        { name: 'IPB', logo: '/images/logos/ipb.png' },
-        { name: 'UI', logo: '/images/logos/ui.png' },
-        { name: 'UIN PEKANBARU', logo: '/images/logos/uin-pekanbaru.png' },
-        { name: 'UMRAH', logo: '/images/logos/umrah.png' },
-        { name: 'UBB', logo: '/images/logos/ubb.png' },
-        { name: 'UTU', logo: '/images/logos/utu.png' },
         {
-            name: 'UIN RF PALEMBANG',
+            name: 'UNJ',
+            logo: '/images/logos/unj.png',
+            link: 'https://www.unj.ac.id',
+        },
+        {
+            name: 'UNMUL',
+            logo: '/images/logos/unmal.png',
+            link: 'https://www.unmul.ac.id',
+        },
+        {
+            name: 'UNTIRTA',
+            logo: '/images/logos/untirta.png',
+            link: 'https://www.untirta.ac.id',
+        },
+        {
+            name: 'UIN Syarif Hidayatullah Jakarta',
+            logo: '/images/logos/uin-jakarta.png',
+            link: 'https://www.uinjkt.ac.id',
+        },
+        {
+            name: 'IPB University',
+            logo: '/images/logos/ipb.png',
+            link: 'https://www.ipb.ac.id',
+        },
+        {
+            name: 'Universitas Indonesia',
+            logo: '/images/logos/ui.png',
+            link: 'https://www.ui.ac.id',
+        },
+        {
+            name: 'UIN Sultan Syarif Kasim Riau',
+            logo: '/images/logos/uin-pekanbaru.png',
+            link: 'https://www.uin-suska.ac.id',
+        },
+        {
+            name: 'UMRAH',
+            logo: '/images/logos/umrah.png',
+            link: 'https://www.umrah.ac.id',
+        },
+        {
+            name: 'UBB',
+            logo: '/images/logos/ubb.png',
+            link: 'https://www.ubb.ac.id',
+        },
+        {
+            name: 'UTU',
+            logo: '/images/logos/utu.png',
+            link: 'https://www.utu.ac.id',
+        },
+        {
+            name: 'UIN Raden Fatah Palembang',
             logo: '/images/logos/uin-rf-palembang.png',
+            link: 'https://www.radenfatah.ac.id',
         },
-        { name: 'UIN AR RANIRY', logo: '/images/logos/uin-ar-raniry.png' },
-        { name: 'ITERA', logo: '/images/logos/itera.png' },
-        { name: 'ISBI NAD', logo: '/images/logos/isbi-nad.png' },
-        { name: 'UMSAM', logo: '/images/logos/umsam.png' },
-        { name: 'UNHAN', logo: '/images/logos/unhan.png' },
-        { name: 'UNSIL', logo: '/images/logos/unsil.png' },
-        { name: 'UNSIKA', logo: '/images/logos/unsika.png' },
         {
-            name: 'UPN VETERAN JAKARTA',
+            name: 'UIN Ar-Raniry Banda Aceh',
+            logo: '/images/logos/uin-ar-raniry.png',
+            link: 'https://www.ar-raniry.ac.id',
+        },
+        {
+            name: 'ITERA',
+            logo: '/images/logos/itera.png',
+            link: 'https://www.itera.ac.id',
+        },
+        {
+            name: 'ISBI Aceh',
+            logo: '/images/logos/isbi-nad.png',
+            link: 'https://www.isbiaceh.ac.id',
+        },
+        {
+            name: 'UM Samudra',
+            logo: '/images/logos/umsam.png',
+            link: 'https://www.unsam.ac.id',
+        },
+        {
+            name: 'UNHAN',
+            logo: '/images/logos/unhan.png',
+            link: 'https://www.idu.ac.id',
+        },
+        {
+            name: 'UNSIL',
+            logo: '/images/logos/unsil.png',
+            link: 'https://www.unsil.ac.id',
+        },
+        {
+            name: 'UNSIKA',
+            logo: '/images/logos/unsika.png',
+            link: 'https://www.unsika.ac.id',
+        },
+        {
+            name: 'UPN Veteran Jakarta',
             logo: '/images/logos/upn-veteran-jakarta.png',
+            link: 'https://www.upnvj.ac.id',
         },
-        { name: 'UINSU', logo: '/images/logos/uinsu.png' },
-        { name: 'UT', logo: '/images/logos/ut.png' },
         {
-            name: 'IAIN BATUSANGKAR',
+            name: 'UIN Sumatera Utara',
+            logo: '/images/logos/uinsu.png',
+            link: 'https://www.uinsu.ac.id',
+        },
+        {
+            name: 'Universitas Terbuka',
+            logo: '/images/logos/ut.png',
+            link: 'https://www.ut.ac.id',
+        },
+        {
+            name: 'IAIN Batusangkar',
             logo: '/images/logos/iain-batusangkar.png',
+            link: 'https://www.iainbatusangkar.ac.id',
         },
-        { name: 'UPI', logo: '/images/logos/upi.png' },
-        { name: 'ISBI BANDUNG', logo: '/images/logos/isbi-bandung.png' },
-        { name: 'UNPAD', logo: '/images/logos/unpad.png' },
         {
-            name: 'UIN PADANG SIDEMPUAN',
+            name: 'UPI',
+            logo: '/images/logos/upi.png',
+            link: 'https://www.upi.edu',
+        },
+        {
+            name: 'ISBI Bandung',
+            logo: '/images/logos/isbi-bandung.png',
+            link: 'https://www.isbi.ac.id',
+        },
+        {
+            name: 'UNPAD',
+            logo: '/images/logos/unpad.png',
+            link: 'https://www.unpad.ac.id',
+        },
+        {
+            name: 'UIN Syekh Ali Hasan Ahmad Addary Padangsidimpuan',
             logo: '/images/logos/uin-padang-sidempuan.png',
+            link: 'https://www.uinsidimpuan.ac.id',
         },
     ];
 
@@ -82,19 +220,19 @@ export default function WelcomeV2({
 
             <main className="flex min-h-screen flex-col bg-white">
                 {/* Header */}
-                <header className="border-b border-gray-200 bg-white">
+                <header className="border-b border-gray-200 bg-[#212146]">
                     <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
                         <div className="flex items-center gap-3">
                             <img
-                                src="/images/bks-ptn-logo.png"
+                                src="/images/bks-ptn-logo-bulat.png"
                                 alt="BKS PTN Wilayah Barat"
-                                className="h-12 w-12 object-contain"
+                                className="h-14 w-14 object-contain"
                             />
                             <div>
-                                <h1 className="text-lg font-semibold text-gray-900">
+                                <h1 className="text-lg font-semibold text-white">
                                     BKS PTN Wilayah Barat
                                 </h1>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-white">
                                     Sistem Informasi Penelitian & Pengabdian
                                     Masyarakat
                                 </p>
@@ -104,19 +242,29 @@ export default function WelcomeV2({
                 </header>
 
                 {/* Content Section */}
-                <section className="flex flex-1 items-center justify-center px-6 py-16">
-                    <div className="w-full max-w-6xl">
+                <section className="relative flex flex-1 items-center justify-center overflow-hidden px-6 py-16">
+                    {/* Background Logo */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-3">
+                        <img
+                            src="/images/bks-ptn-logo-bulat.png"
+                            alt=""
+                            className="w-full max-w-md object-contain"
+                        />
+                    </div>
+
+                    {/* Content */}
+                    <div className="relative z-10 w-full max-w-6xl">
                         <div className="grid items-center gap-16 lg:grid-cols-2">
                             {/* Left - Information */}
                             <div className="space-y-5">
                                 <h2 className="text-4xl leading-tight font-bold text-gray-900 lg:text-5xl">
-                                    Platform Kolaborasi
+                                    Kolaborasi
                                     <br />
                                     Riset & Pengabdian Masyarakat
                                 </h2>
                                 <p className="text-base leading-relaxed text-gray-600">
                                     Sistem informasi kolaborasi riset dan
-                                    pengabdian masyarakat antar perguruan tinggi
+                                    pengabdian masyarakat perguruan tinggi
                                     negeri wilayah barat
                                 </p>
 
@@ -159,7 +307,7 @@ export default function WelcomeV2({
                                     <div className="space-y-3 pt-2">
                                         <Link
                                             href={login()}
-                                            className="block w-full rounded-lg bg-blue-600 px-6 py-3 text-center font-semibold text-white transition hover:bg-blue-700"
+                                            className="block w-full rounded-full bg-[#03a4ed] px-6 py-3 text-center font-semibold text-white transition hover:bg-blue-700"
                                         >
                                             Masuk ke Sistem
                                         </Link>
@@ -167,7 +315,7 @@ export default function WelcomeV2({
                                         {canRegister && (
                                             <Link
                                                 href={register()}
-                                                className="block w-full rounded-lg border border-gray-300 px-6 py-3 text-center font-semibold text-gray-700 transition hover:border-gray-400 hover:bg-gray-50"
+                                                className="block w-full rounded-full border border-gray-300 bg-[#fe3f40] px-6 py-3 text-center font-semibold text-white transition hover:border-gray-400 hover:bg-[#fe3f3f]"
                                             >
                                                 Daftar Akun Baru
                                             </Link>
@@ -180,12 +328,11 @@ export default function WelcomeV2({
                 </section>
 
                 {/* Supported Universities - Logo Grid */}
-                <section className="border-t border-gray-200 bg-gray-50 py-12">
+                <section className="border-t border-gray-200 py-12">
                     <div className="mx-auto max-w-7xl px-6">
-                        {/* <h3 className="mb-8 text-center text-lg font-semibold text-gray-700">
-                            Didukung oleh 39 Perguruan Tinggi Negeri Wilayah
-                            Barat
-                        </h3> */}
+                        <h3 className="mb-8 text-center text-xl font-semibold text-[#202045]">
+                            Keanggotaan BKS PTN Wilayah Barat
+                        </h3>
 
                         <div className="grid grid-cols-3 items-center justify-items-center gap-6 lg:grid-cols-13">
                             {ptnList.map((ptn) => (
@@ -193,6 +340,13 @@ export default function WelcomeV2({
                                     key={ptn.name}
                                     className="group flex h-16 w-16 items-center justify-center lg:h-14 lg:w-14"
                                     title={ptn.name}
+                                    onClick={() =>
+                                        window.open(
+                                            ptn.link,
+                                            '_blank',
+                                            'noopener,noreferrer',
+                                        )
+                                    }
                                 >
                                     <img
                                         src={ptn.logo}
@@ -216,11 +370,11 @@ export default function WelcomeV2({
                 </section>
 
                 {/* Footer */}
-                <footer className="border-t border-gray-200 bg-white py-6">
+                <footer className="border-t border-gray-200 bg-[#212146] px-6 py-4">
                     <div className="mx-auto max-w-7xl px-6 text-center">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-white">
                             © 2025{' '}
-                            <span className="font-semibold text-gray-900">
+                            <span className="font-semibold text-white">
                                 Universitas Andalas
                             </span>{' '}
                             - BKS PTN Wilayah Barat
