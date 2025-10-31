@@ -307,7 +307,7 @@ export default function WelcomeV2({
                                     <div className="space-y-3 pt-2">
                                         <Link
                                             href={login()}
-                                            className="block w-full rounded-full bg-[#03a4ed] px-6 py-3 text-center font-semibold text-white transition hover:bg-blue-700"
+                                            className="block w-full rounded-full bg-blue-700 px-6 py-3 text-center font-semibold text-white transition hover:bg-blue-800"
                                         >
                                             Masuk ke Sistem
                                         </Link>
@@ -315,7 +315,7 @@ export default function WelcomeV2({
                                         {canRegister && (
                                             <Link
                                                 href={register()}
-                                                className="block w-full rounded-full border border-gray-300 bg-[#fe3f40] px-6 py-3 text-center font-semibold text-white transition hover:border-gray-400 hover:bg-[#fe3f3f]"
+                                                className="block w-full rounded-full border border-gray-300 px-6 py-3 text-center font-semibold transition hover:border-gray-400"
                                             >
                                                 Daftar Akun Baru
                                             </Link>
