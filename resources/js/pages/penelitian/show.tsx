@@ -23,7 +23,18 @@ type PageProps = SharedData & {
 };
 
 export default function PenelitianShow() {
-    const { penelitian } = usePage<PageProps>().props;
+    const { penelitian, auth } = usePage<PageProps>().props;
+    const roles = auth?.roles ?? [];
+    const isKetuaLppm = roles.includes('ketua-lppm');
+
+    const dashboardBreadcrumb = isKetuaLppm
+        ? { title: 'Dashboard Ketua LPPM', href: '/dashboard/ketua-lppm' }
+        : { title: 'Dashboard Admin PT', href: '/dashboard/admin-pt' };
+    const sectionBreadcrumb = {
+        title: isKetuaLppm ? 'Persetujuan Penelitian' : 'Index Semua Usulan',
+        href: '/admin/pt-penelitian',
+    };
+
     const statusNormalized = (penelitian.status ?? '').toLowerCase();
 
     const handleStatusChange = useCallback(
@@ -49,8 +60,8 @@ export default function PenelitianShow() {
     return (
         <AppHeaderLayout
             breadcrumbs={[
-                { title: 'Dashboard Admin PT', href: '/dashboard/admin-pt' },
-                { title: 'Index Semua Usulan', href: '/admin/pt-penelitian' },
+                dashboardBreadcrumb,
+                sectionBreadcrumb,
                 {
                     title: 'Detail Usulan',
                     href: `/admin/pt-penelitian/${penelitian.uuid}`,

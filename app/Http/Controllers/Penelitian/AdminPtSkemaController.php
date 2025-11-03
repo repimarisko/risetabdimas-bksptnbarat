@@ -60,7 +60,7 @@ class AdminPtSkemaController extends Controller
 
         return Inertia::render('penelitian/skema/index', [
             'breadcrumbs' => [
-                ['title' => 'Dashboard Admin PT', 'href' => '/dashboard/admin-pt'],
+                $this->resolveDashboardBreadcrumb($request),
                 ['title' => 'Kelola Skema', 'href' => '/admin/pt-skema'],
             ],
             'skema' => $skema,
@@ -77,7 +77,7 @@ class AdminPtSkemaController extends Controller
 
         return Inertia::render('penelitian/skema/create', [
             'breadcrumbs' => [
-                ['title' => 'Dashboard Admin PT', 'href' => '/dashboard/admin-pt'],
+                $this->resolveDashboardBreadcrumb($request),
                 ['title' => 'Kelola Skema', 'href' => '/admin/pt-skema'],
                 ['title' => 'Tambah Skema', 'href' => '/admin/pt-skema/create'],
             ],
@@ -145,5 +145,20 @@ class AdminPtSkemaController extends Controller
         return redirect()
             ->route('admin.pt-skema.index')
             ->with('success', 'Skema baru berhasil dibuat.');
+    }
+
+    protected function resolveDashboardBreadcrumb(Request $request): array
+    {
+        $user = $request->user();
+
+        if ($user?->hasRole('ketua-lppm')) {
+            return ['title' => 'Dashboard Ketua LPPM', 'href' => '/dashboard/ketua-lppm'];
+        }
+
+        if ($user?->hasRole('super-admin')) {
+            return ['title' => 'Dashboard Super Admin', 'href' => '/dashboard/super-admin'];
+        }
+
+        return ['title' => 'Dashboard Admin PT', 'href' => '/dashboard/admin-pt'];
     }
 }

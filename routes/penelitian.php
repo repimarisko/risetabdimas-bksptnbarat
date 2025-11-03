@@ -22,7 +22,7 @@ Route::middleware(['auth', 'verified', 'role:dosen'])
         Route::delete('/{ptPenelitian}', [PtPenelitianController::class, 'destroy'])->name('destroy');
     });
 
-Route::middleware(['auth', 'verified', 'role:admin-pt'])
+Route::middleware(['auth', 'verified', 'role:admin-pt|ketua-lppm'])
     ->prefix('admin/pt-penelitian')
     ->as('admin.pt-penelitian.')
     ->group(function () {
@@ -38,7 +38,7 @@ Route::middleware(['auth', 'verified'])
     ->prefix('admin/pt-skema')
     ->as('admin.pt-skema.')
     ->group(function () {
-        Route::middleware('role:admin-pt|super-admin')
+        Route::middleware('role:admin-pt|ketua-lppm|super-admin')
             ->get('/', [AdminPtSkemaController::class, 'index'])
             ->name('index');
 

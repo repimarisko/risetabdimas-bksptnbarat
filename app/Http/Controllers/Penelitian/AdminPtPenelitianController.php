@@ -40,8 +40,8 @@ class AdminPtPenelitianController extends Controller
         return Inertia::render('penelitian/preview', [
             ...$previewData,
             'breadcrumbs' => [
-                ['title' => 'Dashboard Admin PT', 'href' => '/dashboard/admin-pt'],
-                ['title' => 'Semua Usulan', 'href' => '/admin/pt-penelitian'],
+                $this->resolveDashboardBreadcrumb($request),
+                $this->resolveIndexBreadcrumb($request),
                 ['title' => 'Detail Usulan', 'href' => '#'],
             ],
             'backLink' => [
@@ -161,6 +161,32 @@ class AdminPtPenelitianController extends Controller
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+    }
+
+    protected function resolveDashboardBreadcrumb(Request $request): array
+    {
+        $user = $request->user();
+
+        if ($user?->hasRole('ketua-lppm')) {
+            return ['title' => 'Dashboard Ketua LPPM', 'href' => '/dashboard/ketua-lppm'];
+        }
+
+        if ($user?->hasRole('super-admin')) {
+            return ['title' => 'Dashboard Super Admin', 'href' => '/dashboard/super-admin'];
+        }
+
+        return ['title' => 'Dashboard Admin PT', 'href' => '/dashboard/admin-pt'];
+    }
+
+    protected function resolveIndexBreadcrumb(Request $request): array
+    {
+        $user = $request->user();
+
+        if ($user?->hasRole('ketua-lppm')) {
+            return ['title' => 'Persetujuan Penelitian', 'href' => '/admin/pt-penelitian'];
+        }
+
+        return ['title' => 'Semua Usulan', 'href' => '/admin/pt-penelitian'];
     }
 
     protected function authorizePerguruan(Request $request, PtPenelitian $ptPenelitian): void

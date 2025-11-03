@@ -56,7 +56,23 @@ function getStatusMeta(status?: string | null) {
 }
 
 export default function PenelitianIndexAll() {
-    const { penelitian } = usePage<PageProps>().props;
+    const { penelitian, auth } = usePage<PageProps>().props;
+    const roles = auth?.roles ?? [];
+    const isKetuaLppm = roles.includes('ketua-lppm');
+
+    const dashboardBreadcrumb = isKetuaLppm
+        ? { title: 'Dashboard Ketua LPPM', href: '/dashboard/ketua-lppm' }
+        : { title: 'Dashboard Admin PT', href: '/dashboard/admin-pt' };
+    const sectionBreadcrumb = {
+        title: isKetuaLppm ? 'Persetujuan Penelitian' : 'Index Semua Usulan',
+        href: '/admin/pt-penelitian',
+    };
+
+    const pageTitle = isKetuaLppm ? 'Persetujuan Usulan Penelitian' : 'Semua Usulan Penelitian';
+    const pageDescription = isKetuaLppm
+        ? 'Review dan tindak lanjuti usulan penelitian lintas perguruan tinggi sebelum diajukan ke pendanaan.'
+        : 'Pantau dan kelola seluruh usulan penelitian dari dosen Perguruan Tinggi Anda.';
+    const exportLabel = isKetuaLppm ? 'Unduh Rekap' : 'Export ke Excel';
 
     const handleDelete = useCallback((uuid: string) => {
         if (
@@ -86,13 +102,8 @@ export default function PenelitianIndexAll() {
     );
 
     return (
-        <AppHeaderLayout
-            breadcrumbs={[
-                { title: 'Dashboard Admin PT', href: '/dashboard/admin-pt' },
-                { title: 'Index Semua Usulan', href: '/admin/pt-penelitian' },
-            ]}
-        >
-            <Head title="Index Semua Usulan" />
+        <AppHeaderLayout breadcrumbs={[dashboardBreadcrumb, sectionBreadcrumb]}>
+            <Head title={sectionBreadcrumb.title} />
             <DashboardNav />
 
             <div className="bg-gray-50">
@@ -100,18 +111,15 @@ export default function PenelitianIndexAll() {
                     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                         <div>
                             <h1 className="text-2xl font-semibold text-gray-900">
-                                Semua Usulan Penelitian
+                                {pageTitle}
                             </h1>
-                            <p className="text-sm text-gray-500">
-                                Pantau dan kelola seluruh usulan penelitian dari dosen
-                                Perguruan Tinggi Anda.
-                            </p>
+                            <p className="text-sm text-gray-500">{pageDescription}</p>
                         </div>
                         <a
                             href="/admin/pt-penelitian/export"
                             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100"
                         >
-                            Export ke Excel
+                            {exportLabel}
                         </a>
                     </div>
 

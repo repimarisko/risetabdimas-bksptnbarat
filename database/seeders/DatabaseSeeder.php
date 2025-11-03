@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $roles = [
             'super-admin',
             'admin-pt',
+            'ketua-lppm',
             'dosen',
         ];
 
@@ -64,6 +65,12 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Admin PT POLNA',
                 'email' => 'adminpt.polna@example.com',
                 'uuid_pt' => '17d65870-9cb3-49c7-a095-0ebe65a0be43',
+            ],
+            [
+                'role' => 'ketua-lppm',
+                'name' => 'Ketua LPPM UCN',
+                'email' => 'ketua.lppm.ucn@example.com',
+                'uuid_pt' => $defaultPerguruanTinggi->uuid,
             ],
         ];
 

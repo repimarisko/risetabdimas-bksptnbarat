@@ -8,6 +8,7 @@ export default function DashboardNav() {
     const roles = auth.roles ?? [];
 
     const isDosen = roles.includes('dosen');
+    const isKetuaLppm = roles.includes('ketua-lppm');
     const isAdminPt = roles.includes('admin-pt');
     const isSuperAdmin = roles.includes('super-admin');
 
@@ -34,11 +35,13 @@ export default function DashboardNav() {
 
     const dashboardUrl = isSuperAdmin
         ? '/dashboard/super-admin'
-        : isAdminPt
-          ? '/dashboard/admin-pt'
-          : isDosen
-            ? '/dashboard/dosen'
-            : dashboard().url;
+        : isKetuaLppm
+          ? '/dashboard/ketua-lppm'
+          : isAdminPt
+            ? '/dashboard/admin-pt'
+            : isDosen
+              ? '/dashboard/dosen'
+              : dashboard().url;
 
     return (
         <div className="w-full bg-[#182e6b] text-white">
@@ -55,7 +58,7 @@ export default function DashboardNav() {
                     </div>
 
                     {/* Penelitian */}
-                    {(isDosen || isAdminPt) && (
+                    {(isDosen || isAdminPt || isKetuaLppm) && (
                         <div className="group relative flex items-center gap-2">
                             <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
                                 <FlaskConical className="h-5 w-5 text-white" />
@@ -113,6 +116,30 @@ export default function DashboardNav() {
                                                     {
                                                         name: 'Daftar Skema',
                                                         href: '/admin/pt-skema',
+                                                    },
+                                                ].map((item) => (
+                                                    <li key={item.name}>
+                                                        <Link
+                                                            href={item.href}
+                                                            className="hover:text-blue-700"
+                                                        >
+                                                            {item.name}
+                                                        </Link>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                    {isKetuaLppm && (
+                                        <div>
+                                            <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
+                                                Monitoring LPPM
+                                            </h4>
+                                            <ul className="space-y-2 text-sm text-gray-700">
+                                                {[
+                                                    {
+                                                        name: 'Persetujuan Penelitian',
+                                                        href: '/admin/pt-penelitian',
                                                     },
                                                 ].map((item) => (
                                                     <li key={item.name}>
