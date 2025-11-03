@@ -226,17 +226,17 @@ export default function PenelitianIndex() {
 
                         {filteredRows.length ? (
                             <div className="overflow-x-auto">
-                                <table className="min-w-full text-left text-sm text-gray-900">
+                                <table className="min-w-full table-fixed text-left text-sm text-gray-900">
                                     <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                                         <tr>
-                                            <th className="px-6 py-4">Usulan</th>
-                                            <th className="px-6 py-4">Status</th>
-                                            <th className="px-6 py-4">Pengusul</th>
-                                            <th className="px-6 py-4">Biaya Usulan</th>
-                                            <th className="px-6 py-4">Tahun</th>
-                                            <th className="px-6 py-4">Berkas</th>
-                                            <th className="px-6 py-4">Preview</th>
-                                            <th className="px-6 py-4">Aksi</th>
+                                            <th className="w-72 px-6 py-4">Usulan</th>
+                                            <th className="w-40 px-6 py-4">Status</th>
+                                            <th className="w-60 px-6 py-4">Pengusul</th>
+                                            <th className="w-56 px-6 py-4">Biaya Usulan</th>
+                                            <th className="w-20 px-6 py-4">Tahun</th>
+                                            <th className="w-64 px-6 py-4">Berkas</th>
+                                            <th className="w-32 px-6 py-4">Preview</th>
+                                            <th className="w-32 px-6 py-4">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
@@ -248,9 +248,13 @@ export default function PenelitianIndex() {
                                                     key={item.uuid}
                                                     className="bg-white transition hover:bg-gray-50"
                                                 >
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex flex-col">
-                                                            <span className="font-semibold text-gray-900">
+                                                    <td className="px-6 py-4 align-top">
+                                                        <div className="flex flex-col gap-1">
+                                                            <span
+                                                                className="font-semibold text-gray-900 break-words max-h-12 overflow-hidden"
+                                                                title={item.title}
+                                                                style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}
+                                                            >
                                                                 {item.title}
                                                             </span>
                                                             <span className="text-xs text-gray-500">
@@ -259,7 +263,7 @@ export default function PenelitianIndex() {
                                                             </span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4">
+                                                    <td className="px-6 py-4 align-top">
                                                         <span
                                                             className={cn(
                                                                 'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase',
@@ -269,7 +273,7 @@ export default function PenelitianIndex() {
                                                             {statusMeta.label}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4">
+                                                    <td className="px-6 py-4 align-top">
                                                         <div className="flex items-center gap-2">
                                                             <Avatar className="h-8 w-8 border border-gray-200">
                                                                 <AvatarImage
@@ -325,7 +329,7 @@ export default function PenelitianIndex() {
                                                             item.tahun ??
                                                             '—'}
                                                     </td>
-                                                    <td className="px-6 py-4">
+                                                    <td className="px-6 py-4 align-top">
                                                         <div className="space-y-1 text-sm">
                                                             {item.proposal_file_url ? (
                                                                 <a
@@ -428,7 +432,7 @@ function mapStatusToFilter(status?: string | null): FilterKey {
     const normalized = (status ?? '').toLowerCase();
 
     if (
-        ['selesai', 'completed', 'disetujui', 'approved'].some((keyword) =>
+        ['selesai', 'completed', 'disetujui', 'approved', 'mengajukan', 'mengaju'].some((keyword) =>
             normalized.includes(keyword),
         )
     ) {
@@ -459,6 +463,17 @@ function getStatusMeta(
     progressOverride?: number,
 ) {
     const bucket = mapStatusToFilter(status);
+    const normalizedStatus = (status ?? '').toLowerCase();
+
+    if (normalizedStatus.includes('menunggu') && normalizedStatus.includes('anggota')) {
+        return {
+            label: status ?? 'Menunggu Persetujuan Anggota',
+            badgeClass: 'bg-amber-500/15 text-amber-400',
+            progress: 20,
+            progressLabel: 'Menunggu Persetujuan',
+            progressBarClass: 'bg-amber-500',
+        };
+    }
 
     if (bucket === 'rejected') {
         return {

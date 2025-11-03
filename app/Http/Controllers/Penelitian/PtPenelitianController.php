@@ -122,6 +122,18 @@ class PtPenelitianController extends Controller
             ])
             ->toArray();
 
+        $komponenOptions = DB::table('ref_komponen_biaya')
+            ->select('id', 'nama_komponen', 'jenis', 'keterangan')
+            ->orderBy('nama_komponen')
+            ->get()
+            ->map(fn ($record) => [
+                'id' => $record->id,
+                'nama_komponen' => $record->nama_komponen,
+                'jenis' => $record->jenis,
+                'keterangan' => $record->keterangan,
+            ])
+            ->toArray();
+
         return Inertia::render('penelitian/create', [
             'skemaOptions' => $skemaOptions,
             'fokusOptions' => $fokusOptions,
@@ -129,6 +141,7 @@ class PtPenelitianController extends Controller
             'tktOptions' => $tktOptions,
             'dosenOptions' => $dosenOptions,
             'perguruanOptions' => $perguruanOptions,
+            'komponenOptions' => $komponenOptions,
         ]);
     }
 
@@ -142,6 +155,7 @@ class PtPenelitianController extends Controller
         $validated = $this->validatedData($request);
         $data = $validated['fields'];
         $anggotaPayload = $validated['anggota'];
+        $rabPayload = $validated['rab'];
         $ownerUuidPt = optional($request->user()->dosen)->uuid_pt
             ?? $request->user()->uuid_pt;
 
@@ -178,8 +192,11 @@ class PtPenelitianController extends Controller
             $proposalFilename,
             $lampiranPath,
             $lampiranFilename,
-            $anggotaPayload
+            $anggotaPayload,
+            $rabPayload
         ): void {
+            $data['status'] = 'Menunggu Persetujuan Anggota';
+
             $penelitian = PtPenelitian::create([
                 'uuid' => (string) Str::uuid(),
                 ...$data,
@@ -193,6 +210,16 @@ class PtPenelitianController extends Controller
             ]);
 
             $this->syncAnggota($penelitian, $anggotaPayload);
+            $this->syncRab($penelitian, $rabPayload);
+
+            $pendingApprovals = $this->initializeAnggotaApprovals($penelitian);
+
+            if ($pendingApprovals === 0) {
+                $penelitian->forceFill([
+                    'status' => 'Mengajukan',
+                    'updated_at' => now(),
+                ])->save();
+            }
         });
 
         return redirect()
@@ -217,6 +244,7 @@ class PtPenelitianController extends Controller
         $validated = $this->validatedData($request, true);
         $data = $validated['fields'];
         $anggotaPayload = $validated['anggota'];
+        $rabPayload = $validated['rab'];
         if (
             ($request->hasFile('proposal_file') || $request->hasFile('lampiran_file'))
             && ! $this->documentColumnsAvailable()
@@ -240,9 +268,21 @@ class PtPenelitianController extends Controller
             $data['lampiran_filename'] = $lampiranFile->getClientOriginalName();
         }
 
-        DB::transaction(function () use ($ptPenelitian, $data, $anggotaPayload): void {
+        DB::transaction(function () use ($ptPenelitian, $data, $anggotaPayload, $rabPayload): void {
             $ptPenelitian->update($data);
             $this->syncAnggota($ptPenelitian, $anggotaPayload);
+            $this->syncRab($ptPenelitian, $rabPayload);
+
+            $pendingApprovals = $this->initializeAnggotaApprovals($ptPenelitian);
+
+            if ($pendingApprovals === 0) {
+                $this->refreshPenelitianStatusAfterApprovals($ptPenelitian);
+            } else {
+                $ptPenelitian->forceFill([
+                    'status' => 'Menunggu Persetujuan Anggota',
+                    'updated_at' => now(),
+                ])->save();
+            }
         });
 
         return redirect()
@@ -274,6 +314,27 @@ class PtPenelitianController extends Controller
         );
     }
 
+    protected function authorizeOwnershipOrMembership(Request $request, PtPenelitian $ptPenelitian): void
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            abort(Response::HTTP_FORBIDDEN, 'Anda tidak diizinkan mengakses data ini.');
+        }
+
+        if ($ptPenelitian->created_by === $user->id) {
+            return;
+        }
+
+        $dosenUuid = optional($user->dosen)->uuid;
+
+        if ($dosenUuid && $ptPenelitian->anggota()->where('dosen_uuid', $dosenUuid)->exists()) {
+            return;
+        }
+
+        abort(Response::HTTP_FORBIDDEN, 'Anda tidak diizinkan mengakses data ini.');
+    }
+
     protected function validatedData(Request $request, bool $isUpdate = false): array
     {
         $validated = $request->validate([
@@ -300,15 +361,95 @@ class PtPenelitianController extends Controller
             'anggota.*.dosen_uuid' => ['required', 'string', 'exists:dosen,uuid'],
             'anggota.*.peran' => ['nullable', 'string', 'max:100'],
             'anggota.*.tugas' => ['nullable', 'string', 'max:255'],
+            'rab' => ['nullable', 'array'],
+            'rab.*.tahun' => ['required', 'integer', 'min:1', 'max:4'],
+            'rab.*.items' => ['required', 'array', 'min:1'],
+            'rab.*.items.*.id_komponen' => ['nullable', 'integer', 'exists:ref_komponen_biaya,id'],
+            'rab.*.items.*.nama_item' => ['required', 'string', 'max:255'],
+            'rab.*.items.*.jumlah_item' => ['nullable', 'numeric'],
+            'rab.*.items.*.harga_satuan' => ['nullable', 'numeric'],
+            'rab.*.items.*.total_biaya' => ['nullable', 'numeric'],
         ]);
 
         $anggota = $validated['anggota'] ?? [];
+        $normalizeNumber = static function ($value): ?float {
+            if ($value === null || $value === '') {
+                return null;
+            }
 
-        unset($validated['proposal_file'], $validated['lampiran_file'], $validated['anggota']);
+            return is_numeric($value) ? (float) $value : null;
+        };
+
+        $rabEntries = collect($validated['rab'] ?? [])
+            ->map(function (array $entry) use ($normalizeNumber) {
+                $year = isset($entry['tahun']) ? (int) $entry['tahun'] : 0;
+
+                if ($year < 1 || $year > 4) {
+                    return null;
+                }
+
+                $items = collect($entry['items'] ?? [])
+                    ->map(function (array $item) use ($normalizeNumber) {
+                        $name = trim((string) ($item['nama_item'] ?? ''));
+
+                        if ($name === '') {
+                            return null;
+                        }
+
+                        $component = isset($item['id_komponen']) && $item['id_komponen'] !== ''
+                            ? (int) $item['id_komponen']
+                            : null;
+                        $jumlah = $normalizeNumber($item['jumlah_item'] ?? null);
+                        $harga = $normalizeNumber($item['harga_satuan'] ?? null);
+                        $total = $normalizeNumber($item['total_biaya'] ?? null);
+
+                        if ($total === null && $jumlah !== null && $harga !== null) {
+                            $total = $jumlah * $harga;
+                        }
+
+                        return [
+                            'id_komponen' => $component,
+                            'nama_item' => $name,
+                            'jumlah_item' => $jumlah,
+                            'harga_satuan' => $harga,
+                            'total_biaya' => $total,
+                        ];
+                    })
+                    ->filter()
+                    ->values();
+
+                if ($items->isEmpty()) {
+                    return null;
+                }
+
+                return [
+                    'tahun' => $year,
+                    'items' => $items->all(),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        $totalsByYear = collect($rabEntries)
+            ->mapWithKeys(fn (array $entry) => [
+                (int) $entry['tahun'] => collect($entry['items'])
+                    ->sum(fn ($item) => $item['total_biaya'] ?? 0),
+            ]);
+
+        foreach ([1, 2, 3, 4] as $year) {
+            $field = "biaya_usulan_{$year}";
+            $validated[$field] = $totalsByYear->has($year)
+                ? (float) $totalsByYear->get($year)
+                : null;
+        }
+
+        unset($validated['proposal_file'], $validated['lampiran_file'], $validated['anggota'], $validated['rab']);
 
         return [
             'fields' => $validated,
             'anggota' => $anggota,
+            'rab' => $rabEntries,
         ];
     }
 
@@ -339,9 +480,9 @@ class PtPenelitianController extends Controller
         }
     }
 
-    public function preview(PtPenelitian $ptPenelitian): InertiaResponse
+    public function preview(Request $request, PtPenelitian $ptPenelitian): InertiaResponse
     {
-        $this->authorizeOwnership($ptPenelitian);
+        $this->authorizeOwnershipOrMembership($request, $ptPenelitian);
 
         $previewData = $this->buildPenelitianPreview($ptPenelitian);
 
@@ -419,6 +560,176 @@ class PtPenelitianController extends Controller
 
         if (! empty($records)) {
             PtPenelitianAnggota::insert($records);
+        }
+    }
+
+    protected function syncRab(PtPenelitian $ptPenelitian, array $rab): void
+    {
+        $tableMap = [
+            1 => 'pt_rab_tahun_1',
+            2 => 'pt_rab_tahun_2',
+            3 => 'pt_rab_tahun_3',
+            4 => 'pt_rab_tahun_4',
+        ];
+
+        foreach ($tableMap as $table) {
+            DB::table($table)
+                ->where('id_penelitian', $ptPenelitian->uuid)
+                ->delete();
+        }
+
+        if (empty($rab)) {
+            return;
+        }
+
+        $timestamp = now();
+
+        foreach ($rab as $entry) {
+            $year = (int) ($entry['tahun'] ?? 0);
+            $table = $tableMap[$year] ?? null;
+
+            if (! $table) {
+                continue;
+            }
+
+            $records = collect($entry['items'] ?? [])
+                ->map(fn (array $item) => [
+                    'id_penelitian' => $ptPenelitian->uuid,
+                    'id_komponen' => $item['id_komponen'],
+                    'nama_item' => $item['nama_item'],
+                    'jumlah_item' => $item['jumlah_item'],
+                    'harga_satuan' => $item['harga_satuan'],
+                    'total_biaya' => $item['total_biaya'],
+                    'id_satuan' => null,
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ])
+                ->values()
+                ->all();
+
+            if (! empty($records)) {
+                DB::table($table)->insert($records);
+            }
+        }
+    }
+
+    protected function initializeAnggotaApprovals(PtPenelitian $ptPenelitian): int
+    {
+        $anggotaCollection = $ptPenelitian->anggota()->get();
+
+        if ($anggotaCollection->isEmpty()) {
+            return 0;
+        }
+
+        $anggotaIds = $anggotaCollection->pluck('id');
+
+        DB::table('pt_penelitian_anggota_approvals')
+            ->whereIn('anggota_id', $anggotaIds)
+            ->delete();
+
+        $now = now();
+
+        $records = $anggotaCollection
+            ->map(function (PtPenelitianAnggota $anggota) use ($now) {
+                $peran = strtolower($anggota->peran ?? '');
+                $isKetua = str_contains($peran, 'ketua');
+
+                return [
+                    'anggota_id' => $anggota->id,
+                    'dosen_uuid' => $anggota->dosen_uuid,
+                    'status' => $isKetua ? 'approved' : 'pending',
+                    'approved_at' => $isKetua ? $now : null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            })
+            ->values();
+
+        if ($records->isEmpty()) {
+            return 0;
+        }
+
+        DB::table('pt_penelitian_anggota_approvals')->insert($records->all());
+
+        return $records->filter(fn ($record) => $record['status'] !== 'approved')->count();
+    }
+
+    protected function refreshPenelitianStatusAfterApprovals(PtPenelitian $ptPenelitian): void
+    {
+        $pendingCount = DB::table('pt_penelitian_anggota_approvals')
+            ->whereIn('anggota_id', $ptPenelitian->anggota()->pluck('id'))
+            ->where('status', 'pending')
+            ->count();
+
+        if ($pendingCount === 0) {
+            $ptPenelitian->forceFill([
+                'status' => 'Mengajukan',
+                'updated_at' => now(),
+            ])->save();
+        }
+    }
+
+    public function approveAnggota(Request $request, PtPenelitian $ptPenelitian): RedirectResponse
+    {
+        $this->authorizeAnggotaAccess($request, $ptPenelitian);
+
+        $dosenUuid = optional($request->user()->dosen)->uuid;
+
+        $anggota = $ptPenelitian->anggota()
+            ->where('dosen_uuid', $dosenUuid)
+            ->first();
+
+        if (! $anggota) {
+            abort(Response::HTTP_FORBIDDEN, 'Anda tidak terdaftar sebagai anggota penelitian ini.');
+        }
+
+        $approval = DB::table('pt_penelitian_anggota_approvals')
+            ->where('anggota_id', $anggota->id)
+            ->first();
+
+        if (! $approval) {
+            $this->initializeAnggotaApprovals($ptPenelitian);
+            $approval = DB::table('pt_penelitian_anggota_approvals')
+                ->where('anggota_id', $anggota->id)
+                ->first();
+        }
+
+        if ($approval && $approval->status === 'approved') {
+            return back()->with('success', 'Anda sudah menyetujui keikutsertaan dalam penelitian ini.');
+        }
+
+        DB::table('pt_penelitian_anggota_approvals')
+            ->updateOrInsert(
+                ['anggota_id' => $anggota->id],
+                [
+                    'dosen_uuid' => $anggota->dosen_uuid,
+                    'status' => 'approved',
+                    'approved_at' => now(),
+                    'updated_at' => now(),
+                    'created_at' => $approval?->created_at ?? now(),
+                ],
+            );
+
+        $ptPenelitian->refresh();
+        $this->refreshPenelitianStatusAfterApprovals($ptPenelitian);
+
+        return back()->with('success', 'Persetujuan keikutsertaan berhasil direkam.');
+    }
+
+    protected function authorizeAnggotaAccess(Request $request, PtPenelitian $ptPenelitian): void
+    {
+        $dosenUuid = optional($request->user()->dosen)->uuid;
+
+        if (! $dosenUuid) {
+            abort(Response::HTTP_FORBIDDEN, 'Profil dosen tidak ditemukan.');
+        }
+
+        $isAnggota = $ptPenelitian->anggota()
+            ->where('dosen_uuid', $dosenUuid)
+            ->exists();
+
+        if (! $isAnggota) {
+            abort(Response::HTTP_FORBIDDEN, 'Anda bukan anggota penelitian ini.');
         }
     }
 

@@ -1,10 +1,10 @@
 
-import { type ReactNode, useMemo, useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { type ReactNode, useCallback, useMemo, useState } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import DashboardNav from '@/components/DashboardNav';
 import { Download, FileText, FolderOpen, Users } from 'lucide-react';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type SharedData } from '@/types';
 
 type Penelitian = {
     uuid: string;
@@ -49,10 +49,20 @@ type BudgetItem = {
     value: number | null;
 };
 
+type RabDetailItem = {
+    id_komponen: number | null;
+    komponen: string | null;
+    nama_item: string | null;
+    jumlah_item: number | null;
+    harga_satuan: number | null;
+    total_biaya: number | null;
+};
+
 type BudgetSummary = {
     items: BudgetItem[];
     total_usulan: number;
     biaya_disetujui: number | null;
+    detail?: Record<string, RabDetailItem[]> | null;
 };
 
 type DokumenInfo = {
@@ -76,6 +86,10 @@ type AnggotaItem = {
         nidn: string | null;
         email: string | null;
     };
+    approval?: {
+        status: string | null;
+        approved_at: string | null;
+    } | null;
 };
 
 type PenelitianPreviewProps = {
@@ -120,6 +134,10 @@ const currencyFormatter = new Intl.NumberFormat('id-ID', {
     maximumFractionDigits: 0,
 });
 
+const numberFormatter = new Intl.NumberFormat('id-ID', {
+    maximumFractionDigits: 2,
+});
+
 const dateFormatter = new Intl.DateTimeFormat('id-ID', {
     day: '2-digit',
     month: 'long',
@@ -141,7 +159,10 @@ export default function PenelitianPreview({
     statusUrls = null,
     currentStatus,
 }: PenelitianPreviewProps) {
+    const { auth } = usePage<SharedData>().props;
+    const currentDosenUuid = auth?.user?.dosen?.uuid ?? null;
     const [activeTab, setActiveTab] = useState<(typeof TABS)[number]['key']>('data-penelitian');
+    const [isApproving, setIsApproving] = useState(false);
 
     const formattedCreatedAt = useMemo(() => {
         if (!penelitian.created_at) {
@@ -153,6 +174,20 @@ export default function PenelitianPreview({
     }, [penelitian.created_at]);
 
     const hasBudgetItems = budget.items.length > 0;
+    const budgetDetailEntries = useMemo(() => {
+        if (!budget?.detail) {
+            return [] as Array<{ year: string; label: string; items: RabDetailItem[] }>;
+        }
+
+        return Object.entries(budget.detail)
+            .map(([year, items]) => ({
+                year,
+                label: `Tahun ${year}`,
+                items: items ?? [],
+            }))
+            .sort((a, b) => Number(a.year) - Number(b.year));
+    }, [budget.detail]);
+    const hasBudgetDetail = budgetDetailEntries.length > 0;
 
     const normalizedStatus = (currentStatus ?? penelitian.status ?? '').toLowerCase();
     const isApproved = normalizedStatus.includes('setuj');
@@ -171,6 +206,41 @@ export default function PenelitianPreview({
             href: '/pt-penelitian',
             label: 'Kembali',
         };
+
+    const pendingApprovalForUser = useMemo(() => {
+        if (!currentDosenUuid) {
+            return null;
+        }
+
+        return (
+            anggota.find((item) => {
+                const status = (item.approval?.status ?? 'pending').toLowerCase();
+                const peran = (item.peran ?? '').toLowerCase();
+
+                return (
+                    item.dosen?.uuid === currentDosenUuid &&
+                    status === 'pending' &&
+                    !peran.includes('ketua')
+                );
+            }) ?? null
+        );
+    }, [anggota, currentDosenUuid]);
+
+    const handleApproveMembership = useCallback(() => {
+        if (!pendingApprovalForUser) {
+            return;
+        }
+
+        setIsApproving(true);
+        router.post(
+            `/pt-penelitian/${penelitian.uuid}/anggota-approve`,
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => setIsApproving(false),
+            },
+        );
+    }, [pendingApprovalForUser, penelitian.uuid]);
 
     const handleStatusChange = (action: 'approve' | 'reject') => {
         if (!canManageStatus || !statusUrls) {
@@ -202,6 +272,27 @@ export default function PenelitianPreview({
             <DashboardNav />
             <div className="bg-gray-50 min-h-screen">
                 <div className="mx-auto max-w-5xl px-4 py-10">
+                    {pendingApprovalForUser ? (
+                        <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                    <p className="font-semibold">Persetujuan Anda dibutuhkan.</p>
+                                    <p className="text-amber-700/90">
+                                        Anda tercatat sebagai anggota penelitian ini dan perlu menyetujui keikutsertaan sebelum proposal dapat diajukan.
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleApproveMembership}
+                                    disabled={isApproving}
+                                    className="inline-flex items-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:bg-amber-400"
+                                >
+                                    {isApproving ? 'Memproses...' : 'Setujui Keikutsertaan'}
+                                </button>
+                            </div>
+                        </div>
+                    ) : null}
+
                     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900">Detail Penelitian</h1>
@@ -336,6 +427,77 @@ export default function PenelitianPreview({
                                                     )}
                                                 </div>
                                             </div>
+                                            {hasBudgetDetail ? (
+                                                <div className="md:col-span-2">
+                                                    <span className="text-sm font-medium text-gray-500">
+                                                        Rincian Komponen Biaya
+                                                    </span>
+                                                    <div className="mt-4 space-y-4">
+                                                        {budgetDetailEntries.map(({ year, label, items }) => (
+                                                            <div key={year} className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+                                                                <div className="border-b border-gray-200 bg-white px-4 py-3">
+                                                                    <div className="flex items-center justify-between text-sm">
+                                                                        <span className="font-semibold text-gray-900">
+                                                                            {label}
+                                                                        </span>
+                                                                        <span className="text-indigo-600">
+                                                                            Total: {currencyFormatter.format(
+                                                                                items.reduce(
+                                                                                    (sum, item) =>
+                                                                                        sum + (item.total_biaya !== null
+                                                                                            ? Number(item.total_biaya)
+                                                                                            : 0),
+                                                                                    0,
+                                                                                ),
+                                                                            )}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="overflow-x-auto">
+                                                                    <table className="min-w-full divide-y divide-gray-200 text-sm text-gray-900">
+                                                                        <thead className="bg-gray-100 text-xs uppercase tracking-wide text-gray-600">
+                                                                            <tr>
+                                                                                <th className="px-4 py-3 text-left">Komponen</th>
+                                                                                <th className="px-4 py-3 text-left">Nama Item</th>
+                                                                                <th className="px-4 py-3 text-left">Jumlah</th>
+                                                                                <th className="px-4 py-3 text-left">Harga Satuan</th>
+                                                                                <th className="px-4 py-3 text-left">Total Biaya</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody className="divide-y divide-gray-200 bg-white">
+                                                                            {items.map((detail, index) => (
+                                                                                <tr key={`${year}-${index}`}>
+                                                                                    <td className="px-4 py-3">
+                                                                                        {detail.komponen || '—'}
+                                                                                    </td>
+                                                                                    <td className="px-4 py-3">
+                                                                                        {detail.nama_item || '—'}
+                                                                                    </td>
+                                                                                    <td className="px-4 py-3">
+                                                                                        {detail.jumlah_item !== null && !Number.isNaN(Number(detail.jumlah_item))
+                                                                                            ? numberFormatter.format(Number(detail.jumlah_item))
+                                                                                            : '—'}
+                                                                                    </td>
+                                                                                    <td className="px-4 py-3">
+                                                                                        {detail.harga_satuan !== null && !Number.isNaN(Number(detail.harga_satuan))
+                                                                                            ? currencyFormatter.format(Number(detail.harga_satuan))
+                                                                                            : '—'}
+                                                                                    </td>
+                                                                                    <td className="px-4 py-3 font-semibold text-gray-900">
+                                                                                        {detail.total_biaya !== null && !Number.isNaN(Number(detail.total_biaya))
+                                                                                            ? currencyFormatter.format(Number(detail.total_biaya))
+                                                                                            : '—'}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            ))}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ) : null}
                                         </div>
                                     </section>
                                 </div>
@@ -450,6 +612,7 @@ export default function PenelitianPreview({
                                                             <th className="px-4 py-3 text-left">Email</th>
                                                             <th className="px-4 py-3 text-left">Peran</th>
                                                             <th className="px-4 py-3 text-left">Tugas</th>
+                                                            <th className="px-4 py-3 text-left">Status</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-gray-100">
@@ -474,6 +637,17 @@ export default function PenelitianPreview({
                                                                 </td>
                                                                 <td className="px-4 py-3">
                                                                     {item.tugas ?? '—'}
+                                                                </td>
+                                                                <td className="px-4 py-3">
+                                                                    <ApprovalBadge
+                                                                        status={
+                                                                            (item.peran ?? '')
+                                                                                .toLowerCase()
+                                                                                .includes('ketua')
+                                                                                ? 'approved'
+                                                                                : item.approval?.status ?? 'pending'
+                                                                        }
+                                                                    />
                                                                 </td>
                                                             </tr>
                                                         ))}
@@ -534,6 +708,28 @@ export default function PenelitianPreview({
                 </div>
             </div>
         </AppHeaderLayout>
+    );
+}
+
+type ApprovalBadgeProps = {
+    status?: string | null;
+};
+
+function ApprovalBadge({ status }: ApprovalBadgeProps) {
+    const normalized = (status ?? 'pending').toLowerCase();
+
+    if (normalized === 'approved') {
+        return (
+            <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                Disetujui
+            </span>
+        );
+    }
+
+    return (
+        <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+            Menunggu Persetujuan
+        </span>
     );
 }
 

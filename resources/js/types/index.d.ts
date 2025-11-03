@@ -5,6 +5,8 @@ export interface Auth {
     user: User;
     roles: string[];
     permissions: string[];
+    pendingApprovals?: PendingApproval[];
+    pendingApprovalsCount?: number;
 }
 
 export interface BreadcrumbItem {
@@ -30,6 +32,16 @@ export interface SharedData {
     auth: Auth;
     sidebarOpen: boolean;
     [key: string]: unknown;
+}
+
+export interface PendingApproval {
+    id: number;
+    anggota_id: number;
+    penelitian_uuid: string;
+    title: string | null;
+    status?: string | null;
+    approval_status?: string | null;
+    created_at?: string | null;
 }
 
 export interface User {

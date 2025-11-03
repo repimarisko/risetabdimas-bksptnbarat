@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -44,6 +45,51 @@ class HandleInertiaRequests extends Middleware
             $user->load('dosen');
         }
 
+        $pendingApprovals = [];
+        $pendingApprovalsCount = 0;
+
+        $dosenUuid = optional($user)->dosen->uuid ?? null;
+
+        if ($dosenUuid) {
+            $pendingApprovals = DB::table('pt_penelitian_anggota_approvals as approvals')
+                ->join('pt_penelitian_anggotas as anggota', 'anggota.id', '=', 'approvals.anggota_id')
+                ->join('pt_penelitian as penelitian', 'penelitian.uuid', '=', 'anggota.penelitian_uuid')
+                ->select(
+                    'approvals.id',
+                    'approvals.anggota_id',
+                    'penelitian.uuid as penelitian_uuid',
+                    'penelitian.title',
+                    'penelitian.status as penelitian_status',
+                    'penelitian.created_at',
+                    'approvals.status as approval_status',
+                )
+                ->where('approvals.status', 'pending')
+                ->where('approvals.dosen_uuid', $dosenUuid)
+                ->orderByDesc('penelitian.created_at')
+                ->limit(10)
+                ->get()
+                ->map(function ($record) {
+                    $createdAt = $record->created_at;
+
+                    if ($createdAt && method_exists($createdAt, 'toDateTimeString')) {
+                        $createdAt = $createdAt->toDateTimeString();
+                    }
+
+                    return [
+                        'id' => (int) $record->id,
+                        'anggota_id' => (int) $record->anggota_id,
+                        'penelitian_uuid' => $record->penelitian_uuid,
+                        'title' => $record->title,
+                        'status' => $record->penelitian_status,
+                        'approval_status' => $record->approval_status,
+                        'created_at' => $createdAt ? (string) $createdAt : null,
+                    ];
+                })
+                ->toArray();
+
+            $pendingApprovalsCount = count($pendingApprovals);
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -52,6 +98,8 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
                 'roles' => $user?->getRoleNames()->toArray() ?? [],
                 'permissions' => $user?->getAllPermissions()->pluck('name')->toArray() ?? [],
+                'pendingApprovals' => $pendingApprovals,
+                'pendingApprovalsCount' => $pendingApprovalsCount,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

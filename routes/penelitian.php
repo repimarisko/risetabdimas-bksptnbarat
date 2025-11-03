@@ -12,6 +12,8 @@ Route::middleware(['auth', 'verified', 'role:dosen'])
         Route::get('/', [PtPenelitianController::class, 'index'])->name('index');
         Route::get('/create', [PtPenelitianController::class, 'create'])->name('create');
         Route::post('/', [PtPenelitianController::class, 'store'])->name('store');
+        Route::post('/{ptPenelitian}/anggota-approve', [PtPenelitianController::class, 'approveAnggota'])
+            ->name('approve-anggota');
         Route::get('/{ptPenelitian}/download/{type}', [PtPenelitianController::class, 'download'])
             ->whereIn('type', ['proposal', 'lampiran'])
             ->name('download');

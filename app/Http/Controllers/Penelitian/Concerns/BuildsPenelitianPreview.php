@@ -87,22 +87,40 @@ trait BuildsPenelitianPreview
                 ->filter()
                 ->sum(),
             'biaya_disetujui' => $ptPenelitian->biaya_disetujui,
+            'detail' => $this->resolveRabDetails($ptPenelitian),
         ];
 
-        $anggota = $ptPenelitian->anggota()
+        $anggotaRecords = $ptPenelitian->anggota()
             ->with(['dosen.user'])
+            ->get();
+
+        $approvalMap = DB::table('pt_penelitian_anggota_approvals')
+            ->whereIn('anggota_id', $anggotaRecords->pluck('id'))
             ->get()
-            ->map(fn ($anggota) => [
-                'id' => $anggota->id,
-                'peran' => $anggota->peran,
-                'tugas' => $anggota->tugas,
-                'dosen' => [
-                    'uuid' => $anggota->dosen?->uuid,
-                    'nama' => $anggota->dosen?->user?->name,
-                    'nidn' => $anggota->dosen?->nidn,
-                    'email' => $anggota->dosen?->email,
-                ],
-            ])
+            ->keyBy('anggota_id');
+
+        $anggota = $anggotaRecords
+            ->map(function ($anggota) use ($approvalMap) {
+                $approval = $approvalMap->get($anggota->id);
+
+                return [
+                    'id' => $anggota->id,
+                    'peran' => $anggota->peran,
+                    'tugas' => $anggota->tugas,
+                    'dosen' => [
+                        'uuid' => $anggota->dosen?->uuid,
+                        'nama' => $anggota->dosen?->user?->name,
+                        'nidn' => $anggota->dosen?->nidn,
+                        'email' => $anggota->dosen?->email,
+                    ],
+                    'approval' => $approval ? [
+                        'status' => $approval->status,
+                        'approved_at' => $approval->approved_at
+                            ? (string) $approval->approved_at
+                            : null,
+                    ] : null,
+                ];
+            })
             ->toArray();
 
         $penelitianData = $ptPenelitian->toArray();
@@ -124,5 +142,45 @@ trait BuildsPenelitianPreview
                 ],
             ],
         ];
+    }
+
+    protected function resolveRabDetails(PtPenelitian $ptPenelitian): array
+    {
+        $komponenMap = DB::table('ref_komponen_biaya')
+            ->select('id', 'nama_komponen')
+            ->pluck('nama_komponen', 'id')
+            ->toArray();
+
+        $tables = [
+            1 => 'pt_rab_tahun_1',
+            2 => 'pt_rab_tahun_2',
+            3 => 'pt_rab_tahun_3',
+            4 => 'pt_rab_tahun_4',
+        ];
+
+        $details = [];
+
+        foreach ($tables as $year => $table) {
+            $items = DB::table($table)
+                ->select('id_komponen', 'nama_item', 'jumlah_item', 'harga_satuan', 'total_biaya')
+                ->where('id_penelitian', $ptPenelitian->uuid)
+                ->orderBy('uuid')
+                ->get()
+                ->map(fn ($record) => [
+                    'id_komponen' => $record->id_komponen,
+                    'komponen' => $record->id_komponen ? ($komponenMap[$record->id_komponen] ?? null) : null,
+                    'nama_item' => $record->nama_item,
+                    'jumlah_item' => $record->jumlah_item,
+                    'harga_satuan' => $record->harga_satuan,
+                    'total_biaya' => $record->total_biaya,
+                ])
+                ->toArray();
+
+            if (! empty($items)) {
+                $details[$year] = $items;
+            }
+        }
+
+        return $details;
     }
 }
