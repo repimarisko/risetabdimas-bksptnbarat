@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Check } from 'lucide-react';
 import AppHeaderLayout from '@/layouts/app/app-header-layout';
@@ -62,6 +62,155 @@ type DosenSelectOption = {
     subtitle?: string | null;
     uuid_pt: string | null;
 };
+
+type SearchableSelectProps = {
+    value: string;
+    onChange: (value: string) => void;
+    options: Array<{ value: string; label: string; subtitle?: string | null }>;
+    placeholder?: string;
+    disabled?: boolean;
+    emptyMessage?: string;
+};
+
+function SearchableSelect({
+    value,
+    onChange,
+    options,
+    placeholder = 'Pilih...',
+    disabled = false,
+    emptyMessage = 'Tidak ada hasil',
+}: SearchableSelectProps) {
+    const [open, setOpen] = useState(false);
+    const [inputValue, setInputValue] = useState('');
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const selectedOption = useMemo(
+        () => options.find((option) => option.value === value),
+        [options, value],
+    );
+
+    useEffect(() => {
+        if (!open) {
+            setInputValue(selectedOption?.label ?? '');
+        }
+    }, [selectedOption, open]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                containerRef.current &&
+                !containerRef.current.contains(event.target as Node)
+            ) {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const filteredOptions = useMemo(() => {
+        const query = inputValue.trim().toLowerCase();
+        if (!query) {
+            return options;
+        }
+
+        return options.filter((option) => {
+            const labelMatch = option.label.toLowerCase().includes(query);
+            const subtitleMatch = (option.subtitle ?? '')
+                .toLowerCase()
+                .includes(query);
+            return labelMatch || subtitleMatch;
+        });
+    }, [inputValue, options]);
+
+    const handleSelect = (optionValue: string) => {
+        const selected = options.find((option) => option.value === optionValue);
+        onChange(optionValue);
+        setInputValue(selected?.label ?? '');
+        setOpen(false);
+    };
+
+    return (
+        <div ref={containerRef} className="relative">
+            <div className="relative">
+                <input
+                    type="text"
+                    value={open ? inputValue : selectedOption?.label ?? ''}
+                    onFocus={() => {
+                        if (disabled) {
+                            return;
+                        }
+                        setOpen(true);
+                        setInputValue(selectedOption?.label ?? '');
+                    }}
+                    onChange={(event) => {
+                        if (disabled) {
+                            return;
+                        }
+                        setInputValue(event.target.value);
+                        setOpen(true);
+                    }}
+                    placeholder={placeholder}
+                    disabled={disabled}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+                />
+                <button
+                    type="button"
+                    onClick={() => !disabled && setOpen((prev) => !prev)}
+                    className="absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
+                    tabIndex={-1}
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={`h-4 w-4 transition-transform ${
+                            open ? 'rotate-180' : ''
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                        />
+                    </svg>
+                </button>
+            </div>
+            {open && !disabled ? (
+                <div className="absolute z-20 mt-1 max-h-52 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+                    {filteredOptions.length ? (
+                        filteredOptions.map((option) => {
+                            const isSelected = option.value === value;
+                            return (
+                                <button
+                                    key={option.value}
+                                    type="button"
+                                    onMouseDown={(event) => event.preventDefault()}
+                                    onClick={() => handleSelect(option.value)}
+                                    className={`flex w-full flex-col items-start px-4 py-2 text-sm text-left transition hover:bg-indigo-50 ${
+                                        isSelected ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700'
+                                    }`}
+                                >
+                                    <span className="font-medium">{option.label}</span>
+                                    {option.subtitle ? (
+                                        <span className="text-xs text-gray-500">
+                                            {option.subtitle}
+                                        </span>
+                                    ) : null}
+                                </button>
+                            );
+                        })
+                    ) : (
+                        <div className="px-4 py-3 text-sm text-gray-500">{emptyMessage}</div>
+                    )}
+                </div>
+            ) : null}
+        </div>
+    );
+}
 
 type RabValues = Record<string, number | null>;
 
@@ -153,7 +302,7 @@ export default function PenelitianCreate() {
         );
     }, [rawPerguruanOptions]);
 
-    const perguruanSelectOptions = useMemo<SelectOption[]>(() => {
+    const perguruanSelectOptions = useMemo(() => {
         const availablePt = new Set(
             rawDosenOptions
                 .map((option) => option.uuid_pt)
@@ -704,40 +853,31 @@ export default function PenelitianCreate() {
                                 <label className="block text-xs font-medium text-gray-700 mb-1">
                                   Perguruan Tinggi
                                 </label>
-                                <select
+                                <SearchableSelect
                                   value={anggota.uuid_pt}
-                                  onChange={(e) => handleAnggotaChange(index, 'uuid_pt', e.target.value)}
-                                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                >
-                                  <option value="">Pilih perguruan tinggi...</option>
-                                  {perguruanSelectOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                      {option.label}
-                                    </option>
-                                  ))}
-                                </select>
+                                  onChange={(ptValue) => handleAnggotaChange(index, 'uuid_pt', ptValue)}
+                                  options={perguruanSelectOptions}
+                                  placeholder="Cari perguruan tinggi..."
+                                  emptyMessage="Perguruan tinggi tidak ditemukan"
+                                />
                               </div>
 
                               <div className="md:col-span-1">
                                 <label className="block text-xs font-medium text-gray-700 mb-1">
                                   Pilih Dosen
                                 </label>
-                                <select
+                                <SearchableSelect
                                   value={anggota.dosen_uuid}
-                                  onChange={(e) => handleAnggotaChange(index, 'dosen_uuid', e.target.value)}
+                                  onChange={(dosenValue) => handleAnggotaChange(index, 'dosen_uuid', dosenValue)}
+                                  options={dosenSelectOptions.filter((dosen) => dosen.uuid_pt === anggota.uuid_pt)}
+                                  placeholder={
+                                    anggota.uuid_pt
+                                      ? 'Cari dosen...'
+                                      : 'Pilih perguruan tinggi terlebih dahulu'
+                                  }
                                   disabled={!anggota.uuid_pt}
-                                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:cursor-not-allowed disabled:bg-gray-100"
-                                >
-                                  <option value="">{anggota.uuid_pt ? 'Pilih dosen...' : 'Pilih perguruan tinggi terlebih dahulu'}</option>
-                                  {dosenSelectOptions
-                                    .filter((dosen) => dosen.uuid_pt === anggota.uuid_pt)
-                                    .map((dosen) => (
-                                      <option key={dosen.value} value={dosen.value}>
-                                        {dosen.label}
-                                        {dosen.subtitle ? ` (${dosen.subtitle})` : ''}
-                                      </option>
-                                    ))}
-                                </select>
+                                  emptyMessage="Dosen tidak ditemukan"
+                                />
                               </div>
 
                               <div className="md:col-span-1">
