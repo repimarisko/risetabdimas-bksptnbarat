@@ -27,9 +27,17 @@ class PtPenelitianController extends Controller
     public function index(Request $request): InertiaResponse
     {
         $penelitian = PtPenelitian::query()
+            ->with('user')
             ->where('created_by', $request->user()->id)
+            ->orWhereHas('anggota', function ($query) use ($request) {
+                $query->where('dosen_uuid', optional($request->user()->dosen)->uuid);
+            })
             ->orderByDesc('created_at')
             ->paginate(10)
+            ->through(fn($item) => [
+                ...$item->toArray(),
+                'ketua_nama' => optional($item->user)->name,
+            ])
             ->withQueryString();
 
         $isVerified = $this->userVerified($request->user());
@@ -53,10 +61,10 @@ class PtPenelitianController extends Controller
         $skemaOptions = DB::table('ref_skema')
             ->select('uuid', 'nama', 'nama_singkat')
             ->whereNull('deleted_at')
-            ->where(fn ($query) => $query->whereNull('status')->orWhere('status', 'aktif'))
+            ->where(fn($query) => $query->whereNull('status')->orWhere('status', 'aktif'))
             ->orderBy('nama')
             ->get()
-            ->map(fn ($record) => [
+            ->map(fn($record) => [
                 'uuid' => $record->uuid,
                 'nama' => $record->nama,
                 'nama_singkat' => $record->nama_singkat,
@@ -67,7 +75,7 @@ class PtPenelitianController extends Controller
             ->select('uuid', 'fokus')
             ->orderBy('fokus')
             ->get()
-            ->map(fn ($record) => [
+            ->map(fn($record) => [
                 'uuid' => $record->uuid,
                 'fokus' => $record->fokus,
             ])
@@ -78,7 +86,7 @@ class PtPenelitianController extends Controller
             ->orderBy('level')
             ->orderBy('sdg')
             ->get()
-            ->map(fn ($record) => [
+            ->map(fn($record) => [
                 'uuid' => $record->uuid,
                 'sdg' => $record->sdg,
                 'level' => $record->level,
@@ -90,7 +98,7 @@ class PtPenelitianController extends Controller
             ->orderBy('level')
             ->orderBy('tkt')
             ->get()
-            ->map(fn ($record) => [
+            ->map(fn($record) => [
                 'uuid' => $record->uuid,
                 'tkt' => $record->tkt,
                 'level' => $record->level,
@@ -101,7 +109,7 @@ class PtPenelitianController extends Controller
             ->select('uuid', 'nama', 'nama_singkat')
             ->orderBy('nama')
             ->get()
-            ->map(fn ($record) => [
+            ->map(fn($record) => [
                 'uuid' => $record->uuid,
                 'nama' => $record->nama,
                 'nama_singkat' => $record->nama_singkat,
@@ -113,7 +121,7 @@ class PtPenelitianController extends Controller
             ->select('dosen.uuid', 'users.name', 'dosen.nidn', 'dosen.email', 'dosen.uuid_pt')
             ->orderBy('users.name')
             ->get()
-            ->map(fn ($record) => [
+            ->map(fn($record) => [
                 'uuid' => $record->uuid,
                 'nama' => $record->name,
                 'nidn' => $record->nidn,
@@ -126,7 +134,7 @@ class PtPenelitianController extends Controller
             ->select('id', 'nama_komponen', 'jenis', 'keterangan')
             ->orderBy('nama_komponen')
             ->get()
-            ->map(fn ($record) => [
+            ->map(fn($record) => [
                 'id' => $record->id,
                 'nama_komponen' => $record->nama_komponen,
                 'jenis' => $record->jenis,
@@ -432,9 +440,9 @@ class PtPenelitianController extends Controller
             ->all();
 
         $totalsByYear = collect($rabEntries)
-            ->mapWithKeys(fn (array $entry) => [
+            ->mapWithKeys(fn(array $entry) => [
                 (int) $entry['tahun'] => collect($entry['items'])
-                    ->sum(fn ($item) => $item['total_biaya'] ?? 0),
+                    ->sum(fn($item) => $item['total_biaya'] ?? 0),
             ]);
 
         foreach ([1, 2, 3, 4] as $year) {
@@ -511,8 +519,8 @@ class PtPenelitianController extends Controller
 
         $path = $type === 'proposal' ? $ptPenelitian->proposal_path : $ptPenelitian->lampiran_path;
         $filename = $type === 'proposal'
-            ? ($ptPenelitian->proposal_filename ?? 'proposal-'.$ptPenelitian->getKey())
-            : ($ptPenelitian->lampiran_filename ?? 'lampiran-'.$ptPenelitian->getKey());
+            ? ($ptPenelitian->proposal_filename ?? 'proposal-' . $ptPenelitian->getKey())
+            : ($ptPenelitian->lampiran_filename ?? 'lampiran-' . $ptPenelitian->getKey());
 
         abort_if(! $path, Response::HTTP_NOT_FOUND);
 
@@ -544,10 +552,10 @@ class PtPenelitianController extends Controller
         $timestamp = now();
 
         $anggotaCollection = collect($anggota)
-            ->filter(fn ($item) => filled($item['dosen_uuid'] ?? null));
+            ->filter(fn($item) => filled($item['dosen_uuid'] ?? null));
 
         $records = $anggotaCollection
-            ->map(fn ($item) => [
+            ->map(fn($item) => [
                 'penelitian_uuid' => $ptPenelitian->uuid,
                 'dosen_uuid' => $item['dosen_uuid'],
                 'peran' => $item['peran'] ?? null,
@@ -593,7 +601,7 @@ class PtPenelitianController extends Controller
             }
 
             $records = collect($entry['items'] ?? [])
-                ->map(fn (array $item) => [
+                ->map(fn(array $item) => [
                     'id_penelitian' => $ptPenelitian->uuid,
                     'id_komponen' => $item['id_komponen'],
                     'nama_item' => $item['nama_item'],
@@ -651,22 +659,22 @@ class PtPenelitianController extends Controller
 
         DB::table('pt_penelitian_anggota_approvals')->insert($records->all());
 
-        return $records->filter(fn ($record) => $record['status'] !== 'approved')->count();
+        return $records->filter(fn($record) => $record['status'] !== 'approved')->count();
     }
 
     protected function refreshPenelitianStatusAfterApprovals(PtPenelitian $ptPenelitian): void
     {
-        $pendingCount = DB::table('pt_penelitian_anggota_approvals')
-            ->whereIn('anggota_id', $ptPenelitian->anggota()->pluck('id'))
-            ->where('status', 'pending')
-            ->count();
+        // $pendingCount = DB::table('pt_penelitian_anggota_approvals')
+        //     ->whereIn('anggota_id', $ptPenelitian->anggota()->pluck('id'))
+        //     ->where('status', 'pending')
+        //     ->count();
 
-        if ($pendingCount === 0) {
-            $ptPenelitian->forceFill([
-                'status' => 'Mengajukan',
-                'updated_at' => now(),
-            ])->save();
-        }
+        // if ($pendingCount === 0) {
+        //     $ptPenelitian->forceFill([
+        //         'status' => 'Mengajukan',
+        //         'updated_at' => now(),
+        //     ])->save();
+        // }
     }
 
     public function approveAnggota(Request $request, PtPenelitian $ptPenelitian): RedirectResponse
@@ -711,7 +719,7 @@ class PtPenelitianController extends Controller
             );
 
         $ptPenelitian->refresh();
-        $this->refreshPenelitianStatusAfterApprovals($ptPenelitian);
+        // $this->refreshPenelitianStatusAfterApprovals($ptPenelitian);
 
         return back()->with('success', 'Persetujuan keikutsertaan berhasil direkam.');
     }
@@ -756,5 +764,4 @@ class PtPenelitianController extends Controller
             ->route('pt-penelitian.index')
             ->with('error', 'Akun Anda belum disetujui oleh admin PT. Silakan hubungi admin di perguruan tinggi Anda.');
     }
-
 }

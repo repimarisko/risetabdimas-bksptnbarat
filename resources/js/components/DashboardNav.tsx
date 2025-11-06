@@ -64,7 +64,7 @@ export default function DashboardNav() {
                                 <FlaskConical className="h-5 w-5 text-white" />
                             </span>
                             <button className="inline-flex items-center gap-1 hover:text-blue-200">
-                                Penelitian
+                                Usulan Regular
                                 <ChevronDown className="h-3.5 w-3.5" />
                             </button>
 
@@ -73,62 +73,101 @@ export default function DashboardNav() {
                                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
                                     {/* Penelitian - Dosen */}
                                     {isDosen && (
-                                        <div>
-                                            <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
-                                                Penelitian Dosen
-                                            </h4>
-                                            <ul className="space-y-2 text-sm text-gray-700">
-                                                {[
-                                                    {
-                                                        name: 'Usulan Regular',
-                                                        href: '/pt-penelitian',
-                                                    },
-                                                    {
-                                                        name: 'Buat Usulan',
-                                                        href: '/pt-penelitian/create',
-                                                    },
-                                                ].map((item) => (
-                                                    <li key={item.name}>
-                                                        <Link
-                                                            href={item.href}
-                                                            className="hover:text-blue-700"
-                                                        >
-                                                            {item.name}
-                                                        </Link>
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                        <div className="col-span-2 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                            <div>
+                                                <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
+                                                    Penelitian
+                                                </h4>
+                                                <ul className="space-y-2 text-sm text-gray-700">
+                                                    {[
+                                                        { name: 'Usulan', href: '/pt-penelitian' },
+                                                        { name: 'Perbaikan Usulan', href: '#' },
+                                                        { name: 'Laporan Kemajuan', href: '#' },
+                                                        { name: 'Catatan Harian', href: '#' },
+                                                        { name: 'Laporan Akhir',href: '#' },
+                                                        { name: 'Pengkinian Capaian Luaran',href: '#' },
+                                                       
+                                                    ].map((item) => (
+                                                        <li key={item.name}>
+                                                            <Link href={item.href} className="hover:text-blue-700">
+                                                                {item.name}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+
+                                            <div>
+                                                <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
+                                                    Pengabdian
+                                                </h4>
+                                                <ul className="space-y-2 text-sm text-gray-700">
+                                                    {[
+                                                        { name: 'Usulan', href: '/pt-pengabdian' },
+                                                        { name: 'Perbaikan Usulan', href: '#' },
+                                                        { name: 'Laporan Kemajuan',href: '#'},
+                                                        { name: 'Catatan Harian', href: '#'},
+                                                        { name: 'Laporan Akhir', href: '#' },
+                                                        { name: 'Pengkinian Capaian Luaran', href: '#' },
+                                                    
+                                                    ].map((item) => (
+                                                        <li key={item.name}>
+                                                            <Link href={item.href} className="hover:text-blue-700">
+                                                                {item.name}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
                                         </div>
                                     )}
 
                                     {/* Penelitian - Admin PT */}
                                     {isAdminPt && (
-                                        <div>
-                                            <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
-                                                Monitoring PT
-                                            </h4>
-                                            <ul className="space-y-2 text-sm text-gray-700">
-                                                {[
-                                                    {
-                                                        name: 'Usulan Penelitian',
-                                                        href: '/admin/pt-penelitian',
-                                                    },
-                                                    {
-                                                        name: 'Daftar Skema',
-                                                        href: '/admin/pt-skema',
-                                                    },
-                                                ].map((item) => (
-                                                    <li key={item.name}>
-                                                        <Link
-                                                            href={item.href}
-                                                            className="hover:text-blue-700"
-                                                        >
-                                                            {item.name}
-                                                        </Link>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
+                                        <>
+                                            <div>
+                                                <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
+                                                    Penelitian
+                                                </h4>
+                                                <ul className="space-y-2 text-sm text-gray-700">
+                                                    {[
+                                                        { name: 'Usulan Regular', href: '/admin/pt-penelitian' },
+                                                        { name: 'Catatan Harian', href: '/admin/pt-penelitian/catatan-harian' },
+                                                        { name: 'Perbaikan Usulan', href: '/admin/pt-penelitian/perbaikan' },
+                                                        { name: 'Laporan Kemajuan', href: '/admin/pt-penelitian/laporan-kemajuan' },
+                                                        { name: 'Laporan Akhir', href: '/admin/pt-penelitian/laporan-akhir' },
+                                                        { name: 'Monitoring Pelaksanaan', href: '/admin/pt-penelitian/monitoring' },
+                                                    ].map((item) => (
+                                                        <li key={item.name}>
+                                                            <Link href={item.href} className="hover:text-blue-700">
+                                                                {item.name}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                            <div>
+                                                <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
+                                                    Pengabdian
+                                                </h4>
+                                                <ul className="space-y-2 text-sm text-gray-700">
+                                                    {[
+                                                        { name: 'Usulan Regular', href: '/admin/pt-pengabdian' },
+                                                        { name: 'Catatan Harian', href: '/admin/pt-pengabdian/catatan-harian' },
+                                                        { name: 'Perbaikan Usulan', href: '/admin/pt-pengabdian/perbaikan' },
+                                                        { name: 'Laporan Kemajuan', href: '/admin/pt-pengabdian/laporan-kemajuan' },
+                                                        { name: 'Laporan Akhir', href: '/admin/pt-pengabdian/laporan-akhir' },
+                                                        { name: 'Monitoring Pelaksanaan', href: '/admin/pt-pengabdian/monitoring' },
+                                                    ].map((item) => (
+                                                        <li key={item.name}>
+                                                            <Link href={item.href} className="hover:text-blue-700">
+                                                                {item.name}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </>
                                     )}
                                     {isKetuaLppm && (
                                         <div>
@@ -156,6 +195,18 @@ export default function DashboardNav() {
                                     )}
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Skema Aktif - Admin PT */}
+                    {isAdminPt && (
+                        <div className="flex items-center gap-2">
+                            <Link
+                                href="/admin/pt-skema"
+                                className="inline-flex items-center gap-1 hover:text-blue-200"
+                            >
+                                Skema Aktif
+                            </Link>
                         </div>
                     )}
 
@@ -222,6 +273,14 @@ export default function DashboardNav() {
                                 className="inline-flex items-center gap-2 hover:text-blue-200"
                             >
                                 Skema
+                            </Link>
+                        )}
+                        {isAdminPt && (
+                            <Link
+                                href="/admin/pt-skema"
+                                className="inline-flex items-center gap-2 hover:text-blue-200"
+                            >
+                                Skema Aktif
                             </Link>
                         )}
 

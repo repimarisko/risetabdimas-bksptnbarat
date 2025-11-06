@@ -35,6 +35,7 @@ type PenelitianItem = {
     proposal_file_url?: string | null;
     lampiran_filename?: string | null;
     lampiran_file_url?: string | null;
+    ketua_nama?: string | null;
 };
 
 type PageProps = SharedData & {
@@ -46,12 +47,12 @@ type PageProps = SharedData & {
     isAccountVerified?: boolean;
 };
 
-type FilterKey = 'all' | 'completed' | 'in_progress' | 'in_review' | 'rejected';
+type FilterKey = 'all' | 'completed' |  'in_review' | 'rejected';
 
 const filterOptions: Array<{ key: FilterKey; label: string }> = [
     { key: 'all', label: 'All' },
     { key: 'completed', label: 'Mengajukan' },
-    { key: 'in_progress', label: 'Under Review' },
+   
     { key: 'rejected', label: 'Ditolak' },
     { key: 'in_review', label: 'Didanai' },
 ];
@@ -98,7 +99,7 @@ export default function PenelitianIndex() {
             {
                 all: 0,
                 completed: 0,
-                in_progress: 0,
+               
                 rejected: 0,
                 in_review: 0,
             } as Record<FilterKey, number> & { all: number },
@@ -279,25 +280,23 @@ export default function PenelitianIndex() {
                                                                 <AvatarImage
                                                                     src={undefined}
                                                                     alt={
-                                                                        auth.user
-                                                                            ?.name ??
-                                                                        'Pengusul'
+                                                                        item.ketua_nama ??
+                                                                        'Ketua'
                                                                     }
                                                                 />
                                                                 <AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
                                                                     {getInitials(
-                                                                        auth.user
-                                                                            ?.name ??
-                                                                            item.email_pengusul ??
-                                                                            'User',
+                                                                        item.ketua_nama ??
+                                                                        item.email_pengusul ??
+                                                                        'User',
                                                                     )}
                                                                 </AvatarFallback>
                                                             </Avatar>
                                                             <div>
                                                                 <p className="text-sm font-medium text-gray-900">
-                                                                    {auth.user?.name ??
+                                                                    {item.ketua_nama ??
                                                                         item.email_pengusul ??
-                                                                        'Pengusul'}
+                                                                        'Ketua'}
                                                                 </p>
                                                                 <p className="text-xs text-gray-500">
                                                                     {item.email_pengusul ?? '—'}
@@ -455,7 +454,7 @@ function mapStatusToFilter(status?: string | null): FilterKey {
         return 'in_review';
     }
 
-    return 'in_progress';
+  
 }
 
 function getStatusMeta(

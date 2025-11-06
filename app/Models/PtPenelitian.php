@@ -120,4 +120,8 @@ class PtPenelitian extends Model
 
         Storage::disk('public')->delete($path);
     }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'created_by', 'id');
+    }
 }
