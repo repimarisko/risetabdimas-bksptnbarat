@@ -6,6 +6,7 @@ use App\Models\RefPerguruanTinggi;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
@@ -104,6 +105,13 @@ class PtPenelitian extends Model
     public function perguruanTinggi(): BelongsTo
     {
         return $this->belongsTo(RefPerguruanTinggi::class, 'uuid_pt', 'uuid');
+    }
+
+    public function reviewers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'pt_penelitian_reviewer', 'penelitian_uuid', 'reviewer_id', 'uuid', 'id')
+            ->withTimestamps()
+            ->withPivot('assigned_at');
     }
 
     public function deleteStoredFile(string $type): void

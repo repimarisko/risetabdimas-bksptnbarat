@@ -110,9 +110,12 @@ function SearchableSelect({
     );
 
     useEffect(() => {
-        if (!open) {
-            setInputValue(selectedOption?.label ?? '');
+        if (open) {
+            setInputValue('');
+            return;
         }
+
+        setInputValue(selectedOption?.label ?? '');
     }, [selectedOption, open]);
 
     useEffect(() => {
@@ -162,7 +165,7 @@ function SearchableSelect({
                             return;
                         }
                         setOpen(true);
-                        setInputValue(selectedOption?.label ?? '');
+                        setInputValue('');
                     }}
                     onChange={(event) => {
                         if (disabled) {
@@ -177,7 +180,16 @@ function SearchableSelect({
                 />
                 <button
                     type="button"
-                    onClick={() => !disabled && setOpen((prev) => !prev)}
+                    onClick={() =>
+                        !disabled &&
+                        setOpen((prev) => {
+                            const next = !prev;
+                            if (next) {
+                                setInputValue('');
+                            }
+                            return next;
+                        })
+                    }
                     className="absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
                     tabIndex={-1}
                 >

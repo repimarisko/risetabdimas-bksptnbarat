@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Penelitian;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Penelitian\Concerns\BuildsPenelitianPreview;
 use App\Models\PtPenelitian;
+use App\Models\PtPenelitianReview;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -54,6 +57,13 @@ class AdminPtPenelitianController extends Controller
                 'reject' => route('admin.pt-penelitian.reject', $ptPenelitian),
             ],
             'currentStatus' => $ptPenelitian->status,
+            'reviewers' => $ptPenelitian->reviewers()
+                ->get(['users.id', 'users.name', 'users.email'])
+                ->map(fn(User $user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ]),
         ]);
     }
 
@@ -96,6 +106,79 @@ class AdminPtPenelitianController extends Controller
         return redirect()
             ->back()
             ->with('success', 'Usulan penelitian ditolak.');
+    }
+
+    public function reviewerAssignIndex(Request $request): InertiaResponse
+    {
+        $uuidPt = $request->user()->uuid_pt;
+
+        $rows = PtPenelitian::query()
+            ->when(
+                $uuidPt,
+                fn($query, $uuid) => $query->where('uuid_pt', $uuid),
+            )
+            ->whereRaw("LOWER(COALESCE(status, '')) LIKE '%disetujui%'")
+            ->orderByDesc('created_at')
+            ->with(['reviewers'])
+            ->get(['uuid', 'title', 'status', 'uuid_pt', 'created_at'])
+            ->map(function (PtPenelitian $item) {
+                return [
+                    'uuid' => $item->uuid,
+                    'title' => $item->title,
+                    'status' => $item->status,
+                    'created_at' => optional($item->created_at)?->toIso8601String(),
+                    'reviewers' => $item->reviewers->map(fn(User $user) => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                    ]),
+                ];
+            })
+            ->values()
+            ->all();
+
+        $availableReviewers = DB::table('model_has_roles')
+            ->join('users', 'users.id', '=', 'model_has_roles.model_id')
+            ->where('model_has_roles.model_type', '=', User::class)
+            ->where('model_has_roles.role_id', function ($query) {
+                $query->select('id')
+                    ->from('roles')
+                    ->where('name', 'reviewer')
+                    ->limit(1);
+            })
+            ->orderBy('users.name')
+            ->get(['users.id', 'users.name', 'users.email'])
+            ->map(fn($row) => [
+                'id' => (int) $row->id,
+                'name' => $row->name,
+                'email' => $row->email,
+            ]);
+
+        return Inertia::render('penelitian/assign-reviewers', [
+            'items' => $rows,
+            'reviewers' => $availableReviewers,
+            'breadcrumbs' => [
+                $this->resolveDashboardBreadcrumb($request),
+                ['title' => 'Assign Reviewer', 'href' => '#'],
+            ],
+        ]);
+    }
+
+    public function assignReviewer(Request $request, PtPenelitian $ptPenelitian): RedirectResponse
+    {
+        $this->authorizePerguruan($request, $ptPenelitian);
+
+        $data = $request->validate([
+            'reviewer_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $ptPenelitian->reviewers()->syncWithoutDetaching([
+            $data['reviewer_id'] => ['assigned_at' => now()],
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Reviewer berhasil ditugaskan.');
     }
 
     public function export(Request $request): StreamedResponse

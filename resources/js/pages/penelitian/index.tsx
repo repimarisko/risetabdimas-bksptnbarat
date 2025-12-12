@@ -18,6 +18,14 @@ import {
 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
+type ApprovalSummary = {
+    total: number;
+    approved: number;
+    pending: number;
+    missing: number;
+    all_approved: boolean;
+};
+
 type PenelitianItem = {
     uuid: string;
     title: string;
@@ -36,6 +44,8 @@ type PenelitianItem = {
     lampiran_filename?: string | null;
     lampiran_file_url?: string | null;
     ketua_nama?: string | null;
+    created_by?: number | null;
+    approval_summary?: ApprovalSummary;
 };
 
 type PageProps = SharedData & {
@@ -71,6 +81,7 @@ const dateFormatter = new Intl.DateTimeFormat('id-ID', {
 
 export default function PenelitianIndex() {
     const { penelitian, auth, submissionLocked = false, lockReason } = usePage<PageProps>().props;
+    const currentUserId = auth?.user?.id;
     const [query, setQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<FilterKey>('all');
 
@@ -85,6 +96,35 @@ export default function PenelitianIndex() {
 
         router.delete(`/pt-penelitian/${uuid}`);
     }, []);
+
+    const handleSubmitProposal = useCallback((uuid: string) => {
+        if (
+            !window.confirm(
+                'Ajukan usulan penelitian ini? Pastikan semua anggota sudah menyetujui.',
+            )
+        ) {
+            return;
+        }
+
+        router.patch(`/pt-penelitian/${uuid}/submit`, {}, {
+            preserveScroll: true,
+        });
+    }, []);
+
+    const canSubmitProposal = useCallback(
+        (item: PenelitianItem) => {
+            if (!currentUserId || item.created_by !== currentUserId) {
+                return false;
+            }
+
+            if (!item.approval_summary?.all_approved) {
+                return false;
+            }
+
+            return isAwaitingAnggotaApproval(item.status);
+        },
+        [currentUserId],
+    );
 
     const rows = useMemo(() => penelitian?.data ?? [], [penelitian]);
 
@@ -375,6 +415,15 @@ export default function PenelitianIndex() {
                                                         </Link>
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
+                                                        {canSubmitProposal(item) ? (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleSubmitProposal(item.uuid)}
+                                                                className="mb-2 inline-flex w-full items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-500 sm:w-auto"
+                                                            >
+                                                                Ajukan
+                                                            </button>
+                                                        ) : null}
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
                                                                 <button
@@ -427,11 +476,16 @@ export default function PenelitianIndex() {
     );
 }
 
+function isAwaitingAnggotaApproval(status?: string | null): boolean {
+    const normalized = (status ?? '').toLowerCase();
+    return normalized.includes('anggota') || normalized.includes('menunggu');
+}
+
 function mapStatusToFilter(status?: string | null): FilterKey {
     const normalized = (status ?? '').toLowerCase();
 
     if (
-        ['selesai', 'completed', 'disetujui', 'approved', 'mengajukan', 'mengaju'].some((keyword) =>
+        ['selesai', 'completed', 'disetujui', 'approved', 'mengajukan'].some((keyword) =>
             normalized.includes(keyword),
         )
     ) {
@@ -454,7 +508,7 @@ function mapStatusToFilter(status?: string | null): FilterKey {
         return 'in_review';
     }
 
-  
+    return 'in_review';
 }
 
 function getStatusMeta(

@@ -7,7 +7,9 @@ use App\Http\Controllers\Penelitian\Concerns\BuildsPenelitianPreview;
 use App\Models\Dosen;
 use App\Models\PtPenelitian;
 use App\Models\PtPenelitianAnggota;
+use App\Models\PtPenelitianReview;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -24,21 +26,45 @@ class PtPenelitianController extends Controller
 {
     use BuildsPenelitianPreview;
 
+    public const REVIEW_RECOMMENDATIONS = [
+        'diterima' => 'Diterima',
+        'revisi' => 'Perlu Revisi',
+        'ditolak' => 'Ditolak',
+    ];
+
     public function index(Request $request): InertiaResponse
     {
         $penelitian = PtPenelitian::query()
             ->with('user')
-            ->where('created_by', $request->user()->id)
-            ->orWhereHas('anggota', function ($query) use ($request) {
-                $query->where('dosen_uuid', optional($request->user()->dosen)->uuid);
+            ->where(function ($query) use ($request): void {
+                $query->where('created_by', $request->user()->id)
+                    ->orWhereHas('anggota', function ($anggotaQuery) use ($request): void {
+                        $anggotaQuery->where('dosen_uuid', optional($request->user()->dosen)->uuid);
+                    });
             })
             ->orderByDesc('created_at')
             ->paginate(10)
-            ->through(fn($item) => [
+            ->withQueryString();
+
+        $approvalSummaries = $this->resolveApprovalSummaries(
+            $penelitian->getCollection()->pluck('uuid'),
+        );
+
+        $penelitian = $penelitian->through(function ($item) use ($approvalSummaries) {
+            $summary = $approvalSummaries[$item->uuid] ?? [
+                'total' => 0,
+                'approved' => 0,
+                'pending' => 0,
+                'missing' => 0,
+                'all_approved' => false,
+            ];
+
+            return [
                 ...$item->toArray(),
                 'ketua_nama' => optional($item->user)->name,
-            ])
-            ->withQueryString();
+                'approval_summary' => $summary,
+            ];
+        });
 
         $isVerified = $this->userVerified($request->user());
 
@@ -151,6 +177,114 @@ class PtPenelitianController extends Controller
             'perguruanOptions' => $perguruanOptions,
             'komponenOptions' => $komponenOptions,
         ]);
+    }
+
+    public function perbaikan(Request $request): InertiaResponse
+    {
+        $user = $request->user();
+        $keywords = ['perbaikan', 'revisi', 'koreksi'];
+
+        $items = PtPenelitian::query()
+            ->where('created_by', $user->id)
+            ->where(function ($query) use ($keywords): void {
+                foreach ($keywords as $keyword) {
+                    $query->orWhereRaw(
+                        'LOWER(COALESCE(status, \'\')) LIKE ?',
+                        ['%' . Str::lower($keyword) . '%']
+                    );
+                }
+            })
+            ->when(
+                Schema::hasColumn('pt_penelitian', 'updated_at'),
+                fn($query) => $query->orderByDesc('updated_at'),
+                fn($query) => $query
+            )
+            ->orderByDesc('created_at')
+            ->get([
+                'uuid',
+                'title',
+                'status',
+                'created_at',
+                'tahun',
+                'tahun_pelaksanaan',
+                'biaya_usulan_1',
+                'biaya_usulan_2',
+                'biaya_usulan_3',
+                'biaya_usulan_4',
+            ])
+            ->map(function (PtPenelitian $item) {
+                $usulanValues = collect([
+                    $item->biaya_usulan_1,
+                    $item->biaya_usulan_2,
+                    $item->biaya_usulan_3,
+                    $item->biaya_usulan_4,
+                ])->filter();
+
+
+                return [
+                    'uuid' => $item->uuid,
+                    'title' => $item->title,
+                    'status' => $item->status,
+                    'created_at' => Carbon::make($item->created_at)?->toIso8601String(),
+                    'tahun' => $item->tahun,
+                    'tahun_pelaksanaan' => $item->tahun_pelaksanaan,
+                    'total_usulan' => $usulanValues->sum(),
+                ];
+            })
+            ->values()
+            ->all();
+
+        return Inertia::render('penelitian/perbaikan', [
+            'items' => $items,
+        ]);
+    }
+
+    public function reviewForm(Request $request, PtPenelitian $ptPenelitian): InertiaResponse
+    {
+        $this->authorizeReviewer($request);
+
+        $preview = $this->buildPenelitianPreview($ptPenelitian);
+        $review = PtPenelitianReview::query()
+            ->where('penelitian_uuid', $ptPenelitian->uuid)
+            ->where('reviewer_id', $request->user()->id)
+            ->first();
+
+        return Inertia::render('penelitian/review', [
+            ...$preview,
+            'review' => $review,
+            'recommendationOptions' => self::REVIEW_RECOMMENDATIONS,
+            'breadcrumbs' => [
+                ['title' => 'Dashboard Reviewer', 'href' => '/dashboard/reviewer'],
+                ['title' => 'Review Usulan', 'href' => '#'],
+            ],
+        ]);
+    }
+
+    public function reviewSubmit(Request $request, PtPenelitian $ptPenelitian): RedirectResponse
+    {
+        $this->authorizeReviewer($request);
+
+        $data = $request->validate([
+            'rekomendasi' => 'nullable|string|max:50',
+            'skor_kualitas' => 'nullable|integer|min:0|max:100',
+            'skor_rab' => 'nullable|integer|min:0|max:100',
+            'catatan_umum' => 'nullable|string',
+            'catatan_rab' => 'nullable|string',
+        ]);
+
+        PtPenelitianReview::updateOrCreate(
+            [
+                'penelitian_uuid' => $ptPenelitian->uuid,
+                'reviewer_id' => $request->user()->id,
+            ],
+            [
+                ...$data,
+            ],
+        );
+
+        return redirect()
+            ->route('reviewer.pt-penelitian.review', $ptPenelitian)
+            ->with('success', 'Review berhasil disimpan.');
     }
 
     public function store(Request $request): RedirectResponse
@@ -311,6 +445,39 @@ class PtPenelitianController extends Controller
         return redirect()
             ->route('pt-penelitian.index')
             ->with('success', 'Usulan penelitian berhasil dihapus.');
+    }
+
+    public function submit(Request $request, PtPenelitian $ptPenelitian): RedirectResponse
+    {
+        $this->authorizeOwnership($ptPenelitian);
+
+        $summary = $this->resolveApprovalSummaries([$ptPenelitian->uuid])[$ptPenelitian->uuid] ?? [
+            'pending' => 0,
+            'missing' => 0,
+            'all_approved' => false,
+        ];
+
+        $status = strtolower($ptPenelitian->status ?? '');
+        $isWaitingForAnggota = str_contains($status, 'menunggu') || str_contains($status, 'anggota');
+
+        if (! $isWaitingForAnggota && str_contains($status, 'mengaju')) {
+            return back()->with('success', 'Usulan sudah berstatus Mengajukan.');
+        }
+
+        if (! ($summary['all_approved'] ?? false)) {
+            return back()->with('error', 'Masih ada anggota yang belum menyetujui usulan.');
+        }
+
+        if (! $isWaitingForAnggota && $status) {
+            return back()->with('error', 'Status usulan tidak dapat diubah ke Mengajukan.');
+        }
+
+        $ptPenelitian->forceFill([
+            'status' => 'Mengajukan',
+            'updated_at' => now(),
+        ])->save();
+
+        return back()->with('success', 'Status usulan diubah menjadi Mengajukan.');
     }
 
     protected function authorizeOwnership(PtPenelitian $ptPenelitian): void
@@ -724,6 +891,49 @@ class PtPenelitianController extends Controller
         return back()->with('success', 'Persetujuan keikutsertaan berhasil direkam.');
     }
 
+    protected function resolveApprovalSummaries(iterable $penelitianUuids): array
+    {
+        $uuids = collect($penelitianUuids)->filter()->values();
+
+        if ($uuids->isEmpty()) {
+            return [];
+        }
+
+        return DB::table('pt_penelitian_anggotas as anggota')
+            ->leftJoin(
+                'pt_penelitian_anggota_approvals as approvals',
+                'approvals.anggota_id',
+                '=',
+                'anggota.id'
+            )
+            ->select(
+                'anggota.penelitian_uuid',
+                DB::raw('count(anggota.id) as anggota_count'),
+                DB::raw("sum(case when approvals.status = 'approved' then 1 else 0 end) as approved_count"),
+                DB::raw("sum(case when approvals.status = 'pending' then 1 else 0 end) as pending_count"),
+                DB::raw("sum(case when approvals.id is null then 1 else 0 end) as missing_count"),
+            )
+            ->whereIn('anggota.penelitian_uuid', $uuids)
+            ->groupBy('anggota.penelitian_uuid')
+            ->get()
+            ->mapWithKeys(function ($row) {
+                $total = (int) $row->anggota_count;
+                $pending = (int) $row->pending_count;
+                $missing = (int) $row->missing_count;
+
+                return [
+                    $row->penelitian_uuid => [
+                        'total' => $total,
+                        'approved' => (int) $row->approved_count,
+                        'pending' => $pending,
+                        'missing' => $missing,
+                        'all_approved' => ($pending + $missing) === 0 && $total >= 0,
+                    ],
+                ];
+            })
+            ->toArray();
+    }
+
     protected function authorizeAnggotaAccess(Request $request, PtPenelitian $ptPenelitian): void
     {
         $dosenUuid = optional($request->user()->dosen)->uuid;
@@ -739,6 +949,15 @@ class PtPenelitianController extends Controller
         if (! $isAnggota) {
             abort(Response::HTTP_FORBIDDEN, 'Anda bukan anggota penelitian ini.');
         }
+    }
+
+    protected function authorizeReviewer(Request $request): void
+    {
+        if ($request->user()?->hasRole('reviewer')) {
+            return;
+        }
+
+        abort(Response::HTTP_FORBIDDEN, 'Akses reviewer diperlukan.');
     }
 
     protected function userVerified(?User $user): bool

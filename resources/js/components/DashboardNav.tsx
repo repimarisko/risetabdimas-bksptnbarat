@@ -1,6 +1,6 @@
 import { dashboard } from '@/routes';
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, ChevronDown, FlaskConical, Home } from 'lucide-react';
+import {  ChevronDown, FlaskConical, Home } from 'lucide-react';
 import { type SharedData } from '@/types';
 
 export default function DashboardNav() {
@@ -12,26 +12,7 @@ export default function DashboardNav() {
     const isAdminPt = roles.includes('admin-pt');
     const isSuperAdmin = roles.includes('super-admin');
 
-    const pendingApprovals = auth.pendingApprovals ?? [];
-    const pendingApprovalsCount = auth.pendingApprovalsCount ?? pendingApprovals.length;
 
-    const formatNotificationDate = (value?: string | null): string => {
-        if (!value) {
-            return '-';
-        }
-
-        const date = new Date(value);
-
-        if (Number.isNaN(date.getTime())) {
-            return '-';
-        }
-
-        return date.toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-        });
-    };
 
     const dashboardUrl = isSuperAdmin
         ? '/dashboard/super-admin'
@@ -81,7 +62,7 @@ export default function DashboardNav() {
                                                 <ul className="space-y-2 text-sm text-gray-700">
                                                     {[
                                                         { name: 'Usulan', href: '/pt-penelitian' },
-                                                        { name: 'Perbaikan Usulan', href: '#' },
+                                                        { name: 'Perbaikan Usulan', href: '/pt-penelitian/perbaikan' },
                                                         { name: 'Laporan Kemajuan', href: '#' },
                                                         { name: 'Catatan Harian', href: '#' },
                                                         { name: 'Laporan Akhir',href: '#' },
@@ -123,7 +104,7 @@ export default function DashboardNav() {
                                     )}
 
                                     {/* Penelitian - Admin PT */}
-                                    {isAdminPt && (
+                                    {(isAdminPt || isSuperAdmin) && (
                                         <>
                                             <div>
                                                 <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
@@ -132,6 +113,7 @@ export default function DashboardNav() {
                                                 <ul className="space-y-2 text-sm text-gray-700">
                                                     {[
                                                         { name: 'Usulan Regular', href: '/admin/pt-penelitian' },
+                                                        { name: 'Assign Reviewer', href: '/admin/pt-penelitian/assign-reviewer' },
                                                         { name: 'Catatan Harian', href: '/admin/pt-penelitian/catatan-harian' },
                                                         { name: 'Perbaikan Usulan', href: '/admin/pt-penelitian/perbaikan' },
                                                         { name: 'Laporan Kemajuan', href: '/admin/pt-penelitian/laporan-kemajuan' },
@@ -211,52 +193,7 @@ export default function DashboardNav() {
                     )}
 
                     <div className="ml-auto flex items-center gap-6">
-                        {isDosen && (
-                            <div className="group relative">
-                                <button
-                                    type="button"
-                                    className="flex items-center gap-2 text-sm hover:text-blue-200 focus:outline-none"
-                                >
-                                    <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10">
-                                        <Bell className="h-5 w-5 text-white" />
-                                        {pendingApprovalsCount > 0 ? (
-                                            <span className="absolute -top-1 -right-1 inline-flex min-h-[1.1rem] min-w-[1.1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[0.625rem] font-semibold leading-none text-white">
-                                                {pendingApprovalsCount}
-                                            </span>
-                                        ) : null}
-                                    </span>
-                                    <span className="hidden sm:inline">Persetujuan</span>
-                                </button>
-
-                                <div className="invisible absolute right-0 top-full z-50 mt-3 w-80 translate-y-1 rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-700 opacity-0 shadow-xl transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                                    <h4 className="mb-3 text-sm font-semibold text-gray-900">
-                                        Menunggu Persetujuan Anggota
-                                    </h4>
-                                    {pendingApprovalsCount > 0 ? (
-                                        <ul className="space-y-3">
-                                            {pendingApprovals.map((approval) => (
-                                                <li key={approval.id} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                                    <div className="font-semibold text-gray-900 line-clamp-2" title={approval.title ?? 'Usulan Penelitian'}>
-                                                        {approval.title ?? 'Usulan Penelitian'}
-                                                    </div>
-                                                    <div className="mt-1 text-xs text-gray-500">
-                                                        Dibuat: {formatNotificationDate(approval.created_at)}
-                                                    </div>
-                                                    <Link
-                                                        href={`/pt-penelitian/${approval.penelitian_uuid}/preview`}
-                                                        className="mt-2 inline-flex items-center text-xs font-semibold text-indigo-600 transition hover:text-indigo-500"
-                                                    >
-                                                        Lihat Detail
-                                                    </Link>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p className="text-xs text-gray-500">Tidak ada persetujuan yang menunggu.</p>
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                       
 
                         {isAdminPt && (
                             <Link
