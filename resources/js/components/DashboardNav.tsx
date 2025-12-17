@@ -12,7 +12,13 @@ export default function DashboardNav() {
     const isAdminPt = roles.includes('admin-pt');
     const isSuperAdmin = roles.includes('super-admin');
 
-
+    const menuPermissions = new Set(
+        (auth.permissions ?? []).filter((permission) =>
+            permission.startsWith('menu:'),
+        ),
+    );
+    const canAccessMenu = (key: string, fallback: boolean) =>
+        menuPermissions.size > 0 ? menuPermissions.has(`menu:${key}`) : fallback;
 
     const dashboardUrl = isSuperAdmin
         ? '/dashboard/super-admin'
@@ -23,6 +29,15 @@ export default function DashboardNav() {
             : isDosen
               ? '/dashboard/dosen'
               : dashboard().url;
+
+    const showDosenPenelitian = isDosen && canAccessMenu('pt-penelitian-dosen', isDosen);
+    const showAdminPenelitian = (isAdminPt || isSuperAdmin) && canAccessMenu('pt-penelitian-admin', isAdminPt || isSuperAdmin);
+    const showAssignReviewer = (isAdminPt || isSuperAdmin) && canAccessMenu('assign-reviewer', isAdminPt || isSuperAdmin);
+    const showApprovals = isAdminPt && canAccessMenu('user-approvals', isAdminPt);
+    const showSkema = isSuperAdmin && canAccessMenu('skema', isSuperAdmin);
+    const showSkemaAktif = isAdminPt && canAccessMenu('skema', isAdminPt);
+    const showRoleAssignment = isSuperAdmin && canAccessMenu('role-assignment', isSuperAdmin);
+    const showRoleMenus = isSuperAdmin && canAccessMenu('role-menus', isSuperAdmin);
 
     return (
         <div className="w-full bg-[#182e6b] text-white">
@@ -39,7 +54,7 @@ export default function DashboardNav() {
                     </div>
 
                     {/* Penelitian */}
-                    {(isDosen || isAdminPt || isKetuaLppm) && (
+                    {(showDosenPenelitian || showAdminPenelitian || isKetuaLppm) && (
                         <div className="group relative flex items-center gap-2">
                             <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
                                 <FlaskConical className="h-5 w-5 text-white" />
@@ -53,7 +68,7 @@ export default function DashboardNav() {
                             <div className="invisible absolute top-full left-0 z-50 mt-2 w-[calc(100vw-2rem)] max-w-[1200px] translate-y-1 rounded-xl border border-gray-200 bg-white p-6 opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
                                     {/* Penelitian - Dosen */}
-                                    {isDosen && (
+                                    {showDosenPenelitian && (
                                         <div className="col-span-2 grid grid-cols-1 gap-6 sm:grid-cols-2">
                                             <div>
                                                 <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
@@ -104,7 +119,7 @@ export default function DashboardNav() {
                                     )}
 
                                     {/* Penelitian - Admin PT */}
-                                    {(isAdminPt || isSuperAdmin) && (
+                                    {(showAdminPenelitian || showAssignReviewer) && (
                                         <>
                                             <div>
                                                 <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
@@ -112,14 +127,14 @@ export default function DashboardNav() {
                                                 </h4>
                                                 <ul className="space-y-2 text-sm text-gray-700">
                                                     {[
-                                                        { name: 'Usulan Regular', href: '/admin/pt-penelitian' },
-                                                        { name: 'Assign Reviewer', href: '/admin/pt-penelitian/assign-reviewer' },
-                                                        { name: 'Catatan Harian', href: '/admin/pt-penelitian/catatan-harian' },
-                                                        { name: 'Perbaikan Usulan', href: '/admin/pt-penelitian/perbaikan' },
-                                                        { name: 'Laporan Kemajuan', href: '/admin/pt-penelitian/laporan-kemajuan' },
-                                                        { name: 'Laporan Akhir', href: '/admin/pt-penelitian/laporan-akhir' },
-                                                        { name: 'Monitoring Pelaksanaan', href: '/admin/pt-penelitian/monitoring' },
-                                                    ].map((item) => (
+                                                        { name: 'Usulan Regular', href: '/admin/pt-penelitian', visible: showAdminPenelitian },
+                                                        { name: 'Assign Reviewer', href: '/admin/pt-penelitian/assign-reviewer', visible: showAssignReviewer },
+                                                        { name: 'Catatan Harian', href: '/admin/pt-penelitian/catatan-harian', visible: true },
+                                                        { name: 'Perbaikan Usulan', href: '/admin/pt-penelitian/perbaikan', visible: true },
+                                                        { name: 'Laporan Kemajuan', href: '/admin/pt-penelitian/laporan-kemajuan', visible: true },
+                                                        { name: 'Laporan Akhir', href: '/admin/pt-penelitian/laporan-akhir', visible: true },
+                                                        { name: 'Monitoring Pelaksanaan', href: '/admin/pt-penelitian/monitoring', visible: true },
+                                                    ].filter((item) => item.visible !== false).map((item) => (
                                                         <li key={item.name}>
                                                             <Link href={item.href} className="hover:text-blue-700">
                                                                 {item.name}
@@ -195,7 +210,7 @@ export default function DashboardNav() {
                     <div className="ml-auto flex items-center gap-6">
                        
 
-                        {isAdminPt && (
+                        {showApprovals && (
                             <Link
                                 href="/users/approvals"
                                 className="inline-flex items-center gap-2 hover:text-blue-200"
@@ -204,7 +219,7 @@ export default function DashboardNav() {
                             </Link>
                         )}
 
-                        {isSuperAdmin && (
+                        {showSkema && (
                             <Link
                                 href="/admin/pt-skema"
                                 className="inline-flex items-center gap-2 hover:text-blue-200"
@@ -212,7 +227,7 @@ export default function DashboardNav() {
                                 Skema
                             </Link>
                         )}
-                        {isAdminPt && (
+                        {showSkemaAktif && (
                             <Link
                                 href="/admin/pt-skema"
                                 className="inline-flex items-center gap-2 hover:text-blue-200"
@@ -221,12 +236,20 @@ export default function DashboardNav() {
                             </Link>
                         )}
 
-                        {isSuperAdmin && (
+                        {showRoleAssignment && (
                             <Link
                                 href="/settings/role-assignment"
                                 className="inline-flex items-center gap-2 hover:text-blue-200"
                             >
                                 Role Assignment
+                            </Link>
+                        )}
+                        {showRoleMenus && (
+                            <Link
+                                href="/settings/role-menus"
+                                className="inline-flex items-center gap-2 hover:text-blue-200"
+                            >
+                                Menu Akses Role
                             </Link>
                         )}
                     </div>

@@ -1,11 +1,13 @@
 <?php
 
-use App\Http\Controllers\Dashboard\DosenDashboardController;
-use App\Http\Controllers\Users\AdminPtUserApprovalController;
-use Inertia\Inertia;
-use Laravel\Fortify\Features;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+use Laravel\Fortify\Features;
+use App\Http\Controllers\Dashboard\DosenDashboardController;
+use App\Http\Controllers\Settings\RoleAssignmentController;
+use App\Http\Controllers\Settings\RoleMenuController;
+use App\Http\Controllers\Users\AdminPtUserApprovalController;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -58,8 +60,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:super-admin')->group(function () {
         Route::get('dashboard/super-admin', fn() => Inertia::render('dashboard/super-admin'))
             ->name('dashboard.super-admin');
-        Route::get('settings/role-assignment', fn() => Inertia::render('settings/role-assignment'))
+        Route::get('settings/role-assignment', [RoleAssignmentController::class, 'index'])
             ->name('settings.role-assignment');
+        Route::patch('settings/role-assignment/{user}', [RoleAssignmentController::class, 'update'])
+            ->name('settings.role-assignment.update');
+        Route::get('settings/role-menus', [RoleMenuController::class, 'index'])
+            ->name('settings.role-menus.index');
+        Route::patch('settings/role-menus/{role}', [RoleMenuController::class, 'update'])
+            ->name('settings.role-menus.update');
     });
 });
 

@@ -157,14 +157,26 @@ class PtPenelitianController extends Controller
             ->toArray();
 
         $komponenOptions = DB::table('ref_komponen_biaya')
-            ->select('id', 'nama_komponen', 'jenis', 'keterangan')
+            ->select('id', 'id_komponen_rab', 'nama_komponen', 'jenis', 'keterangan')
             ->orderBy('nama_komponen')
             ->get()
             ->map(fn($record) => [
                 'id' => $record->id,
+                'id_komponen_rab' => $record->id_komponen_rab,
                 'nama_komponen' => $record->nama_komponen,
                 'jenis' => $record->jenis,
                 'keterangan' => $record->keterangan,
+            ])
+            ->toArray();
+
+        $kelompokOptions = DB::table('ref_komponen_rab')
+            ->select('id', 'kategori', 'nama')
+            ->orderBy('id')
+            ->get()
+            ->map(fn($record) => [
+                'id' => $record->id,
+                'kategori' => $record->kategori,
+                'nama' => $record->nama,
             ])
             ->toArray();
 
@@ -176,6 +188,7 @@ class PtPenelitianController extends Controller
             'dosenOptions' => $dosenOptions,
             'perguruanOptions' => $perguruanOptions,
             'komponenOptions' => $komponenOptions,
+            'kelompokOptions' => $kelompokOptions,
         ]);
     }
 
