@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -11,7 +12,7 @@ use Spatie\Permission\Models\Role;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, SoftDeletes;
 
     public const ROLE_SUPER_ADMIN = 'super-admin';
     public const ROLE_ADMIN_PT = 'admin-pt';
@@ -50,6 +51,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'deleted_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -77,6 +79,18 @@ class User extends Authenticatable
             if ($user->wasChanged('role')) {
                 static::syncRoleAssignment($user, true);
             }
+        });
+
+        static::deleting(function (User $user): void {
+            if (! $user->isForceDeleting()) {
+                $user->dosen?->delete();
+            } else {
+                $user->dosen?->forceDelete();
+            }
+        });
+
+        static::restoring(function (User $user): void {
+            $user->dosen?->restore();
         });
     }
 

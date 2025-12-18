@@ -4,6 +4,7 @@ import { LucideIcon } from 'lucide-react';
 export interface Auth {
     user: User;
     roles: string[];
+    active_role?: string | null;
     permissions: string[];
     pendingApprovals?: PendingApproval[];
     pendingApprovalsCount?: number;

@@ -22,6 +22,7 @@ class AdminPtPenelitianController extends Controller
     public function index(Request $request): InertiaResponse
     {
         $uuidPt = $request->user()->uuid_pt;
+        $isSuperAdmin = $request->user()?->hasRole('super-admin');
 
         $penelitian = PtPenelitian::query()
             ->when($uuidPt, fn($query, $uuid) => $query->where('uuid_pt', $uuid))
@@ -29,9 +30,56 @@ class AdminPtPenelitianController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $deleted = $isSuperAdmin
+            ? collect()
+            : PtPenelitian::onlyTrashed()
+                ->when($uuidPt, fn($query, $uuid) => $query->where('uuid_pt', $uuid))
+                ->orderByDesc('deleted_at')
+                ->limit(10)
+                ->get(['uuid', 'title', 'deleted_at']);
+
         return Inertia::render('penelitian/index-all', [
             'penelitian' => $penelitian,
+            'deletedPenelitian' => $deleted,
+            'showDeletedLink' => $isSuperAdmin,
         ]);
+    }
+
+    public function deleted(Request $request): InertiaResponse
+    {
+        abort_unless($request->user()?->hasRole('super-admin'), Response::HTTP_FORBIDDEN);
+
+        $penelitian = PtPenelitian::onlyTrashed()
+            ->with(['user' => fn($query) => $query->withTrashed()])
+            ->orderByDesc('deleted_at')
+            ->paginate(15)
+            ->withQueryString()
+            ->through(function (PtPenelitian $item) {
+                return [
+                    'uuid' => $item->uuid,
+                    'title' => $item->title,
+                    'status' => $item->status,
+                    'email_pengusul' => optional($item->user)->email,
+                    'deleted_at' => optional($item->deleted_at)?->toIso8601String(),
+                    'created_at' => optional($item->created_at)?->toIso8601String(),
+                ];
+            });
+
+        return Inertia::render('penelitian/deleted', [
+            'penelitian' => $penelitian,
+        ]);
+    }
+
+    public function restore(Request $request, string $uuid): RedirectResponse
+    {
+        abort_unless($request->user()?->hasRole('super-admin'), Response::HTTP_FORBIDDEN);
+
+        $ptPenelitian = PtPenelitian::onlyTrashed()->where('uuid', $uuid)->firstOrFail();
+        $ptPenelitian->restore();
+
+        return redirect()
+            ->back()
+            ->with('success', 'Usulan berhasil dipulihkan.');
     }
 
     public function show(Request $request, PtPenelitian $ptPenelitian): InertiaResponse
@@ -146,6 +194,7 @@ class AdminPtPenelitianController extends Controller
                     ->where('name', 'reviewer')
                     ->limit(1);
             })
+            ->whereNull('users.deleted_at')
             ->orderBy('users.name')
             ->get(['users.id', 'users.name', 'users.email'])
             ->map(fn($row) => [

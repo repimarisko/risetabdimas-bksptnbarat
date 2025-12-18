@@ -15,6 +15,8 @@ Route::middleware(['auth', 'verified', 'role:dosen'])
         Route::post('/', [PtPenelitianController::class, 'store'])->name('store');
         Route::post('/{ptPenelitian}/anggota-approve', [PtPenelitianController::class, 'approveAnggota'])
             ->name('approve-anggota');
+        Route::post('/{ptPenelitian}/anggota-reject', [PtPenelitianController::class, 'rejectAnggota'])
+            ->name('reject-anggota');
         Route::patch('/{ptPenelitian}/submit', [PtPenelitianController::class, 'submit'])
             ->name('submit');
         Route::get('/{ptPenelitian}/download/{type}', [PtPenelitianController::class, 'download'])
@@ -40,6 +42,12 @@ Route::middleware(['auth', 'verified', 'role:admin-pt|ketua-lppm|super-admin'])
     ->as('admin.pt-penelitian.')
     ->group(function () {
         Route::get('/', [AdminPtPenelitianController::class, 'index'])->name('index-all');
+        Route::get('/deleted', [AdminPtPenelitianController::class, 'deleted'])
+            ->middleware('role:super-admin')
+            ->name('deleted');
+        Route::post('/{uuid}/restore', [AdminPtPenelitianController::class, 'restore'])
+            ->middleware('role:super-admin')
+            ->name('restore');
         Route::get('/assign-reviewer', [AdminPtPenelitianController::class, 'reviewerAssignIndex'])
             ->name('assign-index');
         Route::get('/export', [AdminPtPenelitianController::class, 'export'])->name('export');

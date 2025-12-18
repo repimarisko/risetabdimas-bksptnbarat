@@ -5,12 +5,12 @@ import { type SharedData } from '@/types';
 
 export default function DashboardNav() {
     const { auth } = usePage<SharedData>().props;
-    const roles = auth.roles ?? [];
+    const activeRole = auth.active_role ?? null;
 
-    const isDosen = roles.includes('dosen');
-    const isKetuaLppm = roles.includes('ketua-lppm');
-    const isAdminPt = roles.includes('admin-pt');
-    const isSuperAdmin = roles.includes('super-admin');
+    const isDosen = activeRole === 'dosen';
+    const isKetuaLppm = activeRole === 'ketua-lppm';
+    const isAdminPt = activeRole === 'admin-pt';
+    const isSuperAdmin = activeRole === 'super-admin';
 
     const menuPermissions = new Set(
         (auth.permissions ?? []).filter((permission) =>

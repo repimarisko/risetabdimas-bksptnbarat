@@ -38,7 +38,7 @@ type PageProps = SharedData & {
 export default function RoleAssignment() {
     const { users = [], roles = [], flash } = usePage<PageProps>().props;
     const [search, setSearch] = useState('');
-    const [selectedRoles, setSelectedRoles] = useState<Record<number, string>>(
+    const [selectedRoles, setSelectedRoles] = useState<Record<number, string[]>>(
         () => initialRoleMap(users),
     );
     const [savingIds, setSavingIds] = useState<number[]>([]);
@@ -73,13 +73,13 @@ export default function RoleAssignment() {
     }, [search, users]);
 
     const handleSave = (userId: number) => {
-        const role = selectedRoles[userId];
-        if (!role) return;
+        const rolesPayload = selectedRoles[userId]?.filter(Boolean) ?? [];
+        if (!rolesPayload.length) return;
 
         setSavingIds((prev) => [...prev, userId]);
         router.patch(
             `/settings/role-assignment/${userId}`,
-            { role },
+            { roles: rolesPayload },
             {
                 preserveScroll: true,
                 onFinish: () =>
@@ -150,8 +150,8 @@ export default function RoleAssignment() {
                                         </thead>
                                         <tbody className="divide-y divide-gray-100 bg-white">
                                             {filteredUsers.map((user) => {
-                                                const currentRole =
-                                                    selectedRoles[user.id] ?? '';
+                                                const currentRoles =
+                                                    selectedRoles[user.id] ?? [];
                                                 const isSaving = savingIds.includes(user.id);
 
                                                 return (
@@ -163,17 +163,17 @@ export default function RoleAssignment() {
                                                             <div className="text-xs text-gray-500">
                                                                 {user.email}
                                                             </div>
-                                                            <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-gray-500">
-                                                                {(user.roles ?? []).map((r) => (
-                                                                    <Badge
-                                                                        key={`${user.id}-${r}`}
-                                                                        variant="outline"
-                                                                        className="border-gray-200 bg-gray-50 text-gray-600"
-                                                                    >
-                                                                        {r}
-                                                                    </Badge>
-                                                                ))}
-                                                            </div>
+                                                <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-gray-500">
+                                                    {(user.roles ?? []).map((r) => (
+                                                        <Badge
+                                                            key={`${user.id}-${r}`}
+                                                            variant="outline"
+                                                            className="border-gray-200 bg-gray-50 text-gray-600"
+                                                        >
+                                                            {r}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
                                                         </td>
                                                         <td className="px-6 py-4">
                                                             <Badge variant="outline" className="border-blue-100 bg-blue-50 text-blue-700">
@@ -183,45 +183,50 @@ export default function RoleAssignment() {
                                                             </Badge>
                                                         </td>
                                                         <td className="px-6 py-4">
-                                                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                                                                <select
-                                                                    value={currentRole}
-                                                                    onChange={(e) =>
-                                                                        setSelectedRoles((prev) => ({
-                                                                            ...prev,
-                                                                            [user.id]: e.target.value,
-                                                                        }))
-                                                                    }
-                                                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 sm:w-48"
+                                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {roles.map((role) => {
+                                                            const checked = currentRoles.includes(role.name);
+                                                            return (
+                                                                <label
+                                                                    key={role.id}
+                                                                    className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700"
                                                                 >
-                                                                    <option value="">
-                                                                        Pilih role...
-                                                                    </option>
-                                                                    {roles.map((role) => (
-                                                                        <option
-                                                                            key={role.id}
-                                                                            value={role.name}
-                                                                        >
-                                                                            {role.name}
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
-                                                                {user.role &&
-                                                                    user.role !== currentRole && (
-                                                                        <p className="text-xs text-gray-500">
-                                                                            Sebelumnya:{' '}
-                                                                            <span className="font-semibold">
-                                                                                {user.role}
-                                                                            </span>
-                                                                        </p>
-                                                                    )}
-                                                            </div>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                                        checked={checked}
+                                                                        onChange={(e) =>
+                                                                            setSelectedRoles((prev) => {
+                                                                                const existing = prev[user.id] ?? [];
+                                                                                const next = e.target.checked
+                                                                                    ? [...existing, role.name]
+                                                                                    : existing.filter((r) => r !== role.name);
+                                                                                return { ...prev, [user.id]: next };
+                                                                            })
+                                                                        }
+                                                                    />
+                                                                    <span>{role.name}</span>
+                                                                </label>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                    {user.role &&
+                                                        user.role !== (currentRoles[0] ?? '') && (
+                                                            <p className="text-xs text-gray-500">
+                                                                Primary sebelumnya:{' '}
+                                                                <span className="font-semibold">
+                                                                    {user.role}
+                                                                </span>
+                                                            </p>
+                                                        )}
+                                                </div>
                                                         </td>
                                                         <td className="px-6 py-4 text-right">
                                                             <div className="flex items-center justify-end gap-2">
                                                                 <Button
                                                                     size="sm"
-                                                                    disabled={!currentRole || isSaving}
+                                                                    disabled={!currentRoles.length || isSaving}
                                                                     onClick={() =>
                                                                         handleSave(user.id)
                                                                     }
@@ -253,12 +258,10 @@ export default function RoleAssignment() {
     );
 }
 
-function initialRoleMap(users: UserItem[]): Record<number, string> {
-    return users.reduce<Record<number, string>>((acc, user) => {
-        const role =
-            user.role ??
-            (user.roles && user.roles.length ? user.roles[0] : '');
-        acc[user.id] = role ?? '';
+function initialRoleMap(users: UserItem[]): Record<number, string[]> {
+    return users.reduce<Record<number, string[]>>((acc, user) => {
+        const roles = user.roles && user.roles.length ? user.roles : [];
+        acc[user.id] = roles;
         return acc;
     }, {});
 }

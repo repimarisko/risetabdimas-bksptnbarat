@@ -67,18 +67,24 @@ class RoleAssignmentController extends Controller
     public function update(Request $request, User $user): RedirectResponse
     {
         $data = $request->validate([
-            'role' => [
+            'roles' => [
                 'required',
+                'array',
+                'min:1',
+            ],
+            'roles.*' => [
                 'string',
                 Rule::exists('roles', 'name')->where('guard_name', 'web'),
             ],
         ]);
 
+        $roles = collect($data['roles'])->filter()->values()->all();
+
         $user->forceFill([
-            'role' => $data['role'],
+            'role' => $roles[0] ?? null,
         ])->save();
 
-        $user->syncRoles([$data['role']]);
+        $user->syncRoles($roles);
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 

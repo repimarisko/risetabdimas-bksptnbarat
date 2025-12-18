@@ -28,6 +28,7 @@ class PtPenelitian extends Model
         'id_tkt',
         'id_sdg',
         'id_fokus',
+        'ringkasan',
         'biaya_usulan_1',
         'biaya_usulan_2',
         'biaya_usulan_3',
@@ -40,6 +41,7 @@ class PtPenelitian extends Model
         'target_luaran',
         'email_pengusul',
         'created_at',
+        'updated_at',
         'created_by',
         'deleted_by',
         'proposal_path',
@@ -50,6 +52,7 @@ class PtPenelitian extends Model
 
     protected $dates = [
         'created_at',
+        'updated_at',
         'deleted_at',
     ];
 
@@ -110,6 +113,7 @@ class PtPenelitian extends Model
     public function reviewers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'pt_penelitian_reviewer', 'penelitian_uuid', 'reviewer_id', 'uuid', 'id')
+            ->withTrashed()
             ->withTimestamps()
             ->withPivot('assigned_at');
     }
@@ -130,6 +134,7 @@ class PtPenelitian extends Model
     }
     public function user(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'created_by', 'id');
+        return $this->belongsTo(\App\Models\User::class, 'created_by', 'id')
+            ->withTrashed();
     }
 }

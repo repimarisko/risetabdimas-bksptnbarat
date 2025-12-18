@@ -69,6 +69,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('settings/role-menus/{role}', [RoleMenuController::class, 'update'])
             ->name('settings.role-menus.update');
     });
+
+    // Semua pengguna terautentikasi boleh mengganti role aktif yang dimilikinya
+    Route::post('settings/active-role', function (\Illuminate\Http\Request $request) {
+        $roles = $request->user()?->getRoleNames()->toArray() ?? [];
+        $role = $request->input('role');
+        if (! $role || ! in_array($role, $roles, true)) {
+            return back()->with('error', 'Role tidak valid.');
+        }
+
+        $request->session()->put('active_role', $role);
+
+        $dashboardMap = [
+            'super-admin' => '/dashboard/super-admin',
+            'admin-pt' => '/dashboard/admin-pt',
+            'ketua-lppm' => '/dashboard/ketua-lppm',
+            'dosen' => '/dashboard/dosen',
+        ];
+
+        $redirectTo = $dashboardMap[$role] ?? '/dashboard';
+
+        return redirect($redirectTo)->with('success', 'Role aktif diperbarui.');
+    })->name('settings.active-role');
 });
 
 require __DIR__ . '/settings.php';

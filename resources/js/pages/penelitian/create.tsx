@@ -1,15 +1,15 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { Check } from 'lucide-react';
 import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import DashboardNav from '@/components/DashboardNav';
 import { Head, router, usePage } from '@inertiajs/react';
+import { type SharedData } from '@/types';
 import StepFourView from './create/StepFourView';
 import StepOneView from './create/StepOneView';
 import StepThreeView from './create/StepThreeView';
+import StepDocumentsView from './create/StepDocumentsView';
 import StepTwoView from './create/StepTwoView';
 import {
-    STEPS,
     STEP_ONE_KEY_SET,
     STEP_ONE_REQUIREMENTS,
 } from './create/constants';
@@ -19,7 +19,6 @@ import {
     type DosenSelectOption,
     type FormDataState,
     type InputField,
-    type KomponenBiayaOptionPayload,
     type KomponenSelectOption,
     type PerguruanOptionPayload,
     type RabFormState,
@@ -30,6 +29,8 @@ import {
     type StepOneFieldKey,
     type TeamMember,
 } from './create/types';
+
+type PageProps = SharedData & CreatePageProps;
 
 const generateLocalId = (): string => {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -58,9 +59,9 @@ const isStepOneFieldFilled = (data: FormDataState, key: StepOneFieldKey): boolea
 };
 
 const getMissingStepOneFields = (data: FormDataState): StepOneFieldKey[] =>
-    STEP_ONE_REQUIREMENTS.filter(({ key }) => !isStepOneFieldFilled(data, key)).map(
-        ({ key }) => key,
-    );
+    STEP_ONE_REQUIREMENTS.filter(({ key }) => key !== 'proposal_file')
+        .filter(({ key }) => !isStepOneFieldFilled(data, key))
+        .map(({ key }) => key);
 
 const createInitialFormData = (): FormDataState => ({
     judul: '',
@@ -78,8 +79,12 @@ const createInitialFormData = (): FormDataState => ({
     target_luaran: '',
 });
 
+const MAX_PROPOSAL_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
+
 export default function PenelitianCreate() {
     const {
+        auth,
         skemaOptions: rawSkemaOptions = [],
         fokusOptions: rawFokusOptions = [],
         sdgOptions: rawSdgOptions = [],
@@ -88,7 +93,26 @@ export default function PenelitianCreate() {
         perguruanOptions: rawPerguruanOptions = [],
         komponenOptions: rawKomponenOptions = [],
         kelompokOptions: rawKelompokOptions = [],
-    } = usePage<CreatePageProps>().props;
+    } = usePage<PageProps>().props;
+
+    const currentUserDosenUuid =
+        (auth?.user?.dosen?.uuid as string | undefined | null) ?? '';
+    const currentUserPtUuid =
+        (auth?.user?.dosen?.uuid_pt as string | undefined | null) ??
+        (auth?.user?.uuid_pt as string | undefined | null) ??
+        '';
+
+    const defaultKetua: TeamMember | null = currentUserDosenUuid
+        ? {
+              uuid_pt: currentUserPtUuid ?? '',
+              dosen_uuid: currentUserDosenUuid,
+              peran: 'Ketua Peneliti',
+              tugas: '',
+          }
+        : null;
+
+    const makeInitialAnggota = (): TeamMember[] =>
+        defaultKetua ? [defaultKetua] : [];
 
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [formData, setFormData] = useState<FormDataState>(() => createInitialFormData());
@@ -320,7 +344,7 @@ export default function PenelitianCreate() {
         });
     };
 
-    const [anggotaTim, setAnggotaTim] = useState<TeamMember[]>([]);
+    const [anggotaTim, setAnggotaTim] = useState<TeamMember[]>(() => makeInitialAnggota());
 
     const handleInputChange = (field: InputField, value: string) => {
         setFormData((prev) => {
@@ -369,6 +393,18 @@ export default function PenelitianCreate() {
         field: Extract<keyof FormDataState, 'proposal_file' | 'lampiran_file'>,
         file: File | null,
     ) => {
+        if (file) {
+            const sizeLimit = field === 'proposal_file' ? MAX_PROPOSAL_SIZE : MAX_LAMPIRAN_SIZE;
+            if (file.size > sizeLimit) {
+                window.alert(
+                    field === 'proposal_file'
+                        ? 'Ukuran proposal maksimal 5 MB.'
+                        : 'Ukuran lampiran maksimal 10 MB.',
+                );
+                return;
+            }
+        }
+
         setFormData((prev) => {
             const next: FormDataState = {
                 ...prev,
@@ -391,11 +427,25 @@ export default function PenelitianCreate() {
     };
 
     const handleAddAnggota = () => {
-        setAnggotaTim((prev) => [...prev, { uuid_pt: '', dosen_uuid: '', peran: '', tugas: '' }]);
+        setAnggotaTim((prev) => [
+            ...prev,
+            { uuid_pt: '', dosen_uuid: '', peran: '', tugas: '' },
+        ]);
     };
 
     const handleRemoveAnggota = (index: number) => {
-        setAnggotaTim((prev) => prev.filter((_, i) => i !== index));
+        setAnggotaTim((prev) => {
+            const target = prev[index];
+            if (
+                target &&
+                target.dosen_uuid === currentUserDosenUuid &&
+                target.peran === 'Ketua Peneliti'
+            ) {
+                return prev;
+            }
+
+            return prev.filter((_, i) => i !== index);
+        });
     };
 
     const handleAnggotaChange = (
@@ -405,6 +455,17 @@ export default function PenelitianCreate() {
     ) => {
         setAnggotaTim((prev) => {
             const updated = [...prev];
+            const current = updated[index];
+
+            if (
+                current &&
+                current.dosen_uuid === currentUserDosenUuid &&
+                current.peran === 'Ketua Peneliti' &&
+                (field === 'uuid_pt' || field === 'dosen_uuid' || field === 'peran')
+            ) {
+                return prev;
+            }
+
             updated[index] = {
                 ...updated[index],
                 [field]: value,
@@ -467,7 +528,7 @@ export default function PenelitianCreate() {
             setStepOneAttempted(false);
         }
 
-        setCurrentStep((prev) => Math.min(prev + 1, 3));
+        setCurrentStep((prev) => Math.min(prev + 1, 4));
     };
 
     const handleBack = () => {
@@ -704,11 +765,18 @@ export default function PenelitianCreate() {
         }
 
         router.post('/pt-penelitian', payload as Record<string, any>, {
+            forceFormData: true,
             onSuccess: () => {
                 router.visit('/pt-penelitian');
             },
             onError: (errors) => {
                 console.error('Gagal mengirim:', errors);
+                const firstError = Object.values(errors)[0];
+                if (typeof firstError === 'string') {
+                    window.alert(firstError);
+                } else {
+                    window.alert('Pengajuan gagal. Periksa kembali isian atau hubungi admin.');
+                }
             },
         });
     };
@@ -718,7 +786,7 @@ export default function PenelitianCreate() {
     const handleResetForm = () => {
         setCurrentStep(1);
         setFormData(createInitialFormData());
-        setAnggotaTim([]);
+        setAnggotaTim(makeInitialAnggota());
         setStepOneInvalidFields([]);
         setStepOneAttempted(false);
     };
@@ -726,6 +794,15 @@ export default function PenelitianCreate() {
     const handleViewList = () => {
         router.visit('/pt-penelitian');
     };
+
+    const timelineSteps = [
+        { number: 1, label: 'Identitas Usulan' },
+        { number: 2, label: 'Anggota & RAB' },
+        { number: 3, label: 'Dokumen Pendukung' },
+        { number: 4, label: 'Konfirmasi Usulan' },
+    ] as const;
+
+    const activeTimelineStep = currentStep;
 
     return (
         <AppHeaderLayout
@@ -738,48 +815,40 @@ export default function PenelitianCreate() {
             <DashboardNav />
             <div className="bg-gray-50">
                 <div className="mx-auto max-w-7xl px-4 py-10">
-                    {currentStep !== 4 ? (
-                        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-                            <div className="flex items-center justify-between mb-8">
-                                {STEPS.map((step, index) => (
-                                    <div key={step.number} className="flex items-center flex-1">
-                                        <div className="flex flex-col items-center flex-1">
-                                            <div
-                                                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all ${
-                                                    currentStep > step.number
-                                                        ? 'bg-green-500 text-white'
-                                                        : currentStep === step.number
-                                                          ? 'bg-indigo-600 text-white'
-                                                          : 'bg-gray-200 text-gray-500'
-                                                }`}
-                                            >
-                                                {currentStep > step.number ? (
-                                                    <Check size={20} />
-                                                ) : (
-                                                    step.number
-                                                )}
+                    {currentStep !== 5 ? (
+                        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                            <div className="flex items-center">
+                                {timelineSteps.map((step, index) => {
+                                    const isActive = activeTimelineStep === step.number;
+                                    const isCompleted = activeTimelineStep > step.number;
+                                    return (
+                                        <div key={step.number} className="flex-1 flex items-center">
+                                            <div className="flex flex-col items-center w-full">
+                                                <div
+                                                    className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition-all ${
+                                                        isActive
+                                                            ? 'bg-[#1d3b8b] text-white border-[#1d3b8b]'
+                                                            : isCompleted
+                                                                ? 'bg-[#e5ebf7] text-[#1d3b8b] border-[#c2cce3]'
+                                                                : 'bg-[#c5ceda] text-white border-[#c5ceda]'
+                                                    }`}
+                                                >
+                                                    {step.number}
+                                                </div>
+                                                <span className="mt-2 text-xs font-semibold text-gray-700 text-center">
+                                                    {step.label}
+                                                </span>
                                             </div>
-                                            <span
-                                                className={`mt-2 text-xs font-medium ${
-                                                    currentStep >= step.number
-                                                        ? 'text-gray-900'
-                                                        : 'text-gray-400'
-                                                }`}
-                                            >
-                                                {step.label}
-                                            </span>
+                                            {index < timelineSteps.length - 1 ? (
+                                                <div
+                                                    className={`mx-2 h-0.5 flex-1 rounded ${
+                                                        isCompleted ? 'bg-[#1d3b8b]' : 'bg-[#c5ceda]'
+                                                    }`}
+                                                />
+                                            ) : null}
                                         </div>
-                                        {index < STEPS.length - 1 ? (
-                                            <div
-                                                className={`h-0.5 flex-1 mx-4 transition-all ${
-                                                    currentStep > step.number
-                                                        ? 'bg-green-500'
-                                                        : 'bg-gray-200'
-                                                }`}
-                                            />
-                                        ) : null}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     ) : null}
@@ -812,19 +881,31 @@ export default function PenelitianCreate() {
                             totalRab={totalRab}
                             tahunPelaksanaan={tahunPelaksanaan}
                             kelompokOptions={kelompokOptions}
-                            kelompokLookup={kelompokLookup}
+                        kelompokLookup={kelompokLookup}
+                        onBack={handleBack}
+                        onNext={handleNext}
+                        onAddAnggota={handleAddAnggota}
+                        onRemoveAnggota={handleRemoveAnggota}
+                        onAnggotaChange={handleAnggotaChange}
+                        lockedKetuaDosenUuid={currentUserDosenUuid || undefined}
+                        addRabItem={addRabItem}
+                        updateRabItem={updateRabItem}
+                        removeRabItem={removeRabItem}
+                    />
+                ) : null}
+
+                    {currentStep === 3 ? (
+                        <StepDocumentsView
+                            formData={formData}
+                            existingProposalLabel={null}
+                            existingLampiranLabel={null}
+                            onFileChange={handleFileChange}
                             onBack={handleBack}
                             onNext={handleNext}
-                            onAddAnggota={handleAddAnggota}
-                            onRemoveAnggota={handleRemoveAnggota}
-                            onAnggotaChange={handleAnggotaChange}
-                            addRabItem={addRabItem}
-                            updateRabItem={updateRabItem}
-                            removeRabItem={removeRabItem}
                         />
                     ) : null}
 
-                    {currentStep === 3 ? (
+                    {currentStep === 4 ? (
                         <StepThreeView
                             formData={formData}
                             rab={formData.rab}
@@ -849,11 +930,8 @@ export default function PenelitianCreate() {
                         />
                     ) : null}
 
-                    {currentStep === 4 ? (
-                        <StepFourView
-                            onReset={handleResetForm}
-                            onViewList={handleViewList}
-                        />
+                    {currentStep === 5 ? (
+                        <StepFourView onReset={handleResetForm} onViewList={handleViewList} />
                     ) : null}
                 </div>
             </div>

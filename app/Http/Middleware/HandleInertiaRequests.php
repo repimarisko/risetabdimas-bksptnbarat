@@ -54,6 +54,7 @@ class HandleInertiaRequests extends Middleware
             $pendingApprovals = DB::table('pt_penelitian_anggota_approvals as approvals')
                 ->join('pt_penelitian_anggotas as anggota', 'anggota.id', '=', 'approvals.anggota_id')
                 ->join('pt_penelitian as penelitian', 'penelitian.uuid', '=', 'anggota.penelitian_uuid')
+                ->join('dosen', 'dosen.uuid', '=', 'approvals.dosen_uuid')
                 ->select(
                     'approvals.id',
                     'approvals.anggota_id',
@@ -65,6 +66,8 @@ class HandleInertiaRequests extends Middleware
                 )
                 ->where('approvals.status', 'pending')
                 ->where('approvals.dosen_uuid', $dosenUuid)
+                ->whereNull('dosen.deleted_at')
+                ->whereNull('penelitian.deleted_at')
                 ->orderByDesc('penelitian.created_at')
                 ->limit(10)
                 ->get()
@@ -90,16 +93,33 @@ class HandleInertiaRequests extends Middleware
             $pendingApprovalsCount = count($pendingApprovals);
         }
 
+        $allRoles = $user?->getRoleNames()->toArray() ?? [];
+        $activeRole = $request->session()->get('active_role');
+        if ($user && $activeRole && ! in_array($activeRole, $allRoles, true)) {
+            $activeRole = null;
+        }
+        if ($user && ! $activeRole && ! empty($allRoles)) {
+            $activeRole = $allRoles[0];
+            $request->session()->put('active_role', $activeRole);
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $user,
-                'roles' => $user?->getRoleNames()->toArray() ?? [],
+                'roles' => $allRoles,
+                'active_role' => $activeRole,
                 'permissions' => $user?->getAllPermissions()->pluck('name')->toArray() ?? [],
                 'pendingApprovals' => $pendingApprovals,
                 'pendingApprovalsCount' => $pendingApprovalsCount,
+            ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
+                'info' => $request->session()->get('info'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

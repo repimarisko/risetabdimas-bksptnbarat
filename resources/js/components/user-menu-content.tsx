@@ -9,7 +9,7 @@ import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import { type User } from '@/types';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
 
 interface UserMenuContentProps {
@@ -18,10 +18,20 @@ interface UserMenuContentProps {
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
+    const { auth } = usePage<{ auth: any }>().props;
+    const roles: string[] = auth?.roles ?? [];
+    const activeRole: string | null | undefined = auth?.active_role;
 
     const handleLogout = () => {
         cleanup();
         router.flushAll();
+    };
+
+    const handleSwitchRole = (role: string) => {
+        if (role === activeRole) {
+            return;
+        }
+        router.post('/settings/active-role', { role }, { preserveScroll: false });
     };
 
     return (
@@ -32,6 +42,33 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {roles.length > 1 && (
+                <>
+                    <DropdownMenuLabel className="text-xs font-semibold text-gray-500">
+                        Role Aktif
+                    </DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                        {roles.map((role) => {
+                            const isActive = role === activeRole;
+                            return (
+                                <DropdownMenuItem
+                                    key={role}
+                                    className="flex items-center justify-between"
+                                    onSelect={() => handleSwitchRole(role)}
+                                >
+                                    <span className="text-sm capitalize">{role}</span>
+                                    {isActive ? (
+                                        <span className="text-[10px] font-semibold text-emerald-600">
+                                            Aktif
+                                        </span>
+                                    ) : null}
+                                </DropdownMenuItem>
+                            );
+                        })}
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                </>
+            )}
             <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
                     <Link

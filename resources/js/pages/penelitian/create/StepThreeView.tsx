@@ -28,6 +28,8 @@ type StepThreeViewProps = {
     parseNumber: (value: string) => number | null;
     calculateItemTotal: (item: RabItemForm) => number;
     getOptionLabel: (options: SelectOption[], value: string) => string;
+    existingProposalLabel?: string | null;
+    existingLampiranLabel?: string | null;
     onBack: () => void;
     onSubmit: () => void;
 };
@@ -51,6 +53,8 @@ export default function StepThreeView({
     parseNumber,
     calculateItemTotal,
     getOptionLabel,
+    existingProposalLabel,
+    existingLampiranLabel,
     onBack,
     onSubmit,
 }: StepThreeViewProps) {
@@ -141,7 +145,9 @@ export default function StepThreeView({
                                 File Proposal:
                             </span>
                             <span className="flex-1 text-gray-900">
-                                {formData.proposal_file?.name || '-'}
+                                {formData.proposal_file?.name ||
+                                    existingProposalLabel ||
+                                    '-'}
                             </span>
                         </div>
                         <div className="flex">
@@ -149,7 +155,9 @@ export default function StepThreeView({
                                 Lampiran:
                             </span>
                             <span className="flex-1 text-gray-900">
-                                {formData.lampiran_file?.name || '-'}
+                                {formData.lampiran_file?.name ||
+                                    existingLampiranLabel ||
+                                    '-'}
                             </span>
                         </div>
                     </div>

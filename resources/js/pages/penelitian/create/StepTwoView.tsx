@@ -32,6 +32,7 @@ type StepTwoViewProps = {
     tahunPelaksanaan: string[];
     kelompokOptions: RabKelompokOption[];
     kelompokLookup: Record<string, RabKelompokOption>;
+    lockedKetuaDosenUuid?: string;
     onBack: () => void;
     onNext: () => void;
     onAddAnggota: () => void;
@@ -215,6 +216,7 @@ export default function StepTwoView({
     tahunPelaksanaan,
     kelompokOptions,
     kelompokLookup,
+    lockedKetuaDosenUuid,
     onBack,
     onNext,
     onAddAnggota,
@@ -257,125 +259,145 @@ export default function StepTwoView({
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {anggotaTim.map((anggota, index) => (
-                                <div
-                                    key={index}
-                                    className="border border-gray-200 rounded-lg p-4 bg-gray-50"
-                                >
-                                    <div className="flex items-start gap-4">
-                                        <div className="flex-1 space-y-4">
-                                            <div className="grid gap-4 md:grid-cols-4">
-                                                <div className="md:col-span-1">
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                        Perguruan Tinggi
-                                                    </label>
-                                                    <SearchableSelect
-                                                        value={anggota.uuid_pt}
-                                                        onChange={(ptValue) =>
-                                                            onAnggotaChange(
-                                                                index,
-                                                                'uuid_pt',
-                                                                ptValue,
-                                                            )
-                                                        }
-                                                        options={perguruanSelectOptions}
-                                                        placeholder="Cari perguruan tinggi..."
-                                                        emptyMessage="Perguruan tinggi tidak ditemukan"
-                                                    />
-                                                </div>
+                            {anggotaTim.map((anggota, index) => {
+                                const isKetuaLocked =
+                                    lockedKetuaDosenUuid &&
+                                    anggota.dosen_uuid === lockedKetuaDosenUuid &&
+                                    anggota.peran === 'Ketua Peneliti';
 
-                                                <div className="md:col-span-1">
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                        Pilih Dosen
-                                                    </label>
-                                                    <SearchableSelect
-                                                        value={anggota.dosen_uuid}
-                                                        onChange={(dosenValue) =>
-                                                            onAnggotaChange(
-                                                                index,
-                                                                'dosen_uuid',
-                                                                dosenValue,
-                                                            )
-                                                        }
-                                                        options={dosenSelectOptions.filter(
-                                                            (dosen) => dosen.uuid_pt === anggota.uuid_pt,
-                                                        )}
-                                                        placeholder={
-                                                            anggota.uuid_pt
-                                                                ? 'Cari dosen...'
-                                                                : 'Pilih perguruan tinggi terlebih dahulu'
-                                                        }
-                                                        disabled={!anggota.uuid_pt}
-                                                        emptyMessage="Dosen tidak ditemukan"
-                                                    />
-                                                </div>
+                                return (
+                                    <div
+                                        key={index}
+                                        className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                                    >
+                                        <div className="flex items-start gap-4">
+                                            <div className="flex-1 space-y-4">
+                                                <div className="grid gap-4 md:grid-cols-4">
+                                                    <div className="md:col-span-1">
+                                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                            Perguruan Tinggi
+                                                        </label>
+                                                        <SearchableSelect
+                                                            value={anggota.uuid_pt}
+                                                            onChange={(ptValue) =>
+                                                                onAnggotaChange(
+                                                                    index,
+                                                                    'uuid_pt',
+                                                                    ptValue,
+                                                                )
+                                                            }
+                                                            options={perguruanSelectOptions}
+                                                            placeholder="Cari perguruan tinggi..."
+                                                            emptyMessage="Perguruan tinggi tidak ditemukan"
+                                                            disabled={isKetuaLocked}
+                                                        />
+                                                    </div>
 
-                                                <div className="md:col-span-1">
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                        Peran
-                                                    </label>
-                                                    <select
-                                                        value={anggota.peran}
-                                                        onChange={(event) =>
-                                                            onAnggotaChange(
-                                                                index,
-                                                                'peran',
-                                                                event.target.value,
-                                                            )
-                                                        }
-                                                        className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                                    >
-                                                        <option value="">Pilih peran...</option>
-                                                        {PERAN_OPTIONS.map((peran) => (
-                                                            <option key={peran} value={peran}>
-                                                                {peran}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
+                                                    <div className="md:col-span-1">
+                                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                            Pilih Dosen
+                                                        </label>
+                                                        <SearchableSelect
+                                                            value={anggota.dosen_uuid}
+                                                            onChange={(dosenValue) =>
+                                                                onAnggotaChange(
+                                                                    index,
+                                                                    'dosen_uuid',
+                                                                    dosenValue,
+                                                                )
+                                                            }
+                                                            options={dosenSelectOptions.filter(
+                                                                (dosen) =>
+                                                                    dosen.uuid_pt === anggota.uuid_pt,
+                                                            )}
+                                                            placeholder={
+                                                                anggota.uuid_pt
+                                                                    ? 'Cari dosen...'
+                                                                    : 'Pilih perguruan tinggi terlebih dahulu'
+                                                            }
+                                                            disabled={!anggota.uuid_pt || isKetuaLocked}
+                                                            emptyMessage="Dosen tidak ditemukan"
+                                                        />
+                                                    </div>
 
-                                                <div className="md:col-span-1">
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                        Tugas
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={anggota.tugas}
-                                                        onChange={(event) =>
-                                                            onAnggotaChange(
-                                                                index,
-                                                                'tugas',
-                                                                event.target.value,
-                                                            )
-                                                        }
-                                                        placeholder="Contoh: Analisis Data"
-                                                        className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                                    />
+                                                    <div className="md:col-span-1">
+                                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                            Peran
+                                                        </label>
+                                                        <select
+                                                            value={anggota.peran}
+                                                            onChange={(event) =>
+                                                                onAnggotaChange(
+                                                                    index,
+                                                                    'peran',
+                                                                    event.target.value,
+                                                                )
+                                                            }
+                                                            disabled={isKetuaLocked}
+                                                            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:cursor-not-allowed disabled:bg-gray-100"
+                                                        >
+                                                            <option value="">Pilih peran...</option>
+                                                            {PERAN_OPTIONS.map((peran) => (
+                                                                <option key={peran} value={peran}>
+                                                                    {peran}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+
+                                                    <div className="md:col-span-1">
+                                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                            Tugas
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={anggota.tugas}
+                                                            onChange={(event) =>
+                                                                onAnggotaChange(
+                                                                    index,
+                                                                    'tugas',
+                                                                    event.target.value,
+                                                                )
+                                                            }
+                                                            placeholder="Contoh: Analisis Data"
+                                                            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <button
-                                            onClick={() => onRemoveAnggota(index)}
-                                            className="text-red-600 hover:text-red-700 p-2"
-                                        >
-                                            <svg
-                                                className="w-5 h-5"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
+                                            <button
+                                                onClick={() => onRemoveAnggota(index)}
+                                                className={`p-2 ${
+                                                    isKetuaLocked
+                                                        ? 'text-gray-300 cursor-not-allowed'
+                                                        : 'text-red-600 hover:text-red-700'
+                                                }`}
+                                                disabled={Boolean(isKetuaLocked)}
+                                                title={
+                                                    isKetuaLocked
+                                                        ? 'Pengusul otomatis sebagai ketua'
+                                                        : 'Hapus anggota'
+                                                }
                                             >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                />
-                                            </svg>
-                                        </button>
+                                                <svg
+                                                    className="w-5 h-5"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                    />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>
