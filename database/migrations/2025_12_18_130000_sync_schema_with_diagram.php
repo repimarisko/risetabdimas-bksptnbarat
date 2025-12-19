@@ -70,7 +70,7 @@ return new class extends Migration
         if (! Schema::hasTable('user_detail')) {
             Schema::create('user_detail', function (Blueprint $table) {
                 $table->bigIncrements('id');
-                $table->string('id_user', 100);
+                $table->foreignId('id_user')->constrained('users')->cascadeOnDelete();
                 $table->string('nama_lengkap', 150)->nullable();
                 $table->date('tanggal_lahir')->nullable();
                 $table->string('tempat_lahir', 100)->nullable();
@@ -87,7 +87,6 @@ return new class extends Migration
                 $table->string('photo_path', 255)->nullable();
                 $table->timestamps();
 
-                $table->foreign('id_user')->references('id')->on('users')->cascadeOnDelete();
                 $table->unique('id_user');
             });
         }
@@ -95,11 +94,9 @@ return new class extends Migration
         if (! Schema::hasTable('reviewer')) {
             Schema::create('reviewer', function (Blueprint $table) {
                 $table->bigIncrements('id');
-                $table->string('id_user', 100)->nullable();
+                $table->foreignId('id_user')->nullable()->constrained('users')->cascadeOnDelete();
                 $table->string('email', 255)->nullable();
                 $table->timestamps();
-
-                $table->foreign('id_user')->references('id')->on('users')->cascadeOnDelete();
             });
         }
 
@@ -151,21 +148,20 @@ return new class extends Migration
             Schema::create('pt_anggota_dosen', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->string('id_penelitian', 100);
-                $table->string('id_user', 100)->nullable();
+                $table->foreignId('id_user')->nullable()->constrained('users')->cascadeOnDelete();
                 $table->string('peran', 50)->nullable();
                 $table->boolean('status_aktif')->default(true);
                 $table->boolean('persetujuan')->default(false);
                 $table->text('tugas')->nullable();
 
                 $table->foreign('id_penelitian')->references('uuid')->on('pt_penelitian')->cascadeOnDelete();
-                $table->foreign('id_user')->references('id')->on('users')->cascadeOnDelete();
             });
         }
 
         if (! Schema::hasTable('pt_anggota_mahasiswa')) {
             Schema::create('pt_anggota_mahasiswa', function (Blueprint $table) {
                 $table->bigIncrements('id');
-                $table->string('id_user', 100)->nullable();
+                $table->foreignId('id_user')->nullable()->constrained('users')->cascadeOnDelete();
                 $table->string('id_penelitian', 100);
                 $table->string('nama', 255)->nullable();
                 $table->string('peran', 50)->nullable();
@@ -174,7 +170,6 @@ return new class extends Migration
                 $table->text('tugas')->nullable();
 
                 $table->foreign('id_penelitian')->references('uuid')->on('pt_penelitian')->cascadeOnDelete();
-                $table->foreign('id_user')->references('id')->on('users')->cascadeOnDelete();
             });
         }
 
@@ -202,14 +197,13 @@ return new class extends Migration
             Schema::create('pt_penugasan_review', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->string('id_penelitian', 100);
-                $table->string('id_reviewer', 100);
+                $table->foreignId('id_reviewer')->constrained('reviewer')->cascadeOnDelete();
                 $table->date('tanggal_penugasan')->nullable();
                 $table->date('batas_waktu')->nullable();
                 $table->string('status_review', 50)->nullable();
                 $table->timestamps();
 
                 $table->foreign('id_penelitian')->references('uuid')->on('pt_penelitian')->cascadeOnDelete();
-                $table->foreign('id_reviewer')->references('id')->on('reviewer')->cascadeOnDelete();
             });
         }
 
