@@ -7,7 +7,8 @@ import { Head, router, usePage } from '@inertiajs/react';
 import StepOneView from './create/StepOneView';
 import StepThreeView from './create/StepThreeView';
 import StepTwoView from './create/StepTwoView';
-import { STEPS, STEP_ONE_KEY_SET, STEP_ONE_REQUIREMENTS } from './create/constants';
+import StepDocumentsView from './create/StepDocumentsView';
+import { STEP_ONE_KEY_SET, STEP_ONE_REQUIREMENTS } from './create/constants';
 import {
     type CreatePageProps,
     type DosenOptionPayload,
@@ -54,6 +55,7 @@ type PenelitianEditPayload = {
     id_fokus: string | null;
     id_sdg: string | null;
     id_tkt: string | null;
+    ringkasan: string | null;
     target_luaran: string | null;
     tahun_pengajuan: number | null;
     tahun_pelaksanaan: number | null;
@@ -91,8 +93,6 @@ export default function PenelitianEdit() {
     } = usePage<PageProps>().props;
 
     const hasExistingProposal = Boolean(penelitian.proposal_filename);
-    const hasExistingLampiran = Boolean(penelitian.lampiran_filename);
-
     const komponenKelompokMap = useMemo(() => {
         return rawKomponenOptions.reduce<Record<string, number | null>>((acc, option) => {
             acc[String(option.id)] = option.id_komponen_rab;
@@ -156,7 +156,7 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
         judul: penelitian.title ?? '',
         id_skema: penelitian.id_skema ?? '',
         id_fokus: penelitian.id_fokus ?? '',
-        ringkasan: '',
+        ringkasan: penelitian.ringkasan ?? '',
         id_sdg: penelitian.id_sdg ?? '',
         id_tkt: penelitian.id_tkt ?? '',
         lama_waktu: safeInitialLamaWaktu,
@@ -456,9 +456,9 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
     };
 
     const getMissingStepOneFields = (data: FormDataState): StepOneFieldKey[] =>
-        STEP_ONE_REQUIREMENTS.filter(({ key }) => !isStepOneFieldFilled(data, key)).map(
-            ({ key }) => key,
-        );
+        STEP_ONE_REQUIREMENTS.filter(({ key }) => key !== 'proposal_file')
+            .filter(({ key }) => !isStepOneFieldFilled(data, key))
+            .map(({ key }) => key);
 
     const focusFirstInvalidStepOneField = useCallback((invalidKeys: StepOneFieldKey[]) => {
         if (invalidKeys.length === 0 || typeof window === 'undefined') {
@@ -506,7 +506,7 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
             setStepOneAttempted(false);
         }
 
-        setCurrentStep((prev) => Math.min(prev + 1, 3));
+        setCurrentStep((prev) => Math.min(prev + 1, 4));
     };
 
     const handleBack = () => {
@@ -796,6 +796,7 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
             id_tkt: formData.id_tkt || null,
             id_sdg: formData.id_sdg || null,
             id_fokus: formData.id_fokus || null,
+            ringkasan: formData.ringkasan || null,
             biaya_usulan_1: getYearTotal(1),
             biaya_usulan_2: getYearTotal(2),
             biaya_usulan_3: getYearTotal(3),
@@ -849,6 +850,15 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
         router.visit('/pt-penelitian');
     };
 
+    const timelineSteps = [
+        { number: 1, label: 'Identitas Usulan' },
+        { number: 2, label: 'Anggota & RAB' },
+        { number: 3, label: 'Dokumen Pendukung' },
+        { number: 4, label: 'Konfirmasi Usulan' },
+    ] as const;
+
+    const activeTimelineStep = currentStep;
+
     return (
         <AppHeaderLayout
             breadcrumbs={[
@@ -900,46 +910,38 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
                             </div>
 
                             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                                <div className="flex items-center justify-between">
-                                    {STEPS.map((step, index) => (
-                                        <div key={step.number} className="flex items-center flex-1">
-                                            <div className="flex flex-col items-center flex-1">
-                                                <div
-                                                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all ${
-                                                        currentStep > step.number
-                                                            ? 'bg-green-500 text-white'
-                                                            : currentStep === step.number
-                                                                ? 'bg-indigo-600 text-white'
-                                                                : 'bg-gray-200 text-gray-500'
-                                                    }`}
-                                                >
-                                                    {currentStep > step.number ? (
-                                                        <Check size={20} />
-                                                    ) : (
-                                                        step.number
-                                                    )}
+                                <div className="flex items-center">
+                                    {timelineSteps.map((step, index) => {
+                                        const isActive = activeTimelineStep === step.number;
+                                        const isCompleted = activeTimelineStep > step.number;
+                                        return (
+                                            <div key={step.number} className="flex-1 flex items-center">
+                                                <div className="flex flex-col items-center w-full">
+                                                    <div
+                                                        className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition-all ${
+                                                            isActive
+                                                                ? 'bg-[#1d3b8b] text-white border-[#1d3b8b]'
+                                                                : isCompleted
+                                                                    ? 'bg-[#e5ebf7] text-[#1d3b8b] border-[#c2cce3]'
+                                                                    : 'bg-[#c5ceda] text-white border-[#c5ceda]'
+                                                        }`}
+                                                    >
+                                                        {step.number}
+                                                    </div>
+                                                    <span className="mt-2 text-xs font-semibold text-gray-700 text-center">
+                                                        {step.label}
+                                                    </span>
                                                 </div>
-                                                <span
-                                                    className={`mt-2 text-xs font-medium ${
-                                                        currentStep >= step.number
-                                                            ? 'text-gray-900'
-                                                            : 'text-gray-400'
-                                                    }`}
-                                                >
-                                                    {step.label}
-                                                </span>
+                                                {index < timelineSteps.length - 1 ? (
+                                                    <div
+                                                        className={`mx-2 h-0.5 flex-1 rounded ${
+                                                            isCompleted ? 'bg-[#1d3b8b]' : 'bg-[#c5ceda]'
+                                                        }`}
+                                                    />
+                                                ) : null}
                                             </div>
-                                            {index < STEPS.length - 1 ? (
-                                                <div
-                                                    className={`h-0.5 flex-1 mx-4 transition-all ${
-                                                        currentStep > step.number
-                                                            ? 'bg-green-500'
-                                                            : 'bg-gray-200'
-                                                    }`}
-                                                />
-                                            ) : null}
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
 
@@ -988,6 +990,17 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
                             ) : null}
 
                             {currentStep === 3 ? (
+                                <StepDocumentsView
+                                    formData={formData}
+                                    existingProposalLabel={penelitian.proposal_filename}
+                                    existingLampiranLabel={penelitian.lampiran_filename}
+                                    onFileChange={handleFileChange}
+                                    onBack={handleBack}
+                                    onNext={handleNext}
+                                />
+                            ) : null}
+
+                            {currentStep === 4 ? (
                                 <StepThreeView
                                     formData={formData}
                                     rab={formData.rab}

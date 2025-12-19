@@ -1260,6 +1260,7 @@ class PtPenelitianController extends Controller
                 DB::raw("sum(case when approvals.status = 'approved' then 1 else 0 end) as approved_count"),
                 DB::raw("sum(case when approvals.status = 'pending' then 1 else 0 end) as pending_count"),
                 DB::raw("sum(case when approvals.id is null then 1 else 0 end) as missing_count"),
+                DB::raw('max(approvals.approved_at) as latest_approved_at'),
             )
             ->whereIn('anggota.penelitian_uuid', $uuids)
             ->groupBy('anggota.penelitian_uuid')
@@ -1276,6 +1277,7 @@ class PtPenelitianController extends Controller
                         'pending' => $pending,
                         'missing' => $missing,
                         'all_approved' => ($pending + $missing) === 0 && $total >= 0,
+                        'latest_approved_at' => $row->latest_approved_at,
                     ],
                 ];
             })

@@ -19,6 +19,7 @@ type ApprovalSummary = {
     pending: number;
     missing: number;
     all_approved: boolean;
+    latest_approved_at?: string | null;
 };
 
 type PenelitianItem = {
@@ -28,6 +29,7 @@ type PenelitianItem = {
     tahun?: number | null;
     tahun_pelaksanaan?: number | null;
     created_at?: string | null;
+    updated_at?: string | null;
     email_pengusul?: string | null;
     biaya_usulan_1?: number | null;
     biaya_usulan_2?: number | null;
@@ -334,14 +336,37 @@ export default function PenelitianIndex() {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 align-top">
-                                                        <span
-                                                            className={cn(
-                                                                'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase',
-                                                                statusMeta.badgeClass,
-                                                            )}
-                                                        >
-                                                            {statusMeta.label}
-                                                        </span>
+                                                        <div className="space-y-2">
+                                                            <span
+                                                                className={cn(
+                                                                    'inline-flex items-center rounded-xl px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+                                                                    statusMeta.badgeClass,
+                                                                )}
+                                                            >
+                                                                {statusMeta.label}
+                                                            </span>
+                                                            <div className="space-y-1">
+                                                                {buildStatusTimeline(item).map((entry) => (
+                                                                    <div
+                                                                        key={entry.key}
+                                                                        className="flex items-center gap-2 text-[11px] text-gray-600"
+                                                                    >
+                                                                        <span
+                                                                            className={cn(
+                                                                                'h-1.5 w-1.5 rounded-full',
+                                                                                entry.dotClass,
+                                                                            )}
+                                                                        />
+                                                                        <span className="font-semibold text-gray-800">
+                                                                            {entry.label}
+                                                                        </span>
+                                                                        <span className="text-gray-500">
+                                                                            {entry.value ?? 'Belum'}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
                                                     </td>
                                                     <td className="px-6 py-4 align-top">
                                                         <div className="flex items-center gap-2">
@@ -453,7 +478,7 @@ export default function PenelitianIndex() {
                                                                 Ajukan
                                                             </button>
                                                         ) : null}
-                                                        {isOwner ? (
+                                                        {isOwner && !hasBeenSubmitted(item.status) ? (
                                                             <DropdownMenu>
                                                                 <DropdownMenuTrigger asChild>
                                                                     <button
@@ -514,6 +539,59 @@ export default function PenelitianIndex() {
 function isAwaitingAnggotaApproval(status?: string | null): boolean {
     const normalized = (status ?? '').toLowerCase();
     return normalized.includes('anggota') || normalized.includes('menunggu');
+}
+
+function hasBeenSubmitted(status?: string | null): boolean {
+    const normalized = (status ?? '').toLowerCase();
+    return normalized.includes('mengaju');
+}
+
+type StatusTimelineEntry = {
+    key: string;
+    label: string;
+    value?: string | null;
+    dotClass: string;
+};
+
+function buildStatusTimeline(item: PenelitianItem): StatusTimelineEntry[] {
+    const approvalSummary = item.approval_summary;
+    const submitted = hasBeenSubmitted(item.status);
+    const submittedAt = submitted ? formatDate(item.updated_at ?? item.created_at) : null;
+    const allApproved = approvalSummary?.all_approved ?? false;
+    const approvedAt = allApproved && approvalSummary?.latest_approved_at
+        ? formatDate(approvalSummary.latest_approved_at)
+        : null;
+    const approvedValue = approvedAt
+        ? approvedAt
+        : approvalSummary
+            ? `${approvalSummary.approved ?? 0}/${approvalSummary.total ?? 0} setuju`
+            : null;
+
+    return [
+        {
+            key: 'created',
+            label: 'Dibuat',
+            value: formatDate(item.created_at),
+            dotClass: 'bg-gray-400',
+        },
+        {
+            key: 'submitted',
+            label: 'Mengajukan',
+            value: submittedAt,
+            dotClass: submitted ? 'bg-blue-500' : 'bg-gray-300',
+        },
+        {
+            key: 'approved',
+            label: 'Disetujui Anggota',
+            value: approvedValue,
+            dotClass:
+                allApproved
+                    ? 'bg-emerald-500'
+                    : (approvalSummary?.approved ?? 0) > 0
+                        ? 'bg-amber-500'
+                        : 'bg-gray-300',
+        },
+    ];
 }
 
 function mapStatusToFilter(status?: string | null): FilterKey {
@@ -814,8 +892,7 @@ function EligibilityModal({ onClose, schemes, profile }: EligibilityModalProps) 
                                                 ))}
                                             </ul>
                                             <p className="mt-3 text-xs text-gray-500">
-                                                Eligibilitas akhir ditentukan setelah melengkapi anggota
-                                                dan data proposal sesuai ketentuan skema.
+                                               Akan Eligible jika semua persyaratan di atas terpenuhi.
                                             </p>
                                         </div>
                                     </div>

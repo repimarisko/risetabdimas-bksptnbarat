@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libzip-dev \
     libonig-dev \
+    nginx \
+    supervisor \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         bcmath \
@@ -21,6 +23,9 @@ RUN apt-get update && apt-get install -y \
         zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Remove the default Nginx site to avoid conflicts with our mounted config
+RUN rm -f /etc/nginx/sites-enabled/default
+
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -29,4 +34,6 @@ WORKDIR /var/www/html
 # Use the same UID/GID as the host (common default) to avoid permission issues
 RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
 
-CMD ["php-fpm"]
+COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

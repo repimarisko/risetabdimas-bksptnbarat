@@ -49,7 +49,6 @@ class PtPenelitian extends Model
         'lampiran_path',
         'lampiran_filename',
     ];
-
     protected $dates = [
         'created_at',
         'updated_at',

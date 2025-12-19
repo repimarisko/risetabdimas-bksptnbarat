@@ -729,6 +729,7 @@ export default function PenelitianCreate() {
             id_tkt: formData.id_tkt || null,
             id_sdg: formData.id_sdg || null,
             id_fokus: formData.id_fokus || null,
+            ringkasan: formData.ringkasan || null,
             biaya_usulan_1: getYearTotal(1),
             biaya_usulan_2: getYearTotal(2),
             biaya_usulan_3: getYearTotal(3),
