@@ -26,6 +26,7 @@ class AdminPtUserApprovalController extends Controller
                 ->with('user')
                 ->where('uuid_pt', $uuidPt)
                 ->whereNull('verified_at')
+                ->whereNull('deleted_at')
                 ->orderBy('created_at')
                 ->get()
                 ->map(fn (Dosen $dosen) => $this->mapDosen($dosen));
@@ -34,6 +35,7 @@ class AdminPtUserApprovalController extends Controller
                 ->with('user')
                 ->where('uuid_pt', $uuidPt)
                 ->whereNotNull('verified_at')
+                ->whereNull('deleted_at')
                 ->orderByDesc('verified_at')
                 ->take(20)
                 ->get()

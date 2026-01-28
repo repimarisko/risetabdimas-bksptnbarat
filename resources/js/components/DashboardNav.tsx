@@ -5,37 +5,31 @@ import { type SharedData, type MenuItem } from '@/types';
 
 export default function DashboardNav() {
     const { auth } = usePage<SharedData>().props;
-    const roles = auth.roles ?? [];
-    const activeRole = auth.activeRole ?? roles[0] ?? null;
-    const menus = auth.menus ?? [];
-    const allowedSlugs = menus.map((menu) => menu.slug);
-    const knownSlugs = new Set([
-        'dashboard',
-        'pt-penelitian',
-        'pt-penelitian-perbaikan',
-        'admin-pt-penelitian',
-        'assign-reviewer',
-        'users-approvals',
-        'pt-skema',
-        'role-assignment',
-        'settings-menus',
-        'reviewer-dashboard',
-    ]);
-    const extraMenus = menus.filter(
-        (menu) => menu.href && !knownSlugs.has(menu.slug),
+    const activeRole = auth.active_role ?? null;
+
+    const isDosen = activeRole === 'dosen';
+    const isKetuaLppm = activeRole === 'ketua-lppm';
+    const isAdminPt = activeRole === 'admin-pt';
+    const isSuperAdmin = activeRole === 'super-admin';
+
+    const menuPermissions = new Set(
+        (auth.permissions ?? []).filter((permission) =>
+            permission.startsWith('menu:'),
+        ),
     );
-
-    const currentRole = activeRole ?? roles[0] ?? null;
-
-    const isDosen = currentRole === 'dosen';
-    const isKetuaLppm = currentRole === 'ketua-lppm';
-    const isAdminPt = currentRole === 'admin-pt';
-    const isSuperAdmin = currentRole === 'super-admin';
-    const isReviewer = currentRole === 'reviewer';
-
-    const dashboardUrl = resolveDashboardUrl(currentRole, menus);
+    const canAccessMenu = (key: string, fallback: boolean) =>
+        menuPermissions.size > 0 ? menuPermissions.has(`menu:${key}`) : fallback;
 
     const showMenu = (slug: string) => allowedSlugs.includes(slug);
+
+    const showDosenPenelitian = isDosen && canAccessMenu('pt-penelitian-dosen', isDosen);
+    const showAdminPenelitian = (isAdminPt || isSuperAdmin) && canAccessMenu('pt-penelitian-admin', isAdminPt || isSuperAdmin);
+    const showAssignReviewer = (isAdminPt || isSuperAdmin) && canAccessMenu('assign-reviewer', isAdminPt || isSuperAdmin);
+    const showApprovals = isAdminPt && canAccessMenu('user-approvals', isAdminPt);
+    const showSkema = isSuperAdmin && canAccessMenu('skema', isSuperAdmin);
+    const showSkemaAktif = isAdminPt && canAccessMenu('skema', isAdminPt);
+    const showRoleAssignment = isSuperAdmin && canAccessMenu('role-assignment', isSuperAdmin);
+    const showRoleMenus = isSuperAdmin && canAccessMenu('role-menus', isSuperAdmin);
 
     return (
         <div className="w-full bg-[#182e6b] text-white">
@@ -52,7 +46,7 @@ export default function DashboardNav() {
                     </div>
 
                     {/* Penelitian */}
-                    {(isDosen || isAdminPt || isKetuaLppm) && (
+                    {(showDosenPenelitian || showAdminPenelitian || isKetuaLppm) && (
                         <div className="group relative flex items-center gap-2">
                             <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
                                 <FlaskConical className="h-5 w-5 text-white" />
@@ -66,7 +60,7 @@ export default function DashboardNav() {
                             <div className="invisible absolute top-full left-0 z-50 mt-2 w-[calc(100vw-2rem)] max-w-[1200px] translate-y-1 rounded-xl border border-gray-200 bg-white p-6 opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
                                     {/* Penelitian - Dosen */}
-                                    {isDosen && (
+                                    {showDosenPenelitian && (
                                         <div className="col-span-2 grid grid-cols-1 gap-6 sm:grid-cols-2">
                                             <div>
                                                 <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
@@ -109,7 +103,7 @@ export default function DashboardNav() {
                                     )}
 
                                     {/* Penelitian - Admin PT */}
-                                    {(isAdminPt || isSuperAdmin || isKetuaLppm) && (
+                                    {(showAdminPenelitian || showAssignReviewer) && (
                                         <>
                                             <div>
                                                 <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
@@ -117,17 +111,20 @@ export default function DashboardNav() {
                                                 </h4>
                                                 <ul className="space-y-2 text-sm text-gray-700">
                                                     {[
-                                                        { name: 'Usulan Regular', href: '/admin/pt-penelitian', slug: 'admin-pt-penelitian' },
-                                                        { name: 'Plotting Reviewer', href: '/admin/pt-penelitian/assign-reviewer', slug: 'assign-reviewer' },
-                                                    ]
-                                                        .filter((item) => showMenu(item.slug))
-                                                        .map((item) => (
-                                                            <li key={item.name}>
-                                                                <Link href={item.href} className="hover:text-blue-700">
-                                                                    {item.name}
-                                                                </Link>
-                                                            </li>
-                                                        ))}
+                                                        { name: 'Usulan Regular', href: '/admin/pt-penelitian', visible: showAdminPenelitian },
+                                                        { name: 'Assign Reviewer', href: '/admin/pt-penelitian/assign-reviewer', visible: showAssignReviewer },
+                                                        { name: 'Catatan Harian', href: '/admin/pt-penelitian/catatan-harian', visible: true },
+                                                        { name: 'Perbaikan Usulan', href: '/admin/pt-penelitian/perbaikan', visible: true },
+                                                        { name: 'Laporan Kemajuan', href: '/admin/pt-penelitian/laporan-kemajuan', visible: true },
+                                                        { name: 'Laporan Akhir', href: '/admin/pt-penelitian/laporan-akhir', visible: true },
+                                                        { name: 'Monitoring Pelaksanaan', href: '/admin/pt-penelitian/monitoring', visible: true },
+                                                    ].filter((item) => item.visible !== false).map((item) => (
+                                                        <li key={item.name}>
+                                                            <Link href={item.href} className="hover:text-blue-700">
+                                                                {item.name}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
                                                 </ul>
                                             </div>
                                             <div>
@@ -211,16 +208,16 @@ export default function DashboardNav() {
                     <div className="ml-auto flex items-center gap-6">
                        
 
-                    {isAdminPt && showMenu('users-approvals') && (
-                        <Link
-                            href="/users/approvals"
-                            className="inline-flex items-center gap-2 hover:text-blue-200"
-                        >
-                            Approve Akun Baru
+                        {showApprovals && (
+                            <Link
+                                href="/users/approvals"
+                                className="inline-flex items-center gap-2 hover:text-blue-200"
+                            >
+                                Approve Akun Baru
                             </Link>
                         )}
 
-                        {isSuperAdmin && (
+                        {showSkema && (
                             <Link
                                 href="/admin/pt-skema"
                                 className="inline-flex items-center gap-2 hover:text-blue-200"
@@ -228,7 +225,7 @@ export default function DashboardNav() {
                                 Skema
                             </Link>
                         )}
-                        {isAdminPt && showMenu('pt-skema') && (
+                        {showSkemaAktif && (
                             <Link
                                 href="/admin/pt-skema"
                                 className="inline-flex items-center gap-2 hover:text-blue-200"
@@ -237,7 +234,7 @@ export default function DashboardNav() {
                             </Link>
                         )}
 
-                        {isSuperAdmin && showMenu('role-assignment') && (
+                        {showRoleAssignment && (
                             <Link
                                 href="/settings/role-assignment"
                                 className="inline-flex items-center gap-2 hover:text-blue-200"
@@ -245,24 +242,14 @@ export default function DashboardNav() {
                                 Role Assignment
                             </Link>
                         )}
-                        {isSuperAdmin && showMenu('settings-menus') && (
+                        {showRoleMenus && (
                             <Link
-                                href="/settings/menus"
+                                href="/settings/role-menus"
                                 className="inline-flex items-center gap-2 hover:text-blue-200"
                             >
-                                Menu Settings
+                                Menu Akses Role
                             </Link>
                         )}
-
-                        {extraMenus.map((menu) => (
-                            <Link
-                                key={menu.id}
-                                href={menu.href ?? '#'}
-                                className="inline-flex items-center gap-2 hover:text-blue-200"
-                            >
-                                {menu.name}
-                            </Link>
-                        ))}
                     </div>
                 </nav>
             </div>
