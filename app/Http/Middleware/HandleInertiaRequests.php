@@ -6,6 +6,8 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Middleware;
+use Spatie\Permission\Models\Role;
+use App\Models\Menu;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -40,6 +42,11 @@ class HandleInertiaRequests extends Middleware
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         $user = $request->user();
+        $activeRole = $request->session()->get('active_role', $user?->role);
+
+        if ($user && $activeRole && ! $request->session()->has('active_role')) {
+            $request->session()->put('active_role', $activeRole);
+        }
 
         if ($user && ! $user->relationLoaded('dosen')) {
             $user->load('dosen');
@@ -90,6 +97,42 @@ class HandleInertiaRequests extends Middleware
             $pendingApprovalsCount = count($pendingApprovals);
         }
 
+        $menuPermissions = [];
+
+        if ($user) {
+            $roleNames = $user->getRoleNames()->toArray();
+
+            if ($activeRole && in_array($activeRole, $roleNames, true)) {
+                $role = $user->roles->firstWhere('name', $activeRole) ?? Role::where('name', $activeRole)->first();
+                if ($role) {
+                    $menuPermissions = $role->permissions->pluck('name')->toArray();
+                }
+            }
+
+            if (empty($menuPermissions)) {
+                $menuPermissions = $user->getAllPermissions()->pluck('name')->toArray();
+            }
+        }
+
+        $menus = [];
+
+        if (! empty($menuPermissions)) {
+            $menus = Menu::query()
+                ->whereHas('permissions', fn($query) => $query->whereIn('name', $menuPermissions))
+                ->orderBy('sort')
+                ->get(['id', 'name', 'slug', 'href', 'icon', 'parent_id', 'sort'])
+                ->map(fn(Menu $menu) => [
+                    'id' => $menu->id,
+                    'name' => $menu->name,
+                    'slug' => $menu->slug,
+                    'href' => $menu->href,
+                    'icon' => $menu->icon,
+                    'parent_id' => $menu->parent_id,
+                    'sort' => $menu->sort,
+                ])
+                ->toArray();
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -97,9 +140,11 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
                 'roles' => $user?->getRoleNames()->toArray() ?? [],
+                'activeRole' => $activeRole,
                 'permissions' => $user?->getAllPermissions()->pluck('name')->toArray() ?? [],
                 'pendingApprovals' => $pendingApprovals,
                 'pendingApprovalsCount' => $pendingApprovalsCount,
+                'menus' => $menus,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

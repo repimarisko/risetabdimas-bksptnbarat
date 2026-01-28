@@ -28,15 +28,22 @@ type ReviewPayload = {
     catatan_rab?: string | null;
 };
 
+type ReviewWeight = {
+    key: string;
+    label: string;
+    weight: number;
+};
+
 type PageProps = SharedData &
     PreviewProps & {
         review?: ReviewPayload | null;
         recommendationOptions: Record<string, string>;
+        weights?: ReviewWeight[];
         breadcrumbs?: Array<{ title: string; href: string }>;
     };
 
 export default function PenelitianReviewPage() {
-    const { penelitian, owner, review, recommendationOptions, breadcrumbs = [] } =
+    const { penelitian, owner, review, recommendationOptions, breadcrumbs = [], weights = [] } =
         usePage<PageProps>().props;
 
     const [form, setForm] = useState<ReviewPayload>({
@@ -50,6 +57,10 @@ export default function PenelitianReviewPage() {
     const recommendationList = useMemo(
         () => Object.entries(recommendationOptions ?? {}),
         [recommendationOptions],
+    );
+    const weightList = useMemo(
+        () => (weights.length ? weights : defaultWeights),
+        [weights],
     );
 
     const handleChange = (field: keyof ReviewPayload, value: string) => {
@@ -158,6 +169,27 @@ export default function PenelitianReviewPage() {
 
                             <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
                                 <div className="flex items-center gap-2 text-gray-900 font-semibold">
+                                    <ClipboardList className="h-5 w-5 text-indigo-600" />
+                                    Bobot Penilaian (dummy)
+                                </div>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    {weightList.map((item) => (
+                                        <div
+                                            key={item.key}
+                                            className="rounded-lg border border-gray-100 bg-gray-50 p-3"
+                                        >
+                                            <p className="text-sm font-semibold text-gray-900">{item.label}</p>
+                                            <p className="text-xs text-gray-500">Bobot: {item.weight}%</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                    Bobot saat ini bersifat placeholder dan dapat diubah oleh admin kemudian.
+                                </p>
+                            </div>
+
+                            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+                                <div className="flex items-center gap-2 text-gray-900 font-semibold">
                                     <MessageSquare className="h-5 w-5 text-indigo-600" />
                                     Catatan Reviewer
                                 </div>
@@ -176,7 +208,7 @@ export default function PenelitianReviewPage() {
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium text-gray-700">
-                                            Catatan RAB
+                                            Catatan / Rekomendasi RAB
                                         </label>
                                         <textarea
                                             rows={3}
@@ -242,3 +274,8 @@ export default function PenelitianReviewPage() {
         </AppHeaderLayout>
     );
 }
+
+const defaultWeights: ReviewWeight[] = [
+    { key: 'substansi', label: 'Evaluasi Substansi', weight: 60 },
+    { key: 'rab', label: 'Kelayakan RAB', weight: 40 },
+];

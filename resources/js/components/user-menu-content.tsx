@@ -8,9 +8,9 @@ import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
-import { type User } from '@/types';
-import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { type SharedData, type User } from '@/types';
+import { Link, router, usePage } from '@inertiajs/react';
+import { Check, LogOut, Settings, SwitchCamera } from 'lucide-react';
 
 interface UserMenuContentProps {
     user: User;
@@ -18,6 +18,9 @@ interface UserMenuContentProps {
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
+    const { auth } = usePage<SharedData>().props;
+    const roles = auth.roles ?? [];
+    const activeRole = auth.activeRole ?? user.role ?? null;
 
     const handleLogout = () => {
         cleanup();
@@ -33,6 +36,29 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+                {roles.length > 1 && (
+                    <>
+                        <DropdownMenuLabel className="text-xs uppercase text-gray-500">
+                            Role aktif
+                        </DropdownMenuLabel>
+                        {roles.map((role) => (
+                            <DropdownMenuItem
+                                key={role}
+                                onClick={() => {
+                                    if (role === activeRole) return;
+                                    router.post('/settings/switch-role', { role }, { preserveScroll: true });
+                                    cleanup();
+                                }}
+                            >
+                                <SwitchCamera className="mr-2" />
+                                {role}
+                                {activeRole === role && <Check className="ml-auto h-4 w-4" />}
+                            </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                    </>
+                )}
+
                 <DropdownMenuItem asChild>
                     <Link
                         className="block w-full"

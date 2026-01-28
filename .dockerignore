@@ -1,0 +1,11 @@
+node_modules
+vendor
+.git
+.env
+storage
+tests
+.vscode
+npm-debug.log
+yarn-error.log
+Docker/
+*.md

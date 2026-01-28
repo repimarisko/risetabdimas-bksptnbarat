@@ -4,7 +4,9 @@ import { LucideIcon } from 'lucide-react';
 export interface Auth {
     user: User;
     roles: string[];
+    activeRole?: string | null;
     permissions: string[];
+    menus?: MenuItem[];
     pendingApprovals?: PendingApproval[];
     pendingApprovalsCount?: number;
 }
@@ -60,4 +62,14 @@ export interface User {
         verified_at?: string | null;
     } | null;
     [key: string]: unknown; // This allows for additional properties...
+}
+
+export interface MenuItem {
+    id: number;
+    name: string;
+    slug: string;
+    href?: string | null;
+    icon?: string | null;
+    parent_id?: number | null;
+    sort?: number;
 }

@@ -1,28 +1,41 @@
 import { dashboard } from '@/routes';
 import { Link, usePage } from '@inertiajs/react';
-import {  ChevronDown, FlaskConical, Home } from 'lucide-react';
-import { type SharedData } from '@/types';
+import { ChevronDown, ClipboardList, FlaskConical, Home } from 'lucide-react';
+import { type SharedData, type MenuItem } from '@/types';
 
 export default function DashboardNav() {
     const { auth } = usePage<SharedData>().props;
     const roles = auth.roles ?? [];
+    const activeRole = auth.activeRole ?? roles[0] ?? null;
+    const menus = auth.menus ?? [];
+    const allowedSlugs = menus.map((menu) => menu.slug);
+    const knownSlugs = new Set([
+        'dashboard',
+        'pt-penelitian',
+        'pt-penelitian-perbaikan',
+        'admin-pt-penelitian',
+        'assign-reviewer',
+        'users-approvals',
+        'pt-skema',
+        'role-assignment',
+        'settings-menus',
+        'reviewer-dashboard',
+    ]);
+    const extraMenus = menus.filter(
+        (menu) => menu.href && !knownSlugs.has(menu.slug),
+    );
 
-    const isDosen = roles.includes('dosen');
-    const isKetuaLppm = roles.includes('ketua-lppm');
-    const isAdminPt = roles.includes('admin-pt');
-    const isSuperAdmin = roles.includes('super-admin');
+    const currentRole = activeRole ?? roles[0] ?? null;
 
+    const isDosen = currentRole === 'dosen';
+    const isKetuaLppm = currentRole === 'ketua-lppm';
+    const isAdminPt = currentRole === 'admin-pt';
+    const isSuperAdmin = currentRole === 'super-admin';
+    const isReviewer = currentRole === 'reviewer';
 
+    const dashboardUrl = resolveDashboardUrl(currentRole, menus);
 
-    const dashboardUrl = isSuperAdmin
-        ? '/dashboard/super-admin'
-        : isKetuaLppm
-          ? '/dashboard/ketua-lppm'
-          : isAdminPt
-            ? '/dashboard/admin-pt'
-            : isDosen
-              ? '/dashboard/dosen'
-              : dashboard().url;
+    const showMenu = (slug: string) => allowedSlugs.includes(slug);
 
     return (
         <div className="w-full bg-[#182e6b] text-white">
@@ -61,50 +74,42 @@ export default function DashboardNav() {
                                                 </h4>
                                                 <ul className="space-y-2 text-sm text-gray-700">
                                                     {[
-                                                        { name: 'Usulan', href: '/pt-penelitian' },
-                                                        { name: 'Perbaikan Usulan', href: '/pt-penelitian/perbaikan' },
-                                                        { name: 'Laporan Kemajuan', href: '#' },
-                                                        { name: 'Catatan Harian', href: '#' },
-                                                        { name: 'Laporan Akhir',href: '#' },
-                                                        { name: 'Pengkinian Capaian Luaran',href: '#' },
-                                                       
-                                                    ].map((item) => (
-                                                        <li key={item.name}>
-                                                            <Link href={item.href} className="hover:text-blue-700">
-                                                                {item.name}
-                                                            </Link>
-                                                        </li>
-                                                    ))}
+                                                        { name: 'Usulan', href: '/pt-penelitian', slug: 'pt-penelitian' },
+                                                        { name: 'Perbaikan Usulan', href: '/pt-penelitian/perbaikan', slug: 'pt-penelitian-perbaikan' },
+                                                    ]
+                                                        .filter((item) => showMenu(item.slug))
+                                                        .map((item) => (
+                                                            <li key={item.name}>
+                                                                <Link href={item.href} className="hover:text-blue-700">
+                                                                    {item.name}
+                                                                </Link>
+                                                            </li>
+                                                        ))}
                                                 </ul>
                                             </div>
 
-                                            <div>
-                                                <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
-                                                    Pengabdian
-                                                </h4>
-                                                <ul className="space-y-2 text-sm text-gray-700">
-                                                    {[
-                                                        { name: 'Usulan', href: '/pt-pengabdian' },
-                                                        { name: 'Perbaikan Usulan', href: '#' },
-                                                        { name: 'Laporan Kemajuan',href: '#'},
-                                                        { name: 'Catatan Harian', href: '#'},
-                                                        { name: 'Laporan Akhir', href: '#' },
-                                                        { name: 'Pengkinian Capaian Luaran', href: '#' },
-                                                    
-                                                    ].map((item) => (
-                                                        <li key={item.name}>
-                                                            <Link href={item.href} className="hover:text-blue-700">
-                                                                {item.name}
-                                                            </Link>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
+                                        <div>
+                                            <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
+                                                Pengabdian
+                                            </h4>
+                                            <ul className="space-y-2 text-sm text-gray-700">
+                                                {/* Placeholder pengabdian; adjust when menus tersedia */}
+                                                {[
+                                                    { name: 'Usulan', href: '/pt-pengabdian' },
+                                                ].map((item) => (
+                                                    <li key={item.name}>
+                                                        <Link href={item.href} className="hover:text-blue-700">
+                                                            {item.name}
+                                                        </Link>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
                                         </div>
                                     )}
 
                                     {/* Penelitian - Admin PT */}
-                                    {(isAdminPt || isSuperAdmin) && (
+                                    {(isAdminPt || isSuperAdmin || isKetuaLppm) && (
                                         <>
                                             <div>
                                                 <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
@@ -112,20 +117,17 @@ export default function DashboardNav() {
                                                 </h4>
                                                 <ul className="space-y-2 text-sm text-gray-700">
                                                     {[
-                                                        { name: 'Usulan Regular', href: '/admin/pt-penelitian' },
-                                                        { name: 'Assign Reviewer', href: '/admin/pt-penelitian/assign-reviewer' },
-                                                        { name: 'Catatan Harian', href: '/admin/pt-penelitian/catatan-harian' },
-                                                        { name: 'Perbaikan Usulan', href: '/admin/pt-penelitian/perbaikan' },
-                                                        { name: 'Laporan Kemajuan', href: '/admin/pt-penelitian/laporan-kemajuan' },
-                                                        { name: 'Laporan Akhir', href: '/admin/pt-penelitian/laporan-akhir' },
-                                                        { name: 'Monitoring Pelaksanaan', href: '/admin/pt-penelitian/monitoring' },
-                                                    ].map((item) => (
-                                                        <li key={item.name}>
-                                                            <Link href={item.href} className="hover:text-blue-700">
-                                                                {item.name}
-                                                            </Link>
-                                                        </li>
-                                                    ))}
+                                                        { name: 'Usulan Regular', href: '/admin/pt-penelitian', slug: 'admin-pt-penelitian' },
+                                                        { name: 'Plotting Reviewer', href: '/admin/pt-penelitian/assign-reviewer', slug: 'assign-reviewer' },
+                                                    ]
+                                                        .filter((item) => showMenu(item.slug))
+                                                        .map((item) => (
+                                                            <li key={item.name}>
+                                                                <Link href={item.href} className="hover:text-blue-700">
+                                                                    {item.name}
+                                                                </Link>
+                                                            </li>
+                                                        ))}
                                                 </ul>
                                             </div>
                                             <div>
@@ -151,7 +153,7 @@ export default function DashboardNav() {
                                             </div>
                                         </>
                                     )}
-                                    {isKetuaLppm && (
+                                    {isKetuaLppm && showMenu('admin-pt-penelitian') && (
                                         <div>
                                             <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
                                                 Monitoring LPPM
@@ -192,15 +194,29 @@ export default function DashboardNav() {
                         </div>
                     )}
 
+                    {isReviewer && showMenu('reviewer-dashboard') && (
+                        <div className="flex items-center gap-2">
+                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
+                                <ClipboardList className="h-5 w-5 text-white" />
+                            </span>
+                            <Link
+                                href="/reviewer/pt-penelitian"
+                                className="inline-flex items-center gap-1 hover:text-blue-200"
+                            >
+                                Review Proposal
+                            </Link>
+                        </div>
+                    )}
+
                     <div className="ml-auto flex items-center gap-6">
                        
 
-                        {isAdminPt && (
-                            <Link
-                                href="/users/approvals"
-                                className="inline-flex items-center gap-2 hover:text-blue-200"
-                            >
-                                Approve Akun Baru
+                    {isAdminPt && showMenu('users-approvals') && (
+                        <Link
+                            href="/users/approvals"
+                            className="inline-flex items-center gap-2 hover:text-blue-200"
+                        >
+                            Approve Akun Baru
                             </Link>
                         )}
 
@@ -212,7 +228,7 @@ export default function DashboardNav() {
                                 Skema
                             </Link>
                         )}
-                        {isAdminPt && (
+                        {isAdminPt && showMenu('pt-skema') && (
                             <Link
                                 href="/admin/pt-skema"
                                 className="inline-flex items-center gap-2 hover:text-blue-200"
@@ -221,7 +237,7 @@ export default function DashboardNav() {
                             </Link>
                         )}
 
-                        {isSuperAdmin && (
+                        {isSuperAdmin && showMenu('role-assignment') && (
                             <Link
                                 href="/settings/role-assignment"
                                 className="inline-flex items-center gap-2 hover:text-blue-200"
@@ -229,9 +245,53 @@ export default function DashboardNav() {
                                 Role Assignment
                             </Link>
                         )}
+                        {isSuperAdmin && showMenu('settings-menus') && (
+                            <Link
+                                href="/settings/menus"
+                                className="inline-flex items-center gap-2 hover:text-blue-200"
+                            >
+                                Menu Settings
+                            </Link>
+                        )}
+
+                        {extraMenus.map((menu) => (
+                            <Link
+                                key={menu.id}
+                                href={menu.href ?? '#'}
+                                className="inline-flex items-center gap-2 hover:text-blue-200"
+                            >
+                                {menu.name}
+                            </Link>
+                        ))}
                     </div>
                 </nav>
             </div>
         </div>
     );
+}
+
+function resolveDashboardUrl(currentRole: string | null, menus: MenuItem[]): string {
+    const prioritized = [
+        { role: 'super-admin', href: '/dashboard/super-admin' },
+        { role: 'ketua-lppm', href: '/dashboard/ketua-lppm' },
+        { role: 'admin-pt', href: '/dashboard/admin-pt' },
+        { role: 'reviewer', href: '/dashboard/reviewer' },
+        { role: 'dosen', href: '/dashboard/dosen' },
+    ];
+
+    const menuHref = menus.find((menu) => menu.slug === 'dashboard')?.href;
+
+    if (currentRole) {
+        const match = prioritized.find((item) => item.role === currentRole);
+        if (match) {
+            return match.href;
+        }
+    }
+
+    if (menuHref) {
+        return menuHref;
+    }
+
+    const fallback = prioritized[prioritized.length - 1];
+    return fallback.href;
 }

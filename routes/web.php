@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Dashboard\DosenDashboardController;
 use App\Http\Controllers\Users\AdminPtUserApprovalController;
+use App\Http\Controllers\Settings\RoleAssignmentController;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Illuminate\Http\Request;
@@ -27,6 +28,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         if ($user?->hasRole('admin-pt')) {
             return redirect()->route('dashboard.admin-pt');
+        }
+
+        if ($user?->hasRole('reviewer')) {
+            return redirect()->route('dashboard.reviewer');
         }
 
         if ($user?->hasRole('dosen')) {
@@ -55,12 +60,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('dashboard.ketua-lppm');
     });
 
+    Route::middleware('role:reviewer')->group(function () {
+        Route::get('dashboard/reviewer', fn() => redirect()->route('reviewer.pt-penelitian.index'))
+            ->name('dashboard.reviewer');
+    });
+
     Route::middleware('role:super-admin')->group(function () {
         Route::get('dashboard/super-admin', fn() => Inertia::render('dashboard/super-admin'))
             ->name('dashboard.super-admin');
-        Route::get('settings/role-assignment', fn() => Inertia::render('settings/role-assignment'))
+        Route::get('settings/role-assignment', [RoleAssignmentController::class, 'index'])
             ->name('settings.role-assignment');
+        Route::post('settings/role-assignment/{user}', [RoleAssignmentController::class, 'update'])
+            ->name('settings.role-assignment.update');
+        Route::get('settings/menus', [\App\Http\Controllers\Settings\MenuController::class, 'index'])
+            ->name('settings.menus.index');
+        Route::post('settings/menus', [\App\Http\Controllers\Settings\MenuController::class, 'store'])
+            ->name('settings.menus.store');
+        Route::put('settings/menus/{menu}', [\App\Http\Controllers\Settings\MenuController::class, 'update'])
+            ->name('settings.menus.update');
+        Route::delete('settings/menus/{menu}', [\App\Http\Controllers\Settings\MenuController::class, 'destroy'])
+            ->name('settings.menus.destroy');
     });
+
+    Route::post('settings/switch-role', [RoleAssignmentController::class, 'switchRole'])
+        ->name('settings.switch-role');
 });
 
 require __DIR__ . '/settings.php';
@@ -68,7 +91,7 @@ require __DIR__ . '/penelitian.php';
 
 use App\Http\Controllers\Penelitian\PtPenelitianController;
 
-Route::middleware(['auth', 'role:dosen|ketua-lppm'])->group(function () {
+Route::middleware(['auth', 'role:dosen|ketua-lppm|reviewer|admin-pt|super-admin'])->group(function () {
     Route::get('/pt-penelitian/{ptPenelitian}/preview', [PtPenelitianController::class, 'preview'])
         ->name('pt-penelitian.preview');
 });

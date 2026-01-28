@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             'admin-pt',
             'ketua-lppm',
             'dosen',
+            'reviewer',
         ];
 
         foreach ($roles as $role) {
@@ -30,6 +31,8 @@ class DatabaseSeeder extends Seeder
                 []
             );
         }
+
+        $this->call(MenuSeeder::class);
 
         $defaultPerguruanTinggi = RefPerguruanTinggi::firstOrCreate(
             ['uuid' => '6c3b1a2e-3f06-4ce6-9e3f-5f8b6f4a9a01'],
@@ -71,6 +74,12 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Ketua LPPM UCN',
                 'email' => 'ketua.lppm.ucn@example.com',
                 'uuid_pt' => $defaultPerguruanTinggi->uuid,
+            ],
+            [
+                'role' => 'reviewer',
+                'name' => 'Reviewer Demo',
+                'email' => 'reviewer@example.com',
+                'uuid_pt' => null,
             ],
         ];
 

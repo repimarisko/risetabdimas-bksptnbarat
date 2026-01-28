@@ -22,10 +22,11 @@ type Item = {
 type PageProps = SharedData & {
     items: Item[];
     reviewers: ReviewerOption[];
+    breadcrumbs?: Array<{ title: string; href: string }>;
 };
 
 export default function AssignReviewersPage() {
-    const { items = [], reviewers = [] } = usePage<PageProps>().props;
+    const { items = [], reviewers = [], breadcrumbs = [] } = usePage<PageProps>().props;
     const [search, setSearch] = useState('');
     const [selectedReviewer, setSelectedReviewer] = useState<Record<string, number | ''>>({});
 
@@ -54,12 +55,16 @@ export default function AssignReviewersPage() {
 
     return (
         <AppHeaderLayout
-            breadcrumbs={[
-                { title: 'Dashboard Super Admin', href: '/dashboard/super-admin' },
-                { title: 'Assign Reviewer', href: '/admin/pt-penelitian/assign-reviewer' },
-            ]}
+            breadcrumbs={
+                breadcrumbs.length
+                    ? breadcrumbs
+                    : [
+                          { title: 'Dashboard', href: '/dashboard' },
+                          { title: 'Plotting Reviewer', href: '/admin/pt-penelitian/assign-reviewer' },
+                      ]
+            }
         >
-            <Head title="Assign Reviewer Penelitian" />
+            <Head title="Plotting Reviewer Penelitian" />
             <DashboardNav />
 
             <div className="bg-gray-50">
@@ -69,9 +74,10 @@ export default function AssignReviewersPage() {
                             <p className="text-sm font-semibold text-gray-700">
                                 Usulan Disetujui Admin PT
                             </p>
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                Assign Reviewer
-                            </h1>
+                            <h1 className="text-2xl font-bold text-gray-900">Plotting Reviewer</h1>
+                            <p className="text-sm text-gray-500">
+                                Tetapkan reviewer agar judul muncul pada akun reviewer terkait.
+                            </p>
                         </div>
                         <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
                             <Search className="h-4 w-4 text-gray-400" />

@@ -159,7 +159,7 @@ class AdminPtPenelitianController extends Controller
             'reviewers' => $availableReviewers,
             'breadcrumbs' => [
                 $this->resolveDashboardBreadcrumb($request),
-                ['title' => 'Assign Reviewer', 'href' => '#'],
+                ['title' => 'Plotting Reviewer', 'href' => '#'],
             ],
         ]);
     }
