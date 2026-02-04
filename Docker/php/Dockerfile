@@ -21,8 +21,8 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# Install composer
-COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
+# Install composer (avoid pulling composer image)
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Optional: install node (used to build assets) when ARG enabled
 RUN if [ "${INSTALL_NODE}" = "true" ]; then \

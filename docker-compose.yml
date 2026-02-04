@@ -25,7 +25,7 @@ services:
     container_name: risetabdimas_web
     restart: unless-stopped
     ports:
-      - 80:80
+      - 9090:80
     volumes:
       - ./:/var/www/html:ro
       - ./Docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
