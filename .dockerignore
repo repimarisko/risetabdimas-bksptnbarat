@@ -2,10 +2,13 @@ node_modules
 vendor
 .git
 .env
+.env.docker
 storage
 tests
 .vscode
 npm-debug.log
 yarn-error.log
-Docker/
+/public/build
+/public/hot
 *.md
+*.pdf

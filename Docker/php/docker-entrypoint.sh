@@ -1,6 +1,19 @@
 #!/bin/sh
 set -e
 
+# Ensure basic writable directories exist (useful for production images without bind mounts)
+for dir in \
+  storage \
+  storage/app \
+  storage/framework \
+  storage/framework/cache \
+  storage/framework/sessions \
+  storage/framework/views \
+  storage/logs \
+  bootstrap/cache; do
+  mkdir -p "/var/www/html/$dir" || true
+done
+
 # Ensure writable paths exist with correct permissions
 # Avoid chown-ing the whole repo (host volumes may prevent chown on many files)
 for dir in storage bootstrap/cache; do
@@ -47,5 +60,10 @@ if [ -f "/var/www/html/artisan" ]; then
   fi
 fi
 
-# Start php-fpm (foreground)
-php-fpm
+# If the container is started with arguments, run them instead.
+if [ "$#" -gt 0 ]; then
+  exec "$@"
+fi
+
+# Start nginx + php-fpm under supervisord
+exec supervisord -n -c /etc/supervisor/conf.d/supervisord.conf
