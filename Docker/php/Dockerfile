@@ -45,6 +45,8 @@ RUN if [ -f /usr/local/etc/php-fpm.d/www.conf ]; then \
 # Create writable directories (useful for production images without bind mounts)
 RUN mkdir -p \
       storage/app \
+      storage/app/public \
+      storage/app/private \
       storage/framework/cache \
       storage/framework/sessions \
       storage/framework/views \
@@ -66,6 +68,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
   && rm -rf /var/lib/apt/lists/*
 
 COPY . /var/www/html
+
+RUN if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
 
 RUN composer install --prefer-dist --no-interaction --no-progress --no-dev --optimize-autoloader
 RUN npm ci

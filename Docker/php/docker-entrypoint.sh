@@ -1,10 +1,21 @@
 #!/bin/sh
 set -e
 
+# Write KEY='VALUE' for safe .env format (quotes are removed by dotenv parser).
+write_env_line() {
+  key="$1"
+  value="$2"
+
+  escaped=$(printf "%s" "$value" | sed "s/'/'\"'\"'/g")
+  printf "%s='%s'\n" "$key" "$escaped"
+}
+
 # Ensure basic writable directories exist (useful for production images without bind mounts)
 for dir in \
   storage \
   storage/app \
+  storage/app/public \
+  storage/app/private \
   storage/framework \
   storage/framework/cache \
   storage/framework/sessions \
@@ -13,6 +24,28 @@ for dir in \
   bootstrap/cache; do
   mkdir -p "/var/www/html/$dir" || true
 done
+
+# Ensure .env exists (some Laravel commands assume the file is present).
+# The production image relies on container env vars, but creating a file avoids failures
+# like `file_get_contents(/var/www/html/.env)` when running artisan commands.
+if [ ! -f "/var/www/html/.env" ]; then
+  {
+    write_env_line APP_NAME "${APP_NAME:-Laravel}"
+    write_env_line APP_ENV "${APP_ENV:-local}"
+    write_env_line APP_KEY "${APP_KEY:-}"
+    write_env_line APP_DEBUG "${APP_DEBUG:-false}"
+    write_env_line APP_URL "${APP_URL:-http://localhost:9090}"
+    printf "\n"
+    write_env_line LOG_CHANNEL "${LOG_CHANNEL:-stack}"
+    printf "\n"
+    write_env_line DB_CONNECTION "${DB_CONNECTION:-mysql}"
+    write_env_line DB_HOST "${DB_HOST:-127.0.0.1}"
+    write_env_line DB_PORT "${DB_PORT:-3306}"
+    write_env_line DB_DATABASE "${DB_DATABASE:-}"
+    write_env_line DB_USERNAME "${DB_USERNAME:-}"
+    write_env_line DB_PASSWORD "${DB_PASSWORD:-}"
+  } >"/var/www/html/.env" || true
+fi
 
 # Ensure writable paths exist with correct permissions
 # Avoid chown-ing the whole repo (host volumes may prevent chown on many files)
