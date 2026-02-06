@@ -16,6 +16,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Trust reverse proxies / load balancers so Laravel can honor X-Forwarded-* headers.
+        // Default to common private network ranges (works well for Docker / internal ingress).
+        $trustedProxies = env('TRUSTED_PROXIES');
+        $trustedProxies = is_string($trustedProxies) ? trim($trustedProxies) : $trustedProxies;
+
+        $middleware->trustProxies(
+            at: ($trustedProxies === null || $trustedProxies === '')
+                ? '10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.1,::1'
+                : $trustedProxies
+        );
+
         $middleware->appendToGroup('web', [
             HandleAppearance::class,
             HandleInertiaRequests::class,

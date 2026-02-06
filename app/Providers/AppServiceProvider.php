@@ -22,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
     {
         if (config('app.force_https')) {
             URL::forceScheme('https');
+
+            $assetUrl = config('app.asset_url');
+            if (is_string($assetUrl) && str_starts_with($assetUrl, 'http://')) {
+                URL::useAssetOrigin('https://'.substr($assetUrl, strlen('http://')));
+            }
         }
     }
 }
