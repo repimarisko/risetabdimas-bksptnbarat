@@ -40,6 +40,8 @@ RUN rm -f /etc/nginx/sites-enabled/default || true \
 # Ensure php-fpm listens on all interfaces (nginx connects to 127.0.0.1:9000 in the same container).
 RUN if [ -f /usr/local/etc/php-fpm.d/www.conf ]; then \
       sed -i "s|listen = 127.0.0.1:9000|listen = 9000|" /usr/local/etc/php-fpm.d/www.conf || true; \
+      sed -i "s|^;\\?clear_env\\s*=\\s*yes|clear_env = no|" /usr/local/etc/php-fpm.d/www.conf || true; \
+      grep -q "^clear_env\\s*=" /usr/local/etc/php-fpm.d/www.conf || echo "clear_env = no" >> /usr/local/etc/php-fpm.d/www.conf; \
     fi
 
 # Create writable directories (useful for production images without bind mounts)

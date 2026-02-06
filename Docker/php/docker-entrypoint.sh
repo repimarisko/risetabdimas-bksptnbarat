@@ -10,6 +10,16 @@ write_env_line() {
   printf "%s='%s'\n" "$key" "$escaped"
 }
 
+ensure_env_key() {
+  key="$1"
+  value="$2"
+  env_file="$3"
+
+  if ! grep -q "^${key}=" "$env_file" 2>/dev/null; then
+    write_env_line "$key" "$value" >>"$env_file" || true
+  fi
+}
+
 # Ensure basic writable directories exist (useful for production images without bind mounts)
 for dir in \
   storage \
@@ -25,10 +35,12 @@ for dir in \
   mkdir -p "/var/www/html/$dir" || true
 done
 
-# Ensure .env exists (some Laravel commands assume the file is present).
-# The production image relies on container env vars, but creating a file avoids failures
-# like `file_get_contents(/var/www/html/.env)` when running artisan commands.
-if [ ! -f "/var/www/html/.env" ]; then
+ENV_FILE="/var/www/html/.env"
+
+# Ensure .env exists (some code/commands assume the file is present).
+# Nginx->PHP-FPM may not receive container env vars depending on php-fpm settings; writing
+# a minimal .env keeps the app functional.
+if [ ! -f "$ENV_FILE" ]; then
   {
     write_env_line APP_NAME "${APP_NAME:-Laravel}"
     write_env_line APP_ENV "${APP_ENV:-local}"
@@ -44,7 +56,18 @@ if [ ! -f "/var/www/html/.env" ]; then
     write_env_line DB_DATABASE "${DB_DATABASE:-}"
     write_env_line DB_USERNAME "${DB_USERNAME:-}"
     write_env_line DB_PASSWORD "${DB_PASSWORD:-}"
-  } >"/var/www/html/.env" || true
+    printf "\n"
+    write_env_line SESSION_DRIVER "${SESSION_DRIVER:-file}"
+    write_env_line SESSION_LIFETIME "${SESSION_LIFETIME:-120}"
+    write_env_line QUEUE_CONNECTION "${QUEUE_CONNECTION:-sync}"
+    write_env_line CACHE_STORE "${CACHE_STORE:-file}"
+  } >"$ENV_FILE" || true
+else
+  # Backfill keys for older generated .env files so the web app doesn't default to DB sessions.
+  ensure_env_key SESSION_DRIVER "${SESSION_DRIVER:-file}" "$ENV_FILE"
+  ensure_env_key SESSION_LIFETIME "${SESSION_LIFETIME:-120}" "$ENV_FILE"
+  ensure_env_key QUEUE_CONNECTION "${QUEUE_CONNECTION:-sync}" "$ENV_FILE"
+  ensure_env_key CACHE_STORE "${CACHE_STORE:-file}" "$ENV_FILE"
 fi
 
 # Ensure writable paths exist with correct permissions
