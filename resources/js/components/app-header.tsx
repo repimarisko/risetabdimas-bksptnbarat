@@ -31,8 +31,8 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { BookOpen, Folder, LayoutGrid, Menu, Search, Bell } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
@@ -52,6 +52,30 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const getInitials = useInitials();
+    const pendingApprovals = auth.pendingApprovals ?? [];
+    const pendingApprovalsCount =
+        typeof auth.pendingApprovalsCount === 'number'
+            ? auth.pendingApprovalsCount
+            : pendingApprovals.length;
+
+    const handleApprovalAction = (penelitianUuid: string, action: 'approve' | 'reject') => {
+        const confirmText =
+            action === 'approve'
+                ? 'Setujui keikutsertaan pada penelitian ini?'
+                : 'Tolak keikutsertaan pada penelitian ini?';
+
+        if (!window.confirm(confirmText)) {
+            return;
+        }
+
+        const url =
+            action === 'approve'
+                ? `/pt-penelitian/${penelitianUuid}/anggota-approve`
+                : `/pt-penelitian/${penelitianUuid}/anggota-reject`;
+
+        router.post(url, {}, { preserveScroll: true });
+    };
+
     return (
         <>
             <div className="border-b border-sidebar-border/80">
@@ -150,7 +174,83 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     </div>
 
                     <div className="ml-auto flex items-center space-x-2">
-                       
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    className="relative size-10 rounded-full p-0"
+                                    aria-label="Notifikasi persetujuan anggota"
+                                >
+                                    <Bell className="h-5 w-5" />
+                                    {pendingApprovalsCount > 0 ? (
+                                        <span className="absolute -right-0.5 -top-0.5 inline-flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white">
+                                            {pendingApprovalsCount}
+                                        </span>
+                                    ) : null}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                className="w-80 p-0"
+                                align="end"
+                                side="bottom"
+                            >
+                                <div className="border-b px-4 py-3 text-sm font-semibold text-neutral-800">
+                                    Persetujuan Anggota
+                                </div>
+                                <div className="max-h-80 overflow-y-auto">
+                                    {pendingApprovals.length === 0 ? (
+                                        <div className="px-4 py-3 text-sm text-neutral-500">
+                                            Tidak ada permintaan persetujuan anggota.
+                                        </div>
+                                    ) : (
+                                        pendingApprovals.map((item) => (
+                                            <div
+                                                key={`${item.id}-${item.penelitian_uuid}`}
+                                                className="flex flex-col gap-2 px-4 py-3 text-sm transition hover:bg-neutral-50"
+                                            >
+                                                <Link
+                                                    href={`/pt-penelitian/${item.penelitian_uuid}/edit`}
+                                                    className="flex flex-col gap-1"
+                                                >
+                                                    <span className="font-semibold text-neutral-900 line-clamp-2">
+                                                        {item.title ?? 'Usulan tanpa judul'}
+                                                    </span>
+                                                    <span className="text-xs text-neutral-500">
+                                                        Status: {item.status ?? 'Menunggu'}
+                                                    </span>
+                                                </Link>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleApprovalAction(
+                                                                item.penelitian_uuid,
+                                                                'approve',
+                                                            )
+                                                        }
+                                                        className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500"
+                                                    >
+                                                        Setujui
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleApprovalAction(
+                                                                item.penelitian_uuid,
+                                                                'reject',
+                                                            )
+                                                        }
+                                                        className="flex-1 rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
+                                                    >
+                                                        Tolak
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button

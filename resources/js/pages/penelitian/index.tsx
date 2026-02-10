@@ -10,12 +10,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import {
-    Filter,
-    MoreHorizontal,
-   
-    Search
-} from 'lucide-react';
+import { Filter, MoreHorizontal, Search, AlertCircle, CheckCircle } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 type ApprovalSummary = {
@@ -24,6 +19,7 @@ type ApprovalSummary = {
     pending: number;
     missing: number;
     all_approved: boolean;
+    latest_approved_at?: string | null;
 };
 
 type PenelitianItem = {
@@ -33,6 +29,7 @@ type PenelitianItem = {
     tahun?: number | null;
     tahun_pelaksanaan?: number | null;
     created_at?: string | null;
+    updated_at?: string | null;
     email_pengusul?: string | null;
     biaya_usulan_1?: number | null;
     biaya_usulan_2?: number | null;
@@ -55,6 +52,27 @@ type PageProps = SharedData & {
     submissionLocked?: boolean;
     lockReason?: string | null;
     isAccountVerified?: boolean;
+    eligibility?: {
+        schemes: Array<{
+            uuid: string;
+            nama: string | null;
+            nama_singkat: string | null;
+            anggota_min: number | null;
+            anggota_max: number | null;
+            biaya_minimal: number | null;
+            biaya_maksimal: number | null;
+            multi_tahun: boolean;
+            mulai: string | null;
+            selesai: string | null;
+        }>;
+        profile: {
+            has_profile: boolean;
+            verified: boolean;
+            profile_complete?: boolean;
+            uuid_pt: string | null;
+            name: string | null;
+        };
+    };
 };
 
 type FilterKey = 'all' | 'completed' |  'in_review' | 'rejected';
@@ -80,10 +98,12 @@ const dateFormatter = new Intl.DateTimeFormat('id-ID', {
 });
 
 export default function PenelitianIndex() {
-    const { penelitian, auth, submissionLocked = false, lockReason } = usePage<PageProps>().props;
+    const { penelitian, auth, submissionLocked = false, lockReason, eligibility } = usePage<PageProps>().props;
     const currentUserId = auth?.user?.id;
     const [query, setQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<FilterKey>('all');
+    const [showEligibility, setShowEligibility] = useState(false);
+    const profileComplete = eligibility?.profile?.profile_complete ?? false;
 
     const handleDelete = useCallback((uuid: string) => {
         if (
@@ -174,6 +194,13 @@ export default function PenelitianIndex() {
         >
             <Head title="Penelitian" />
             <DashboardNav />
+            {showEligibility && (
+                <EligibilityModal
+                    onClose={() => setShowEligibility(false)}
+                    schemes={eligibility?.schemes ?? []}
+                    profile={eligibility?.profile}
+                />
+            )}
 
             <div className="bg-gray-50">
                 <div className="mx-auto max-w-7xl px-4 py-10">
@@ -193,32 +220,51 @@ export default function PenelitianIndex() {
                                 Anda ajukan.
                             </p>
                         </div>
-                        {submissionLocked ? (
+                        <div className="flex flex-wrap gap-3">
                             <button
                                 type="button"
-                                disabled
-                                className="inline-flex items-center gap-2 rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-500 shadow-sm"
+                                onClick={() => setShowEligibility(true)}
+                                className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold shadow-sm transition ${
+                                    profileComplete
+                                        ? 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                                        : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                                }`}
                                 title={
-                                    lockReason ??
-                                    'Akun Anda belum disetujui oleh admin PT.'
+                                    profileComplete
+                                        ? 'Cek eligibilitas skema'
+                                        : 'Lengkapi profil agar memenuhi syarat pengajuan'
                                 }
                             >
-                                + Tambah Usulan
+                                <AlertCircle className="h-4 w-4" />
+                                Cek Eligibilitas
                             </button>
-                        ) : (
-                            <Link
-                                href="/pt-penelitian/create"
-                                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
-                            >
-                                + Tambah Usulan
-                            </Link>
-                        )}
+                            {submissionLocked ? (
+                                <button
+                                    type="button"
+                                    disabled
+                                    className="inline-flex items-center gap-2 rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-500 shadow-sm"
+                                    title={
+                                        lockReason ??
+                                        'Akun Anda belum disetujui oleh admin PT.'
+                                    }
+                                >
+                                    + Tambah Usulan
+                                </button>
+                            ) : (
+                                <Link
+                                    href="/pt-penelitian/create"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
+                                >
+                                    + Tambah Usulan
+                                </Link>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+                    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
                         <div className="border-b border-gray-200 px-6 py-5">
                             <div className="flex flex-wrap items-center gap-3">
-                                <div className="flex flex-1 items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                                <div className="flex flex-1 items-center gap-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
                                     <Search className="h-4 w-4 text-gray-400" />
                                     <input
                                         value={query}
@@ -228,12 +274,12 @@ export default function PenelitianIndex() {
                                         placeholder="Cari judul, status, atau email pengusul..."
                                         className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
                                     />
-                                    <button className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-500">
+                                    <button className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-500">
                                         Search
                                     </button>
                                 </div>
 
-                                <button className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100">
+                                <button className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100">
                                     <Filter className="h-4 w-4 text-gray-500" />
                                     Filter
                                 </button>
@@ -242,26 +288,7 @@ export default function PenelitianIndex() {
                             </div>
 
                             <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-medium text-gray-500">
-                                <span className="uppercase tracking-wide text-gray-400">
-                                    Show only:
-                                </span>
-                                {filterOptions.map(({ key, label }) => (
-                                    <button
-                                        key={key}
-                                        onClick={() => setStatusFilter(key)}
-                                        className={cn(
-                                            'inline-flex items-center gap-2 rounded-full border border-transparent px-4 py-1.5',
-                                            statusFilter === key
-                                                ? 'bg-blue-600 text-white shadow-sm'
-                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-                                        )}
-                                    >
-                                        <span>{label}</span>
-                                        <span className="text-xs text-gray-400">
-                                            {filterCounts[key] ?? 0}
-                                        </span>
-                                    </button>
-                                ))}
+                               
                             </div>
                         </div>
 
@@ -284,6 +311,10 @@ export default function PenelitianIndex() {
                                         {filteredRows.map((item) => {
                                             const budget = getBudgetSummary(item);
                                             const statusMeta = getStatusMeta(item.status, budget.progress);
+                                            const isOwner =
+                                                currentUserId !== undefined &&
+                                                currentUserId !== null &&
+                                                item.created_by === currentUserId;
                                             return (
                                                 <tr
                                                     key={item.uuid}
@@ -298,21 +329,44 @@ export default function PenelitianIndex() {
                                                             >
                                                                 {item.title}
                                                             </span>
-                                                            <span className="text-xs text-gray-500">
+                                                            <span className="text-xs text-gray-500 ">
                                                                 Dibuat:{' '}
                                                                 {formatDate(item.created_at)}
                                                             </span>
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 align-top">
-                                                        <span
-                                                            className={cn(
-                                                                'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase',
-                                                                statusMeta.badgeClass,
-                                                            )}
-                                                        >
-                                                            {statusMeta.label}
-                                                        </span>
+                                                        <div className="space-y-2">
+                                                            <span
+                                                                className={cn(
+                                                                    'inline-flex items-center rounded-xl px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+                                                                    statusMeta.badgeClass,
+                                                                )}
+                                                            >
+                                                                {statusMeta.label}
+                                                            </span>
+                                                            <div className="space-y-1">
+                                                                {buildStatusTimeline(item).map((entry) => (
+                                                                    <div
+                                                                        key={entry.key}
+                                                                        className="flex items-center gap-2 text-[11px] text-gray-600"
+                                                                    >
+                                                                        <span
+                                                                            className={cn(
+                                                                                'h-1.5 w-1.5 rounded-full',
+                                                                                entry.dotClass,
+                                                                            )}
+                                                                        />
+                                                                        <span className="font-semibold text-gray-800">
+                                                                            {entry.label}
+                                                                        </span>
+                                                                        <span className="text-gray-500">
+                                                                            {entry.value ?? 'Belum'}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
                                                     </td>
                                                     <td className="px-6 py-4 align-top">
                                                         <div className="flex items-center gap-2">
@@ -415,7 +469,7 @@ export default function PenelitianIndex() {
                                                         </Link>
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
-                                                        {canSubmitProposal(item) ? (
+                                                        {isOwner && canSubmitProposal(item) ? (
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleSubmitProposal(item.uuid)}
@@ -424,39 +478,45 @@ export default function PenelitianIndex() {
                                                                 Ajukan
                                                             </button>
                                                         ) : null}
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <button
-                                                                    type="button"
-                                                                    className="rounded-full p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
-                                                                    aria-label="Aksi cepat"
-                                                                >
-                                                                    <MoreHorizontal className="h-5 w-5" />
-                                                                </button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent className="min-w-[180px] rounded-lg border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg focus:outline-none">
-                                                                <DropdownMenuItem
-                                                                    className="cursor-pointer rounded px-3 py-2 text-gray-700 outline-none hover:bg-gray-100"
-                                                                    onSelect={() =>
-                                                                        router.visit(
-                                                                            `/pt-penelitian/${item.uuid}/edit`,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    Ubah
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem
-                                                                    className="cursor-pointer rounded px-3 py-2 text-rose-500 outline-none hover:bg-rose-100"
-                                                                    onSelect={() =>
-                                                                        handleDelete(
-                                                                            item.uuid,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    Hapus
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
+                                                        {isOwner && !hasBeenSubmitted(item.status) ? (
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="rounded-full p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+                                                                        aria-label="Aksi cepat"
+                                                                    >
+                                                                        <MoreHorizontal className="h-5 w-5" />
+                                                                    </button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent className="min-w-[180px] rounded-lg border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg focus:outline-none">
+                                                                    <DropdownMenuItem
+                                                                        className="cursor-pointer rounded px-3 py-2 text-gray-700 outline-none hover:bg-gray-100"
+                                                                        onSelect={() =>
+                                                                            router.visit(
+                                                                                `/pt-penelitian/${item.uuid}/edit`,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        Ubah
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem
+                                                                        className="cursor-pointer rounded px-3 py-2 text-rose-500 outline-none hover:bg-rose-100"
+                                                                        onSelect={() =>
+                                                                            handleDelete(
+                                                                                item.uuid,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        Hapus
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        ) : (
+                                                            <span className="text-xs text-gray-400">
+                                                                —
+                                                            </span>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             );
@@ -479,6 +539,59 @@ export default function PenelitianIndex() {
 function isAwaitingAnggotaApproval(status?: string | null): boolean {
     const normalized = (status ?? '').toLowerCase();
     return normalized.includes('anggota') || normalized.includes('menunggu');
+}
+
+function hasBeenSubmitted(status?: string | null): boolean {
+    const normalized = (status ?? '').toLowerCase();
+    return normalized.includes('mengaju');
+}
+
+type StatusTimelineEntry = {
+    key: string;
+    label: string;
+    value?: string | null;
+    dotClass: string;
+};
+
+function buildStatusTimeline(item: PenelitianItem): StatusTimelineEntry[] {
+    const approvalSummary = item.approval_summary;
+    const submitted = hasBeenSubmitted(item.status);
+    const submittedAt = submitted ? formatDate(item.updated_at ?? item.created_at) : null;
+    const allApproved = approvalSummary?.all_approved ?? false;
+    const approvedAt = allApproved && approvalSummary?.latest_approved_at
+        ? formatDate(approvalSummary.latest_approved_at)
+        : null;
+    const approvedValue = approvedAt
+        ? approvedAt
+        : approvalSummary
+            ? `${approvalSummary.approved ?? 0}/${approvalSummary.total ?? 0} setuju`
+            : null;
+
+    return [
+        {
+            key: 'created',
+            label: 'Dibuat',
+            value: formatDate(item.created_at),
+            dotClass: 'bg-gray-400',
+        },
+        {
+            key: 'submitted',
+            label: 'Mengajukan',
+            value: submittedAt,
+            dotClass: submitted ? 'bg-blue-500' : 'bg-gray-300',
+        },
+        {
+            key: 'approved',
+            label: 'Disetujui Anggota',
+            value: approvedValue,
+            dotClass:
+                allApproved
+                    ? 'bg-emerald-500'
+                    : (approvalSummary?.approved ?? 0) > 0
+                        ? 'bg-amber-500'
+                        : 'bg-gray-300',
+        },
+    ];
 }
 
 function mapStatusToFilter(status?: string | null): FilterKey {
@@ -631,4 +744,179 @@ function getInitials(name: string) {
         .map((part) => part.charAt(0).toUpperCase())
         .slice(0, 2)
         .join('');
+}
+
+type EligibilityModalProps = {
+    onClose: () => void;
+    schemes: NonNullable<PageProps['eligibility']>['schemes'];
+    profile?: PageProps['eligibility'] extends { profile: infer P } ? P : undefined;
+};
+
+function EligibilityModal({ onClose, schemes, profile }: EligibilityModalProps) {
+    const requirements = [
+        {
+            label: 'Profil Dosen tersedia',
+            fulfilled: profile?.has_profile ?? false,
+        },
+        {
+            label: 'Akun terverifikasi',
+            fulfilled: profile?.verified ?? false,
+        },
+        {
+            label: 'Data profil lengkap',
+            fulfilled: profile?.profile_complete ?? false,
+        },
+    ];
+
+    return (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
+                <div className="flex items-center justify-between border-b px-6 py-4">
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            Cek Eligibilitas Skema
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                            Periksa kecocokan profil pengusul dengan skema yang terbuka.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-full bg-gray-100 px-3 py-1 text-gray-500 hover:text-gray-700"
+                    >
+                        Tutup
+                    </button>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3 px-6 py-4 border-b">
+                    {requirements.map((req) => (
+                        <div
+                            key={req.label}
+                            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${
+                                req.fulfilled ? 'bg-green-50 text-green-700' : 'bg-rose-50 text-rose-700'
+                            }`}
+                        >
+                            {req.fulfilled ? (
+                                <CheckCircle className="h-4 w-4" />
+                            ) : (
+                                <AlertCircle className="h-4 w-4" />
+                            )}
+                            <span>{req.label}</span>
+                        </div>
+                    ))}
+                </div>
+                <div className="max-h-[60vh] overflow-y-auto px-6 py-4">
+                    {schemes.length === 0 ? (
+                        <p className="text-sm text-gray-600">Tidak ada skema terbuka saat ini.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {schemes.map((skema) => (
+                                <div
+                                    key={skema.uuid}
+                                    className="rounded-xl border border-gray-200 p-4 shadow-sm"
+                                >
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                        <div>
+                                            <h4 className="text-base font-semibold text-gray-900">
+                                                {skema.nama ?? 'Skema tanpa nama'}
+                                            </h4>
+                                            <p className="text-xs text-gray-500">
+                                                {skema.nama_singkat ?? '-'}
+                                            </p>
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                            {skema.mulai && skema.selesai
+                                                ? `Periode: ${skema.mulai} s.d. ${skema.selesai}`
+                                                : 'Periode tidak dicantumkan'}
+                                        </div>
+                                    </div>
+                                    <div className="mt-3 grid gap-3 md:grid-cols-2">
+                                        <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
+                                            <p className="font-semibold text-gray-900">
+                                                Persyaratan Minimum
+                                            </p>
+                                            <ul className="mt-2 space-y-1 text-xs text-gray-600">
+                                                <li>
+                                                    Anggota minimal:{' '}
+                                                    <span className="font-semibold">
+                                                        {skema.anggota_min ?? '-'}
+                                                    </span>
+                                                </li>
+                                                <li>
+                                                    Anggota maksimal:{' '}
+                                                    <span className="font-semibold">
+                                                        {skema.anggota_max ?? '-'}
+                                                    </span>
+                                                </li>
+                                                <li>
+                                                    Multi tahun:{' '}
+                                                    <span className="font-semibold">
+                                                        {skema.multi_tahun ? 'Ya' : 'Tidak'}
+                                                    </span>
+                                                </li>
+                                                <li>
+                                                    Batas biaya:{' '}
+                                                    <span className="font-semibold">
+                                                        {skema.biaya_minimal !== null
+                                                            ? `Rp ${skema.biaya_minimal.toLocaleString('id-ID')}`
+                                                            : '-'}
+                                                        {' - '}
+                                                        {skema.biaya_maksimal !== null
+                                                            ? `Rp ${skema.biaya_maksimal.toLocaleString('id-ID')}`
+                                                            : '-'}
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div className="rounded-lg bg-white p-3 text-sm text-gray-700 border border-gray-200">
+                                            <p className="font-semibold text-gray-900">
+                                                Kecocokan Profil Pengusul
+                                            </p>
+                                            <ul className="mt-2 space-y-2 text-xs text-gray-600">
+                                                {requirements.map((req) => (
+                                                    <li
+                                                        key={req.label}
+                                                        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 ${
+                                                            req.fulfilled
+                                                                ? 'bg-green-50 text-green-700'
+                                                                : 'bg-rose-50 text-rose-700'
+                                                        }`}
+                                                    >
+                                                        {req.fulfilled ? (
+                                                            <CheckCircle className="h-3.5 w-3.5" />
+                                                        ) : (
+                                                            <AlertCircle className="h-3.5 w-3.5" />
+                                                        )}
+                                                        <span>{req.label}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <p className="mt-3 text-xs text-gray-500">
+                                               Akan Eligible jika semua persyaratan di atas terpenuhi.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className="flex justify-end gap-3 border-t px-6 py-4">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                    >
+                        Tutup
+                    </button>
+                    <Link
+                        href="/pt-penelitian/create"
+                        className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
+                    >
+                        Buat Usulan
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
 }

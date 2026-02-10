@@ -408,6 +408,22 @@ class RefTablesSeeder extends Seeder
             ],
         ], ['uuid'], ['tkt', 'level', 'created_by']);
 
+        DB::table('ref_komponen_rab')->upsert([
+            ['id' => 1, 'kategori' => 'PPkM', 'nama' => 'Bahan', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 2, 'kategori' => 'PPkM', 'nama' => 'Pengumpulan Data', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 3, 'kategori' => 'PPkM', 'nama' => 'Sewa', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 4, 'kategori' => 'P', 'nama' => 'Analisis Data', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 5, 'kategori' => 'P', 'nama' => 'Pelaporan, Luaran Wajib, dan Luaran Tambahan', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 6, 'kategori' => 'P', 'nama' => 'Honorarium', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 7, 'kategori' => 'PkM', 'nama' => 'Teknologi dan Inovasi Pengabdian', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 8, 'kategori' => 'PkM', 'nama' => 'Biaya Lainnya Pengabdian', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 9, 'kategori' => 'PkM', 'nama' => 'Biaya Updah dan Jasa Pengabdian', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 10, 'kategori' => 'PkM', 'nama' => 'Biaya Pelatihan Pengabdian', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 11, 'kategori' => 'PkM', 'nama' => 'Biaya Perjalanan', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 12, 'kategori' => 'PkM', 'nama' => 'Biaya Upah dan Jasa', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 13, 'kategori' => 'PkM', 'nama' => 'Biaya Pelatihan', 'created_at' => $now, 'updated_at' => $now],
+        ], ['id'], ['kategori', 'nama', 'updated_at', 'deleted_at']);
+
         DB::table('ref_komponen_biaya')->upsert([
             [
                 'id' => 1,

@@ -26,7 +26,6 @@ class PtPenelitianAnggota extends Model
 
     public function dosen(): BelongsTo
     {
-        return $this->belongsTo(Dosen::class, 'dosen_uuid', 'uuid');
+        return $this->belongsTo(Dosen::class, 'dosen_uuid', 'uuid')->withTrashed();
     }
 }
-
