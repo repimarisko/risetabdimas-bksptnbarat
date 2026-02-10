@@ -34,6 +34,13 @@ class DosenSeeder extends Seeder
                 'nidn' => '1122334455',
                 'uuid_pt' => '17d65870-9cb3-49c7-a095-0ebe65a0be43',
             ],
+            [
+                'name' => 'Sri Lestari Wahyuningroem',
+                'email' => 'swahyuningroem@upnvj.ac.id',
+                'password' => 'password123test',
+                'nidn' => '00000000',
+                'uuid_pt' => '6c3b1a2e-3f06-4ce6-9e3f-5f8b6f4a9a01',
+            ],
         ];
 
         foreach ($dosenList as $data) {
@@ -41,16 +48,24 @@ class DosenSeeder extends Seeder
                 continue;
             }
 
+            $password = $data['password'] ?? 'password';
+
             $user = User::firstOrCreate(
                 ['email' => $data['email']],
                 [
                     'name' => $data['name'],
-                    'password' => Hash::make('password'),
+                    'password' => Hash::make($password),
                     'email_verified_at' => now(),
                     'role' => User::ROLE_DOSEN,
                     'uuid_pt' => $data['uuid_pt'],
                 ]
             );
+
+            if (array_key_exists('password', $data) && ! Hash::check($password, $user->password)) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+            }
 
             $user->assignRole(User::ROLE_DOSEN);
 
