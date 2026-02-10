@@ -1,7 +1,7 @@
 import { dashboard } from '@/routes';
 import { Link, usePage } from '@inertiajs/react';
-import {  ChevronDown, FlaskConical, Home } from 'lucide-react';
-import { type SharedData } from '@/types';
+import { ChevronDown, ClipboardList, FlaskConical, Home } from 'lucide-react';
+import { type SharedData, type MenuItem } from '@/types';
 
 export default function DashboardNav() {
     const { auth } = usePage<SharedData>().props;
@@ -20,15 +20,7 @@ export default function DashboardNav() {
     const canAccessMenu = (key: string, fallback: boolean) =>
         menuPermissions.size > 0 ? menuPermissions.has(`menu:${key}`) : fallback;
 
-    const dashboardUrl = isSuperAdmin
-        ? '/dashboard/super-admin'
-        : isKetuaLppm
-          ? '/dashboard/ketua-lppm'
-          : isAdminPt
-            ? '/dashboard/admin-pt'
-            : isDosen
-              ? '/dashboard/dosen'
-              : dashboard().url;
+    const showMenu = (slug: string) => allowedSlugs.includes(slug);
 
     const showDosenPenelitian = isDosen && canAccessMenu('pt-penelitian-dosen', isDosen);
     const showAdminPenelitian = (isAdminPt || isSuperAdmin) && canAccessMenu('pt-penelitian-admin', isAdminPt || isSuperAdmin);
@@ -76,45 +68,37 @@ export default function DashboardNav() {
                                                 </h4>
                                                 <ul className="space-y-2 text-sm text-gray-700">
                                                     {[
-                                                        { name: 'Usulan', href: '/pt-penelitian' },
-                                                        { name: 'Perbaikan Usulan', href: '/pt-penelitian/perbaikan' },
-                                                        { name: 'Laporan Kemajuan', href: '#' },
-                                                        { name: 'Catatan Harian', href: '#' },
-                                                        { name: 'Laporan Akhir',href: '#' },
-                                                        { name: 'Pengkinian Capaian Luaran',href: '#' },
-                                                       
-                                                    ].map((item) => (
-                                                        <li key={item.name}>
-                                                            <Link href={item.href} className="hover:text-blue-700">
-                                                                {item.name}
-                                                            </Link>
-                                                        </li>
-                                                    ))}
+                                                        { name: 'Usulan', href: '/pt-penelitian', slug: 'pt-penelitian' },
+                                                        { name: 'Perbaikan Usulan', href: '/pt-penelitian/perbaikan', slug: 'pt-penelitian-perbaikan' },
+                                                    ]
+                                                        .filter((item) => showMenu(item.slug))
+                                                        .map((item) => (
+                                                            <li key={item.name}>
+                                                                <Link href={item.href} className="hover:text-blue-700">
+                                                                    {item.name}
+                                                                </Link>
+                                                            </li>
+                                                        ))}
                                                 </ul>
                                             </div>
 
-                                            <div>
-                                                <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
-                                                    Pengabdian
-                                                </h4>
-                                                <ul className="space-y-2 text-sm text-gray-700">
-                                                    {[
-                                                        { name: 'Usulan', href: '/pt-pengabdian' },
-                                                        { name: 'Perbaikan Usulan', href: '#' },
-                                                        { name: 'Laporan Kemajuan',href: '#'},
-                                                        { name: 'Catatan Harian', href: '#'},
-                                                        { name: 'Laporan Akhir', href: '#' },
-                                                        { name: 'Pengkinian Capaian Luaran', href: '#' },
-                                                    
-                                                    ].map((item) => (
-                                                        <li key={item.name}>
-                                                            <Link href={item.href} className="hover:text-blue-700">
-                                                                {item.name}
-                                                            </Link>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
+                                        <div>
+                                            <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
+                                                Pengabdian
+                                            </h4>
+                                            <ul className="space-y-2 text-sm text-gray-700">
+                                                {/* Placeholder pengabdian; adjust when menus tersedia */}
+                                                {[
+                                                    { name: 'Usulan', href: '/pt-pengabdian' },
+                                                ].map((item) => (
+                                                    <li key={item.name}>
+                                                        <Link href={item.href} className="hover:text-blue-700">
+                                                            {item.name}
+                                                        </Link>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
                                         </div>
                                     )}
 
@@ -166,7 +150,7 @@ export default function DashboardNav() {
                                             </div>
                                         </>
                                     )}
-                                    {isKetuaLppm && (
+                                    {isKetuaLppm && showMenu('admin-pt-penelitian') && (
                                         <div>
                                             <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
                                                 Monitoring LPPM
@@ -203,6 +187,20 @@ export default function DashboardNav() {
                                 className="inline-flex items-center gap-1 hover:text-blue-200"
                             >
                                 Skema Aktif
+                            </Link>
+                        </div>
+                    )}
+
+                    {isReviewer && showMenu('reviewer-dashboard') && (
+                        <div className="flex items-center gap-2">
+                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
+                                <ClipboardList className="h-5 w-5 text-white" />
+                            </span>
+                            <Link
+                                href="/reviewer/pt-penelitian"
+                                className="inline-flex items-center gap-1 hover:text-blue-200"
+                            >
+                                Review Proposal
                             </Link>
                         </div>
                     )}
@@ -257,4 +255,30 @@ export default function DashboardNav() {
             </div>
         </div>
     );
+}
+
+function resolveDashboardUrl(currentRole: string | null, menus: MenuItem[]): string {
+    const prioritized = [
+        { role: 'super-admin', href: '/dashboard/super-admin' },
+        { role: 'ketua-lppm', href: '/dashboard/ketua-lppm' },
+        { role: 'admin-pt', href: '/dashboard/admin-pt' },
+        { role: 'reviewer', href: '/dashboard/reviewer' },
+        { role: 'dosen', href: '/dashboard/dosen' },
+    ];
+
+    const menuHref = menus.find((menu) => menu.slug === 'dashboard')?.href;
+
+    if (currentRole) {
+        const match = prioritized.find((item) => item.role === currentRole);
+        if (match) {
+            return match.href;
+        }
+    }
+
+    if (menuHref) {
+        return menuHref;
+    }
+
+    const fallback = prioritized[prioritized.length - 1];
+    return fallback.href;
 }

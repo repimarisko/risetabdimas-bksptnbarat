@@ -292,7 +292,7 @@ class RefTablesSeeder extends Seeder
                 'created_by' => null,
             ],
             [
-                'uuid' => 'e1b7f436-87e5-4e54-84b3-0e3b1830a82d',
+                'uuid' => 'e1b7f436-87e5-4e54-84xb3-0e3b1830a82d',
                 'sdg' => 'Konsumsi dan Produksi yang Bertanggung Jawab',
                 'level' => 12,
                 'created_at' => $now,

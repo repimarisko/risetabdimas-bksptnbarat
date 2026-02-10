@@ -32,6 +32,11 @@ class PtPenelitianController extends Controller
         'ditolak' => 'Ditolak',
     ];
 
+    public const REVIEW_WEIGHTS = [
+        ['key' => 'substansi', 'label' => 'Evaluasi Substansi', 'weight' => 60],
+        ['key' => 'rab', 'label' => 'Kelayakan RAB', 'weight' => 40],
+    ];
+
     public function index(Request $request): InertiaResponse
     {
         $penelitian = PtPenelitian::query()
@@ -299,9 +304,69 @@ class PtPenelitianController extends Controller
         ]);
     }
 
-    public function reviewForm(Request $request, PtPenelitian $ptPenelitian): InertiaResponse
+    public function reviewerIndex(Request $request): InertiaResponse
     {
         $this->authorizeReviewer($request);
+
+        $userId = $request->user()->id;
+
+        $items = PtPenelitian::query()
+            ->select([
+                'pt_penelitian.uuid',
+                'pt_penelitian.title',
+                'pt_penelitian.status',
+                'pt_penelitian.tahun',
+                'pt_penelitian.tahun_pelaksanaan',
+                'pt_penelitian.uuid_pt',
+                'pt_penelitian_reviewer.assigned_at',
+                'reviews.rekomendasi as reviewer_rekomendasi',
+                'reviews.skor_kualitas as reviewer_skor_kualitas',
+                'reviews.skor_rab as reviewer_skor_rab',
+            ])
+            ->join('pt_penelitian_reviewer', 'pt_penelitian_reviewer.penelitian_uuid', '=', 'pt_penelitian.uuid')
+            ->leftJoin('pt_penelitian_reviews as reviews', function ($join) use ($userId): void {
+                $join->on('reviews.penelitian_uuid', '=', 'pt_penelitian.uuid')
+                    ->where('reviews.reviewer_id', '=', $userId);
+            })
+            ->where('pt_penelitian_reviewer.reviewer_id', $userId)
+            ->with('perguruanTinggi')
+            ->orderByDesc('pt_penelitian_reviewer.assigned_at')
+            ->orderByDesc('pt_penelitian.created_at')
+            ->get()
+            ->map(function (PtPenelitian $item) {
+                return [
+                    'uuid' => $item->uuid,
+                    'title' => $item->title,
+                    'status' => $item->status,
+                    'tahun' => $item->tahun,
+                    'tahun_pelaksanaan' => $item->tahun_pelaksanaan,
+                    'perguruan_tinggi' => optional($item->perguruanTinggi)->nama,
+                    'assigned_at' => optional(Carbon::make($item->getAttribute('assigned_at')))?->toIso8601String(),
+                    'review' => [
+                        'rekomendasi' => $item->getAttribute('reviewer_rekomendasi'),
+                        'skor_kualitas' => $item->getAttribute('reviewer_skor_kualitas'),
+                        'skor_rab' => $item->getAttribute('reviewer_skor_rab'),
+                    ],
+                    'links' => [
+                        'preview' => route('pt-penelitian.preview', $item),
+                        'review' => route('reviewer.pt-penelitian.review', $item),
+                    ],
+                ];
+            });
+
+        return Inertia::render('penelitian/reviewer-index', [
+            'items' => $items,
+            'weights' => self::REVIEW_WEIGHTS,
+            'breadcrumbs' => [
+                ['title' => 'Dashboard Reviewer', 'href' => '/dashboard/reviewer'],
+                ['title' => 'Review Proposal', 'href' => '#'],
+            ],
+        ]);
+    }
+
+    public function reviewForm(Request $request, PtPenelitian $ptPenelitian): InertiaResponse
+    {
+        $this->authorizeReviewer($request, $ptPenelitian);
 
         $preview = $this->buildPenelitianPreview($ptPenelitian);
         $review = PtPenelitianReview::query()
@@ -313,8 +378,10 @@ class PtPenelitianController extends Controller
             ...$preview,
             'review' => $review,
             'recommendationOptions' => self::REVIEW_RECOMMENDATIONS,
+            'weights' => self::REVIEW_WEIGHTS,
             'breadcrumbs' => [
                 ['title' => 'Dashboard Reviewer', 'href' => '/dashboard/reviewer'],
+                ['title' => 'Review Proposal', 'href' => '/reviewer/pt-penelitian'],
                 ['title' => 'Review Usulan', 'href' => '#'],
             ],
         ]);
@@ -322,7 +389,7 @@ class PtPenelitianController extends Controller
 
     public function reviewSubmit(Request $request, PtPenelitian $ptPenelitian): RedirectResponse
     {
-        $this->authorizeReviewer($request);
+        $this->authorizeReviewer($request, $ptPenelitian);
 
         $data = $request->validate([
             'rekomendasi' => 'nullable|string|max:50',
@@ -939,12 +1006,72 @@ class PtPenelitianController extends Controller
 
     public function preview(Request $request, PtPenelitian $ptPenelitian): InertiaResponse
     {
-        $this->authorizeOwnershipOrMembership($request, $ptPenelitian);
+        $this->authorizePreviewAccess($request, $ptPenelitian);
 
         $previewData = $this->buildPenelitianPreview($ptPenelitian);
+        $navigation = $this->buildPreviewNavigation($request);
 
         return Inertia::render('penelitian/preview', [
             ...$previewData,
+            'breadcrumbs' => $navigation['breadcrumbs'],
+            'backLink' => $navigation['backLink'],
+            'canManageStatus' => false,
+            'statusUrls' => null,
+            'currentStatus' => $ptPenelitian->status,
+        ]);
+    }
+
+    protected function buildPreviewNavigation(Request $request): array
+    {
+        $user = $request->user();
+
+        if ($user?->hasRole('reviewer')) {
+            return [
+                'breadcrumbs' => [
+                    ['title' => 'Dashboard Reviewer', 'href' => '/dashboard/reviewer'],
+                    ['title' => 'Review Proposal', 'href' => '/reviewer/pt-penelitian'],
+                    ['title' => 'Preview', 'href' => '#'],
+                ],
+                'backLink' => [
+                    'href' => '/reviewer/pt-penelitian',
+                    'label' => 'Kembali ke daftar review',
+                ],
+            ];
+        }
+
+        if ($user?->hasAnyRole([
+            User::ROLE_SUPER_ADMIN,
+            User::ROLE_ADMIN_PT,
+            User::ROLE_KETUA_LPPM,
+        ])) {
+            $dashboardHref = '/dashboard';
+
+            if ($user->hasRole(User::ROLE_SUPER_ADMIN)) {
+                $dashboardHref = '/dashboard/super-admin';
+            } elseif ($user->hasRole(User::ROLE_ADMIN_PT)) {
+                $dashboardHref = '/dashboard/admin-pt';
+            } elseif ($user->hasRole(User::ROLE_KETUA_LPPM)) {
+                $dashboardHref = '/dashboard/ketua-lppm';
+            }
+
+            $penelitianHref = $user->hasRole(User::ROLE_SUPER_ADMIN)
+                ? '/admin/pt-penelitian'
+                : '/admin/pt-penelitian';
+
+            return [
+                'breadcrumbs' => [
+                    ['title' => 'Dashboard', 'href' => $dashboardHref],
+                    ['title' => 'Penelitian', 'href' => $penelitianHref],
+                    ['title' => 'Preview', 'href' => '#'],
+                ],
+                'backLink' => [
+                    'href' => $penelitianHref,
+                    'label' => 'Kembali',
+                ],
+            ];
+        }
+
+        return [
             'breadcrumbs' => [
                 ['title' => 'Dashboard Dosen', 'href' => '/dashboard/dosen'],
                 ['title' => 'Penelitian', 'href' => '/pt-penelitian'],
@@ -954,10 +1081,7 @@ class PtPenelitianController extends Controller
                 'href' => '/pt-penelitian',
                 'label' => 'Kembali',
             ],
-            'canManageStatus' => false,
-            'statusUrls' => null,
-            'currentStatus' => $ptPenelitian->status,
-        ]);
+        ];
     }
 
     public function download(Request $request, PtPenelitian $ptPenelitian, string $type): StreamedResponse
@@ -1301,13 +1425,27 @@ class PtPenelitianController extends Controller
         }
     }
 
-    protected function authorizeReviewer(Request $request): void
+    protected function authorizeReviewer(Request $request, ?PtPenelitian $ptPenelitian = null): void
     {
-        if ($request->user()?->hasRole('reviewer')) {
+        $user = $request->user();
+
+        if (! $user || ! $user->hasRole('reviewer')) {
+            abort(Response::HTTP_FORBIDDEN, 'Akses reviewer diperlukan.');
+        }
+
+        if (! $ptPenelitian) {
             return;
         }
 
-        abort(Response::HTTP_FORBIDDEN, 'Akses reviewer diperlukan.');
+        $isAssigned = $ptPenelitian->reviewers()
+            ->where('reviewer_id', $user->id)
+            ->exists();
+
+        if ($isAssigned) {
+            return;
+        }
+
+        abort(Response::HTTP_FORBIDDEN, 'Anda tidak ditugaskan sebagai reviewer untuk usulan ini.');
     }
 
     protected function userVerified(?User $user): bool

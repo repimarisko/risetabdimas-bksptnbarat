@@ -31,6 +31,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return redirect()->route('dashboard.admin-pt');
         }
 
+        if ($user?->hasRole('reviewer')) {
+            return redirect()->route('dashboard.reviewer');
+        }
+
         if ($user?->hasRole('dosen')) {
             return redirect()->route('dashboard.dosen');
         }
@@ -55,6 +59,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:ketua-lppm')->group(function () {
         Route::get('dashboard/ketua-lppm', fn() => Inertia::render('dashboard/ketua-lppm'))
             ->name('dashboard.ketua-lppm');
+    });
+
+    Route::middleware('role:reviewer')->group(function () {
+        Route::get('dashboard/reviewer', fn() => redirect()->route('reviewer.pt-penelitian.index'))
+            ->name('dashboard.reviewer');
     });
 
     Route::middleware('role:super-admin')->group(function () {
@@ -98,7 +107,7 @@ require __DIR__ . '/penelitian.php';
 
 use App\Http\Controllers\Penelitian\PtPenelitianController;
 
-Route::middleware(['auth', 'role:dosen|ketua-lppm'])->group(function () {
+Route::middleware(['auth', 'role:dosen|ketua-lppm|reviewer|admin-pt|super-admin'])->group(function () {
     Route::get('/pt-penelitian/{ptPenelitian}/preview', [PtPenelitianController::class, 'preview'])
         ->name('pt-penelitian.preview');
 });

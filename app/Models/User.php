@@ -112,7 +112,9 @@ class User extends Authenticatable
         static::ensureRoleExists($user->role);
 
         if ($force) {
-            $user->syncRoles([$user->role]);
+            if (! $user->hasRole($user->role)) {
+                $user->assignRole($user->role);
+            }
 
             return;
         }

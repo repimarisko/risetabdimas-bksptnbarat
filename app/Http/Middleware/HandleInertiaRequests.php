@@ -6,6 +6,8 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Middleware;
+use Spatie\Permission\Models\Role;
+use App\Models\Menu;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -40,6 +42,11 @@ class HandleInertiaRequests extends Middleware
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         $user = $request->user();
+        $activeRole = $request->session()->get('active_role', $user?->role);
+
+        if ($user && $activeRole && ! $request->session()->has('active_role')) {
+            $request->session()->put('active_role', $activeRole);
+        }
 
         if ($user && ! $user->relationLoaded('dosen')) {
             $user->load('dosen');
@@ -114,6 +121,7 @@ class HandleInertiaRequests extends Middleware
                 'permissions' => $user?->getAllPermissions()->pluck('name')->toArray() ?? [],
                 'pendingApprovals' => $pendingApprovals,
                 'pendingApprovalsCount' => $pendingApprovalsCount,
+                'menus' => $menus,
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),

@@ -31,6 +31,8 @@ Route::middleware(['auth', 'verified', 'role:reviewer'])
     ->prefix('reviewer/pt-penelitian')
     ->as('reviewer.pt-penelitian.')
     ->group(function () {
+        Route::get('/', [PtPenelitianController::class, 'reviewerIndex'])
+            ->name('index');
         Route::get('/{ptPenelitian}/review', [PtPenelitianController::class, 'reviewForm'])
             ->name('review');
         Route::post('/{ptPenelitian}/review', [PtPenelitianController::class, 'reviewSubmit'])

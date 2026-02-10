@@ -70,6 +70,29 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 </>
             )}
             <DropdownMenuGroup>
+                {roles.length > 1 && (
+                    <>
+                        <DropdownMenuLabel className="text-xs uppercase text-gray-500">
+                            Role aktif
+                        </DropdownMenuLabel>
+                        {roles.map((role) => (
+                            <DropdownMenuItem
+                                key={role}
+                                onClick={() => {
+                                    if (role === activeRole) return;
+                                    router.post('/settings/switch-role', { role }, { preserveScroll: true });
+                                    cleanup();
+                                }}
+                            >
+                                <SwitchCamera className="mr-2" />
+                                {role}
+                                {activeRole === role && <Check className="ml-auto h-4 w-4" />}
+                            </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                    </>
+                )}
+
                 <DropdownMenuItem asChild>
                     <Link
                         className="block w-full"
