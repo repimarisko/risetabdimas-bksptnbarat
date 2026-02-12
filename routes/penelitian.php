@@ -19,12 +19,18 @@ Route::middleware(['auth', 'verified', 'role:dosen'])
             ->name('reject-anggota');
         Route::patch('/{ptPenelitian}/submit', [PtPenelitianController::class, 'submit'])
             ->name('submit');
-        Route::get('/{ptPenelitian}/download/{type}', [PtPenelitianController::class, 'download'])
-            ->whereIn('type', ['proposal', 'lampiran'])
-            ->name('download');
         Route::get('/{ptPenelitian}/edit', [PtPenelitianController::class, 'edit'])->name('edit');
         Route::put('/{ptPenelitian}', [PtPenelitianController::class, 'update'])->name('update');
         Route::delete('/{ptPenelitian}', [PtPenelitianController::class, 'destroy'])->name('destroy');
+    });
+
+Route::middleware(['auth', 'verified', 'role:dosen|ketua-lppm|reviewer|admin-pt|super-admin'])
+    ->prefix('pt-penelitian')
+    ->name('pt-penelitian.')
+    ->group(function () {
+        Route::get('/{ptPenelitian}/download/{type}', [PtPenelitianController::class, 'download'])
+            ->whereIn('type', ['proposal', 'lampiran'])
+            ->name('download');
     });
 
 Route::middleware(['auth', 'verified', 'role:reviewer'])

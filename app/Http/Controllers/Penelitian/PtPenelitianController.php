@@ -1086,8 +1086,8 @@ class PtPenelitianController extends Controller
 
     public function download(Request $request, PtPenelitian $ptPenelitian, string $type): StreamedResponse
     {
-        // Ketua atau anggota tim dapat mengunduh dokumen proposal/lampiran
-        $this->authorizeOwnershipOrMembership($request, $ptPenelitian);
+        // Pengunggah/anggota tim atau pengguna dengan akses menu yang relevan dapat mengunduh dokumen.
+        $this->authorizeDownloadAccess($request, $ptPenelitian);
 
         $type = $type === 'lampiran' ? 'lampiran' : 'proposal';
 
@@ -1103,6 +1103,79 @@ class PtPenelitianController extends Controller
         abort_if(! $disk->exists($path), Response::HTTP_NOT_FOUND);
 
         return $disk->download($path, $filename);
+    }
+
+    protected function authorizeDownloadAccess(Request $request, PtPenelitian $ptPenelitian): void
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            abort(Response::HTTP_FORBIDDEN, 'Anda tidak diizinkan mengakses data ini.');
+        }
+
+        // Tetap izinkan mekanisme lama: ketua/anggota tim penelitian.
+        if ($ptPenelitian->created_by === $user->id) {
+            return;
+        }
+
+        $dosenUuid = optional($user->dosen)->uuid;
+
+        if ($dosenUuid && $ptPenelitian->anggota()->where('dosen_uuid', $dosenUuid)->exists()) {
+            return;
+        }
+
+        if ($user->hasRole('reviewer')) {
+            $isAssignedReviewer = $ptPenelitian->reviewers()
+                ->where('reviewer_id', $user->id)
+                ->exists();
+
+            if ($isAssignedReviewer) {
+                return;
+            }
+        }
+
+        if (! $this->canAccessPenelitianDownloadMenu($user, $ptPenelitian)) {
+            abort(Response::HTTP_FORBIDDEN, 'Anda tidak diizinkan mengakses dokumen ini.');
+        }
+    }
+
+    protected function canAccessPenelitianDownloadMenu(User $user, PtPenelitian $ptPenelitian): bool
+    {
+        $menuPermissions = collect($user->getAllPermissions()->pluck('name'))
+            ->filter(fn(string $permission) => str_starts_with($permission, 'menu:'))
+            ->values();
+
+        $downloadMenuPermissions = [
+            'menu:pt-penelitian-admin',
+            'menu:assign-reviewer',
+        ];
+
+        // Samakan perilaku backend dengan frontend:
+        // jika permission menu sudah dikonfigurasi, maka harus lolos permission menu;
+        // jika belum, fallback ke role administratif.
+        $hasDownloadMenuAccess = $menuPermissions->isNotEmpty()
+            ? $menuPermissions->intersect($downloadMenuPermissions)->isNotEmpty()
+            : $user->hasAnyRole([
+                User::ROLE_ADMIN_PT,
+                User::ROLE_KETUA_LPPM,
+                User::ROLE_SUPER_ADMIN,
+            ]);
+
+        if (! $hasDownloadMenuAccess) {
+            return false;
+        }
+
+        if ($user->hasRole(User::ROLE_SUPER_ADMIN)) {
+            return true;
+        }
+
+        $userUuidPt = $user->uuid_pt ?? optional($user->dosen)->uuid_pt;
+
+        if (! $userUuidPt || ! $ptPenelitian->uuid_pt) {
+            return true;
+        }
+
+        return $userUuidPt === $ptPenelitian->uuid_pt;
     }
 
     protected function documentColumnsAvailable(): bool
