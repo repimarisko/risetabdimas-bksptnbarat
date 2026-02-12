@@ -6,7 +6,6 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Middleware;
-use Spatie\Permission\Models\Role;
 use App\Models\Menu;
 
 class HandleInertiaRequests extends Middleware
@@ -109,6 +108,25 @@ class HandleInertiaRequests extends Middleware
             $activeRole = $allRoles[0];
             $request->session()->put('active_role', $activeRole);
         }
+
+        $menus = $user
+            ? Menu::query()
+                ->orderBy('sort')
+                ->get(['id', 'name', 'slug', 'href', 'icon', 'parent_id', 'sort'])
+                ->map(function (Menu $menu) {
+                    return [
+                        'id' => (int) $menu->id,
+                        'name' => $menu->name,
+                        'slug' => $menu->slug,
+                        'href' => $menu->href,
+                        'icon' => $menu->icon,
+                        'parent_id' => $menu->parent_id,
+                        'sort' => $menu->sort,
+                    ];
+                })
+                ->values()
+                ->all()
+            : [];
 
         return [
             ...parent::share($request),
