@@ -1,15 +1,12 @@
 import { login, register } from '@/routes';
-import type { SharedData } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
 export default function WelcomeV2({
     canRegister = true,
 }: {
     canRegister?: boolean;
 }) {
-    const { auth } = usePage<SharedData>().props;
-
-    // Daftar PTN dengan path logo (39 total), diurutkan dari barat ke timur
+    // Daftar PTN dengan path logo (39 total)
     const ptnList = [
         {
             name: 'USK (UNSYIAH)',
@@ -208,6 +205,60 @@ export default function WelcomeV2({
         },
     ];
 
+    // Basis urutan: tahun berdiri institusi (tertua -> terbaru)
+    const ptnFoundedYear: Record<string, number> = {
+        'Universitas Indonesia': 1849,
+        USU: 1952,
+        UNP: 1954,
+        UPI: 1954,
+        UNAND: 1955,
+        'UIN Syarif Hidayatullah Jakarta': 1957,
+        UNPAD: 1957,
+        UNTAN: 1959,
+        UNSRI: 1960,
+        'USK (UNSYIAH)': 1961,
+        UNMUL: 1962,
+        UNRI: 1962,
+        IPB: 1963,
+        UNIMED: 1963,
+        UNJA: 1963,
+        'UPN Veteran Jakarta': 1963,
+        'Universitas Palangka Raya': 1963,
+        'UIN Ar-Raniry Banda Aceh': 1963,
+        UNJ: 1964,
+        'UIN Raden Fatah Palembang': 1964,
+        'ISI Padang Panjang': 1965,
+        UNILA: 1965,
+        'UIN Syekh Ali Hasan Ahmad Addary Padangsidimpuan': 1968,
+        'IAIN Batusangkar': 1968,
+        'ISBI Bandung': 1968,
+        'UIN Sultan Syarif Kasim Riau': 1970,
+        'UIN Sumatera Utara': 1973,
+        UNSIL: 1978,
+        UNTIRTA: 1981,
+        UNIB: 1982,
+        UNSIKA: 1982,
+        'Universitas Terbuka': 1984,
+        'UM Samudra': 1985,
+        UBB: 2006,
+        UTU: 2006,
+        UMRAH: 2007,
+        UNHAN: 2009,
+        'ISBI Aceh': 2014,
+        ITERA: 2014,
+    };
+
+    const sortedPtnList = [...ptnList].sort((a, b) => {
+        const yearA = ptnFoundedYear[a.name] ?? Number.MAX_SAFE_INTEGER;
+        const yearB = ptnFoundedYear[b.name] ?? Number.MAX_SAFE_INTEGER;
+
+        if (yearA !== yearB) {
+            return yearA - yearB;
+        }
+
+        return a.name.localeCompare(b.name, 'id');
+    });
+
     return (
         <>
             <Head title="BKS PTN Wilayah Barat - Selamat Datang">
@@ -335,7 +386,7 @@ export default function WelcomeV2({
                         </h3>
 
                         <div className="grid grid-cols-3 items-center justify-items-center gap-6 lg:grid-cols-13">
-                            {ptnList.map((ptn) => (
+                            {sortedPtnList.map((ptn) => (
                                 <div
                                     key={ptn.name}
                                     className="group flex h-16 w-16 items-center justify-center lg:h-14 lg:w-14"
