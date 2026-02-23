@@ -171,11 +171,19 @@ export default function AssignReviewersPage() {
 
 function formatDate(value?: string | null) {
     if (!value) return '-';
-    const date = new Date(value);
+
+    // Ubah format MySQL -> ISO
+    const isoString = value.replace(' ', 'T');
+
+    const date = new Date(isoString);
     if (Number.isNaN(date.getTime())) return '-';
+
     return new Intl.DateTimeFormat('id-ID', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
     }).format(date);
 }
+

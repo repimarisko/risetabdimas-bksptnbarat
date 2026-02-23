@@ -23,6 +23,9 @@ Route::middleware(['auth', 'verified', 'role:dosen'])
         Route::get('/{ptPenelitian}/edit', [PtPenelitianController::class, 'edit'])->name('edit');
         Route::put('/{ptPenelitian}', [PtPenelitianController::class, 'update'])->name('update');
         Route::delete('/{ptPenelitian}', [PtPenelitianController::class, 'destroy'])->name('destroy');
+
+        // HASIL REVIEW
+        Route::get('/{ptPenelitian}/hasilreview', [PtPenelitianController::class, 'hasilreview'])->name('create');
     });
 
 Route::middleware(['auth', 'verified', 'role:reviewer'])

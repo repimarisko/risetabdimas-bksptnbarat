@@ -11,202 +11,54 @@ export default function WelcomeV2({
 
     // Daftar PTN dengan path logo (39 total)
     const ptnList = [
-        {
-            name: 'UNAND',
-            logo: '/images/logos/unand.png',
-            link: 'https://www.unand.ac.id',
-        },
-        {
-            name: 'USK (UNSYIAH)',
-            logo: '/images/logos/unsyiah.png',
-            link: 'https://www.usk.ac.id',
-        },
-        {
-            name: 'USU',
-            logo: '/images/logos/usu.png',
-            link: 'https://www.usu.ac.id',
-        },
-        {
-            name: 'UNIMED',
-            logo: '/images/logos/unimed.png',
-            link: 'https://www.unimed.ac.id',
-        },
-        {
-            name: 'UNRI',
-            logo: '/images/logos/unri.png',
-            link: 'https://www.unri.ac.id',
-        },
-        {
-            name: 'UNP',
-            logo: '/images/logos/unp.png',
-            link: 'https://www.unp.ac.id',
-        },
-        {
-            name: 'UNJA',
-            logo: '/images/logos/unja.png',
-            link: 'https://www.unja.ac.id',
-        },
-        {
-            name: 'UNSRI',
-            logo: '/images/logos/unsri.png',
-            link: 'https://www.unsri.ac.id',
-        },
-        {
-            name: 'UNILA',
-            logo: '/images/logos/unila.png',
-            link: 'https://www.unila.ac.id',
-        },
-        {
-            name: 'UNTAN',
-            logo: '/images/logos/untan.png',
-            link: 'https://www.untan.ac.id',
-        },
-        {
-            name: 'UNIB',
-            logo: '/images/logos/unib.png',
-            link: 'https://www.unib.ac.id',
-        },
-        {
-            name: 'ISI Padang Panjang',
-            logo: '/images/logos/isi-padangpanjang.png',
-            link: 'https://www.isi-padangpanjang.ac.id',
-        },
-        {
-            name: 'Universitas Palangka Raya',
-            logo: '/images/logos/universitas-palangkaraya.png',
-            link: 'https://www.upr.ac.id',
-        },
-        {
-            name: 'UNJ',
-            logo: '/images/logos/unj.png',
-            link: 'https://www.unj.ac.id',
-        },
-        {
-            name: 'UNMUL',
-            logo: '/images/logos/unmal.png',
-            link: 'https://www.unmul.ac.id',
-        },
-        {
-            name: 'UNTIRTA',
-            logo: '/images/logos/untirta.png',
-            link: 'https://www.untirta.ac.id',
-        },
-        {
-            name: 'UIN Syarif Hidayatullah Jakarta',
-            logo: '/images/logos/uin-jakarta.png',
-            link: 'https://www.uinjkt.ac.id',
-        },
-        {
-            name: 'IPB University',
-            logo: '/images/logos/ipb.png',
-            link: 'https://www.ipb.ac.id',
-        },
-        {
-            name: 'Universitas Indonesia',
-            logo: '/images/logos/ui.png',
-            link: 'https://www.ui.ac.id',
-        },
-        {
-            name: 'UIN Sultan Syarif Kasim Riau',
-            logo: '/images/logos/uin-pekanbaru.png',
-            link: 'https://www.uin-suska.ac.id',
-        },
-        {
-            name: 'UMRAH',
-            logo: '/images/logos/umrah.png',
-            link: 'https://www.umrah.ac.id',
-        },
-        {
-            name: 'UBB',
-            logo: '/images/logos/ubb.png',
-            link: 'https://www.ubb.ac.id',
-        },
-        {
-            name: 'UTU',
-            logo: '/images/logos/utu.png',
-            link: 'https://www.utu.ac.id',
-        },
-        {
-            name: 'UIN Raden Fatah Palembang',
-            logo: '/images/logos/uin-rf-palembang.png',
-            link: 'https://www.radenfatah.ac.id',
-        },
-        {
-            name: 'UIN Ar-Raniry Banda Aceh',
-            logo: '/images/logos/uin-ar-raniry.png',
-            link: 'https://www.ar-raniry.ac.id',
-        },
-        {
-            name: 'ITERA',
-            logo: '/images/logos/itera.png',
-            link: 'https://www.itera.ac.id',
-        },
-        {
-            name: 'ISBI Aceh',
-            logo: '/images/logos/isbi-nad.png',
-            link: 'https://www.isbiaceh.ac.id',
-        },
-        {
-            name: 'UM Samudra',
-            logo: '/images/logos/umsam.png',
-            link: 'https://www.unsam.ac.id',
-        },
-        {
-            name: 'UNHAN',
-            logo: '/images/logos/unhan.png',
-            link: 'https://www.idu.ac.id',
-        },
-        {
-            name: 'UNSIL',
-            logo: '/images/logos/unsil.png',
-            link: 'https://www.unsil.ac.id',
-        },
-        {
-            name: 'UNSIKA',
-            logo: '/images/logos/unsika.png',
-            link: 'https://www.unsika.ac.id',
-        },
-        {
-            name: 'UPN Veteran Jakarta',
-            logo: '/images/logos/upn-veteran-jakarta.png',
-            link: 'https://www.upnvj.ac.id',
-        },
-        {
-            name: 'UIN Sumatera Utara',
-            logo: '/images/logos/uinsu.png',
-            link: 'https://www.uinsu.ac.id',
-        },
-        {
-            name: 'Universitas Terbuka',
-            logo: '/images/logos/ut.png',
-            link: 'https://www.ut.ac.id',
-        },
-        {
-            name: 'IAIN Batusangkar',
-            logo: '/images/logos/iain-batusangkar.png',
-            link: 'https://www.iainbatusangkar.ac.id',
-        },
-        {
-            name: 'UPI',
-            logo: '/images/logos/upi.png',
-            link: 'https://www.upi.edu',
-        },
-        {
-            name: 'ISBI Bandung',
-            logo: '/images/logos/isbi-bandung.png',
-            link: 'https://www.isbi.ac.id',
-        },
-        {
-            name: 'UNPAD',
-            logo: '/images/logos/unpad.png',
-            link: 'https://www.unpad.ac.id',
-        },
-        {
-            name: 'UIN Syekh Ali Hasan Ahmad Addary Padangsidimpuan',
-            logo: '/images/logos/uin-padang-sidempuan.png',
-            link: 'https://www.uinsidimpuan.ac.id',
-        },
+        { name: 'UPN Veteran Jakarta', logo: '/images/logos/upn-veteran-jakarta.png', link: 'https://www.upnvj.ac.id' },
+        { name: 'USK (UNSYIAH)', logo: '/images/logos/unsyiah.png', link: 'https://www.usk.ac.id' },
+        { name: 'USU', logo: '/images/logos/usu.png', link: 'https://www.usu.ac.id' },
+        { name: 'UNIMED', logo: '/images/logos/unimed.png', link: 'https://www.unimed.ac.id' },
+    
+        { name: 'UNRI', logo: '/images/logos/unri.png', link: 'https://www.unri.ac.id' },
+        { name: 'UNAND', logo: '/images/logos/unand.png', link: 'https://www.unand.ac.id' },
+        { name: 'UNP', logo: '/images/logos/unp.png', link: 'https://www.unp.ac.id' },
+        { name: 'UNJA', logo: '/images/logos/unja.png', link: 'https://www.unja.ac.id' },
+    
+        { name: 'UNSRI', logo: '/images/logos/unsri.png', link: 'https://www.unsri.ac.id' },
+        { name: 'UNILA', logo: '/images/logos/unila.png', link: 'https://www.unila.ac.id' },
+        { name: 'UNTAN', logo: '/images/logos/untan.png', link: 'https://www.untan.ac.id' },
+        { name: 'UNIB', logo: '/images/logos/unib.png', link: 'https://www.unib.ac.id' },
+    
+        { name: 'Universitas Palangka Raya', logo: '/images/logos/universitas-palangkaraya.png', link: 'https://www.upr.ac.id' },
+        { name: 'UNJ', logo: '/images/logos/unj.png', link: 'https://www.unj.ac.id' },
+        { name: 'UNMUL', logo: '/images/logos/unmal.png', link: 'https://www.unmul.ac.id' },
+        { name: 'UNTIRTA', logo: '/images/logos/untirta.png', link: 'https://www.untirta.ac.id' },
+    
+        { name: 'UIN Syarif Hidayatullah Jakarta', logo: '/images/logos/uin-jakarta.png', link: 'https://www.uinjkt.ac.id' },
+        { name: 'IPB University', logo: '/images/logos/ipb.png', link: 'https://www.ipb.ac.id' },
+        { name: 'ISI Padang Panjang', logo: '/images/logos/isi-padangpanjang.png', link: 'https://www.isi-padangpanjang.ac.id' },
+        { name: 'Universitas Indonesia', logo: '/images/logos/ui.png', link: 'https://www.ui.ac.id' },
+    
+        { name: 'UIN Sultan Syarif Kasim Riau', logo: '/images/logos/uin-pekanbaru.png', link: 'https://www.uin-suska.ac.id' },
+        { name: 'UMRAH', logo: '/images/logos/umrah.png', link: 'https://www.umrah.ac.id' },
+        { name: 'UBB', logo: '/images/logos/ubb.png', link: 'https://www.ubb.ac.id' },
+        { name: 'UTU', logo: '/images/logos/utu.png', link: 'https://www.utu.ac.id' },
+    
+        { name: 'UIN Raden Fatah Palembang', logo: '/images/logos/uin-rf-palembang.png', link: 'https://www.radenfatah.ac.id' },
+        { name: 'UIN Ar-Raniry Banda Aceh', logo: '/images/logos/uin-ar-raniry.png', link: 'https://www.ar-raniry.ac.id' },
+        { name: 'ITERA', logo: '/images/logos/itera.png', link: 'https://www.itera.ac.id' },
+        { name: 'ISBI Aceh', logo: '/images/logos/isbi-nad.png', link: 'https://www.isbiaceh.ac.id' },
+    
+        { name: 'UM Samudra', logo: '/images/logos/umsam.png', link: 'https://www.unsam.ac.id' },
+        { name: 'UNHAN', logo: '/images/logos/unhan.png', link: 'https://www.idu.ac.id' },
+        { name: 'UNSIL', logo: '/images/logos/unsil.png', link: 'https://www.unsil.ac.id' },
+        { name: 'ISBI Bandung', logo: '/images/logos/isbi-bandung.png', link: 'https://www.isbi.ac.id' },
+    
+        { name: 'UNSIKA', logo: '/images/logos/unsika.png', link: 'https://www.unsika.ac.id' },
+        { name: 'UIN Sumatera Utara', logo: '/images/logos/uinsu.png', link: 'https://www.uinsu.ac.id' },
+        { name: 'Universitas Terbuka', logo: '/images/logos/ut.png', link: 'https://www.ut.ac.id' },
+        { name: 'IAIN Batusangkar', logo: '/images/logos/iain-batusangkar.png', link: 'https://www.iainbatusangkar.ac.id' },
+    
+        { name: 'UPI', logo: '/images/logos/upi.png', link: 'https://www.upi.edu' },
     ];
+    
 
     return (
         <>

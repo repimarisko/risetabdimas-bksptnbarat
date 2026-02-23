@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('id_tkt', 100)->nullable();
             $table->string('id_sdg', 100)->nullable();
             $table->string('id_fokus', 100)->nullable();
-
+            $table->string('ringkasan', 100)->nullable();
             $table->double('biaya_usulan_1')->nullable();
             $table->double('biaya_usulan_2')->nullable();
             $table->double('biaya_usulan_3')->nullable();

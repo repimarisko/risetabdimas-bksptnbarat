@@ -43,6 +43,7 @@ function getStatusMeta(status?: string | null) {
         case 'mengajukan':
             return { label: 'Mengajukan', badgeClass: 'bg-blue-100 text-blue-700' };
         case 'disetujui':
+            return { label: 'Disetujui', badgeClass: 'bg-green-100 text-green-700' };
         case 'didanai':
             return { label: 'Didanai', badgeClass: 'bg-green-100 text-green-700' };
         case 'ditolak':

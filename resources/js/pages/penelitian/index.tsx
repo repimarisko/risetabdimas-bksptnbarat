@@ -64,7 +64,7 @@ const filterOptions: Array<{ key: FilterKey; label: string }> = [
     { key: 'completed', label: 'Mengajukan' },
    
     { key: 'rejected', label: 'Ditolak' },
-    { key: 'in_review', label: 'Didanai' },
+    { key: 'in_review', label: 'Disetujui' },
 ];
 
 const currencyFormatter = new Intl.NumberFormat('id-ID', {
@@ -435,6 +435,7 @@ export default function PenelitianIndex() {
                                                                 </button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent className="min-w-[180px] rounded-lg border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg focus:outline-none">
+                                                                {}
                                                                 <DropdownMenuItem
                                                                     className="cursor-pointer rounded px-3 py-2 text-gray-700 outline-none hover:bg-gray-100"
                                                                     onSelect={() =>
@@ -442,15 +443,22 @@ export default function PenelitianIndex() {
                                                                             `/pt-penelitian/${item.uuid}/edit`,
                                                                         )
                                                                     }
+                                                                    disabled={
+                                                                        (item.status ?? '').toLowerCase() === 'disetujui'
+                                                                    }
                                                                 >
                                                                     Ubah
                                                                 </DropdownMenuItem>
+
                                                                 <DropdownMenuItem
                                                                     className="cursor-pointer rounded px-3 py-2 text-rose-500 outline-none hover:bg-rose-100"
                                                                     onSelect={() =>
                                                                         handleDelete(
                                                                             item.uuid,
                                                                         )
+                                                                    }
+                                                                    disabled={
+                                                                        (item.status ?? '').toLowerCase() === 'disetujui'
                                                                     }
                                                                 >
                                                                     Hapus
@@ -470,6 +478,7 @@ export default function PenelitianIndex() {
                             </div>
                         )}
                     </div>
+                    
                 </div>
             </div>
         </AppHeaderLayout>

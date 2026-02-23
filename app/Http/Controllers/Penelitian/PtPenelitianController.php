@@ -93,6 +93,7 @@ class PtPenelitianController extends Controller
             ->select('uuid', 'nama', 'nama_singkat')
             ->whereNull('deleted_at')
             ->where(fn($query) => $query->whereNull('status')->orWhere('status', 'aktif'))
+            ->where('jenis_skema', 'Penelitian')
             ->orderBy('nama')
             ->get()
             ->map(fn($record) => [
@@ -190,34 +191,42 @@ class PtPenelitianController extends Controller
         $keywords = ['perbaikan', 'revisi', 'koreksi'];
 
         $items = PtPenelitian::query()
-            ->where('created_by', $user->id)
+            ->leftJoin('pt_penelitian_reviews', function ($join) {
+                $join->on('pt_penelitian_reviews.penelitian_uuid', '=', 'pt_penelitian.uuid');
+            })
+            ->where('pt_penelitian.created_by', $user->id)
             ->where(function ($query) use ($keywords): void {
                 foreach ($keywords as $keyword) {
                     $query->orWhereRaw(
-                        'LOWER(COALESCE(status, \'\')) LIKE ?',
+                        'LOWER(COALESCE(pt_penelitian_reviews.rekomendasi, \'\')) LIKE ?',
                         ['%' . Str::lower($keyword) . '%']
                     );
                 }
             })
             ->when(
                 Schema::hasColumn('pt_penelitian', 'updated_at'),
-                fn($query) => $query->orderByDesc('updated_at'),
+                fn($query) => $query->orderByDesc('pt_penelitian.updated_at'),
                 fn($query) => $query
             )
-            ->orderByDesc('created_at')
+            ->orderByDesc('pt_penelitian.created_at')
             ->get([
-                'uuid',
-                'title',
-                'status',
-                'created_at',
-                'tahun',
-                'tahun_pelaksanaan',
-                'biaya_usulan_1',
-                'biaya_usulan_2',
-                'biaya_usulan_3',
-                'biaya_usulan_4',
+                'pt_penelitian.uuid',
+                'pt_penelitian.title',
+                'pt_penelitian.status',
+                'pt_penelitian.created_at',
+                'pt_penelitian.tahun',
+                'pt_penelitian.tahun_pelaksanaan',
+                'pt_penelitian.biaya_usulan_1',
+                'pt_penelitian.biaya_usulan_2',
+                'pt_penelitian.biaya_usulan_3',
+                'pt_penelitian.biaya_usulan_4',
+                // select review columns as needed:
+                'pt_penelitian_reviews.rekomendasi as review_rekomendasi',
+                'pt_penelitian_reviews.skor_kualitas as review_skor_kualitas',
+                'pt_penelitian_reviews.skor_rab as review_skor_rab',
+                'pt_penelitian_reviews.rekomendasi',
             ])
-            ->map(function (PtPenelitian $item) {
+            ->map(function ($item) {
                 $usulanValues = collect([
                     $item->biaya_usulan_1,
                     $item->biaya_usulan_2,
@@ -232,13 +241,15 @@ class PtPenelitianController extends Controller
                     'status' => $item->status,
                     'created_at' => Carbon::make($item->created_at)?->toIso8601String(),
                     'tahun' => $item->tahun,
+                    'rekomendasi' => $item->rekomendasi,
                     'tahun_pelaksanaan' => $item->tahun_pelaksanaan,
                     'total_usulan' => $usulanValues->sum(),
                 ];
             })
             ->values()
             ->all();
-
+        // dd($items);
+        // die();
         return Inertia::render('penelitian/perbaikan', [
             'items' => $items,
         ]);
@@ -350,7 +361,7 @@ class PtPenelitianController extends Controller
         );
 
         return redirect()
-            ->route('reviewer.pt-penelitian.review', $ptPenelitian)
+            ->route('reviewer.pt-penelitian.index', $ptPenelitian)
             ->with('success', 'Review berhasil disimpan.');
     }
 
@@ -359,7 +370,6 @@ class PtPenelitianController extends Controller
         if ($response = $this->redirectIfNotVerified($request)) {
             return $response;
         }
-
         $this->normalizePayload($request);
         $validated = $this->validatedData($request);
         $data = $validated['fields'];
@@ -367,13 +377,11 @@ class PtPenelitianController extends Controller
         $rabPayload = $validated['rab'];
         $ownerUuidPt = optional($request->user()->dosen)->uuid_pt
             ?? $request->user()->uuid_pt;
-
         if (! $this->documentColumnsAvailable()) {
             throw ValidationException::withMessages([
                 'proposal_file' => 'Kolom penyimpanan dokumen belum tersedia. Jalankan perintah `php artisan migrate` terlebih dahulu.',
             ]);
         }
-
         $proposalPath = null;
         $proposalFilename = null;
         if ($request->hasFile('proposal_file')) {
@@ -381,7 +389,6 @@ class PtPenelitianController extends Controller
             $proposalPath = $proposalFile->store('penelitian/proposals', 'public');
             $proposalFilename = $proposalFile->getClientOriginalName();
         }
-
         $lampiranPath = null;
         $lampiranFilename = null;
         if ($request->hasFile('lampiran_file')) {
@@ -389,11 +396,9 @@ class PtPenelitianController extends Controller
             $lampiranPath = $lampiranFile->store('penelitian/lampiran', 'public');
             $lampiranFilename = $lampiranFile->getClientOriginalName();
         }
-
         if ($ownerUuidPt) {
             $data['uuid_pt'] = $ownerUuidPt;
         }
-
         DB::transaction(function () use (
             $request,
             $data,
@@ -405,7 +410,6 @@ class PtPenelitianController extends Controller
             $rabPayload
         ): void {
             $data['status'] = 'Menunggu Persetujuan Anggota';
-
             $penelitian = PtPenelitian::create([
                 'uuid' => (string) Str::uuid(),
                 ...$data,
@@ -417,12 +421,9 @@ class PtPenelitianController extends Controller
                 'lampiran_path' => $lampiranPath,
                 'lampiran_filename' => $lampiranFilename,
             ]);
-
             $this->syncAnggota($penelitian, $anggotaPayload);
             $this->syncRab($penelitian, $rabPayload);
-
             $pendingApprovals = $this->initializeAnggotaApprovals($penelitian);
-
             if ($pendingApprovals === 0) {
                 $penelitian->forceFill([
                     'status' => 'Mengajukan',
@@ -430,7 +431,6 @@ class PtPenelitianController extends Controller
                 ])->save();
             }
         });
-
         return redirect()
             ->route('pt-penelitian.index')
             ->with('success', 'Usulan penelitian berhasil dibuat.');
@@ -440,8 +440,148 @@ class PtPenelitianController extends Controller
     {
         $this->authorizeOwnership($ptPenelitian);
 
+        // Reload anggota relation just in case it's not loaded
+        $ptPenelitian->load('anggota');
+
+        // Helper function to retrieve RAB data for a year table
+        $getRabTahun = function ($tahun) use ($ptPenelitian) {
+            $table = "pt_rab_tahun_{$tahun}";
+            if (!Schema::hasTable($table)) return [];
+            return DB::table($table)
+                ->where('id_penelitian', $ptPenelitian->uuid)
+                ->get()
+                ->map(function ($record) {
+                    return [
+                        'id_komponen' => $record->id_komponen,
+                        'nama_item' => $record->nama_item,
+                        'jumlah_item' => $record->jumlah_item,
+                        'harga_satuan' => $record->harga_satuan,
+                        'total_biaya' => $record->total_biaya,
+                    ];
+                })->toArray();
+        };
+
+        $rabTahun1 = $getRabTahun(1);
+        $rabTahun2 = $getRabTahun(2);
+        $rabTahun3 = $getRabTahun(3);
+        $rabTahun4 = $getRabTahun(4);
+
+        // Take anggota and attach uuid_pt from dosen table if exists
+        $anggotaWithPT = [];
+        if ($ptPenelitian->anggota) {
+            $anggotaWithPT = $ptPenelitian->anggota->map(function ($anggota) {
+                $dosenData = DB::table('dosen')
+                    ->where('uuid', $anggota->dosen_uuid)
+                    ->first(['uuid_pt']);
+                return [
+                    'dosen_uuid' => $anggota->dosen_uuid,
+                    'peran' => $anggota->peran,
+                    'tugas' => $anggota->tugas,
+                    'uuid_pt' => $dosenData->uuid_pt ?? null,
+                ];
+            })->toArray();
+        }
+
+        // Build penelitianData with merged anggota and RAB tahun
+        $penelitianData = array_merge(
+            $ptPenelitian->toArray(),
+            [
+                'anggota' => $anggotaWithPT,
+                'rab_tahun_1' => $rabTahun1,
+                'rab_tahun_2' => $rabTahun2,
+                'rab_tahun_3' => $rabTahun3,
+                'rab_tahun_4' => $rabTahun4,
+            ]
+        );
+
+        // Fetch dropdown/options data
+        $skemaOptions = DB::table('ref_skema')
+            ->select('uuid', 'nama', 'nama_singkat')
+            ->whereNull('deleted_at')
+            ->where(function ($query) {
+                $query->whereNull('status')->orWhere('status', 'aktif');
+            })
+            ->where('jenis_skema', 'Penelitian')
+            ->orderBy('nama')
+            ->get()
+            ->map(fn($r) => [
+                'uuid' => $r->uuid,
+                'nama' => $r->nama,
+                'nama_singkat' => $r->nama_singkat,
+            ])->toArray();
+
+        $fokusOptions = DB::table('ref_fokus')
+            ->select('uuid', 'fokus')
+            ->orderBy('fokus')
+            ->get()
+            ->map(fn($r) => [
+                'uuid' => $r->uuid,
+                'fokus' => $r->fokus,
+            ])->toArray();
+
+        $sdgOptions = DB::table('ref_sdg')
+            ->select('uuid', 'sdg', 'level')
+            ->orderBy('level')->orderBy('sdg')
+            ->get()
+            ->map(fn($r) => [
+                'uuid' => $r->uuid,
+                'sdg' => $r->sdg,
+                'level' => $r->level,
+            ])->toArray();
+
+        $tktOptions = DB::table('ref_tkt')
+            ->select('uuid', 'tkt', 'level')
+            ->orderBy('level')->orderBy('tkt')
+            ->get()
+            ->map(fn($r) => [
+                'uuid' => $r->uuid,
+                'tkt' => $r->tkt,
+                'level' => $r->level,
+            ])->toArray();
+
+        $dosenOptions = DB::table('dosen')
+            ->join('users', 'dosen.id_user', '=', 'users.id')
+            ->select('dosen.uuid', 'users.name', 'dosen.nidn', 'dosen.email', 'dosen.uuid_pt')
+            ->orderBy('users.name')
+            ->get()
+            ->map(fn($r) => [
+                'uuid' => $r->uuid,
+                'nama' => $r->name,
+                'nidn' => $r->nidn,
+                'email' => $r->email,
+                'uuid_pt' => $r->uuid_pt,
+            ])->toArray();
+
+        $perguruanOptions = DB::table('ref_perguruan_tinggi')
+            ->select('uuid', 'nama', 'nama_singkat')
+            ->orderBy('nama')
+            ->get()
+            ->map(fn($r) => [
+                'uuid' => $r->uuid,
+                'nama' => $r->nama,
+                'nama_singkat' => $r->nama_singkat,
+            ])->toArray();
+
+        $komponenOptions = DB::table('ref_komponen_biaya')
+            ->select('id', 'nama_komponen', 'jenis', 'keterangan')
+            ->orderBy('nama_komponen')
+            ->get()
+            ->map(fn($r) => [
+                'id' => $r->id,
+                'nama_komponen' => $r->nama_komponen,
+                'jenis' => $r->jenis,
+                'keterangan' => $r->keterangan,
+            ])->toArray();
+
         return Inertia::render('penelitian/edit', [
-            'penelitian' => $ptPenelitian,
+            'penelitian' => $penelitianData,
+            'skemaOptions' => $skemaOptions,
+            'fokusOptions' => $fokusOptions,
+            'sdgOptions' => $sdgOptions,
+            'tktOptions' => $tktOptions,
+            'dosenOptions' => $dosenOptions,
+            'perguruanOptions' => $perguruanOptions,
+            'komponenOptions' => $komponenOptions,
         ]);
     }
 
@@ -454,9 +594,10 @@ class PtPenelitianController extends Controller
         $data = $validated['fields'];
         $anggotaPayload = $validated['anggota'];
         $rabPayload = $validated['rab'];
+
         if (
-            ($request->hasFile('proposal_file') || $request->hasFile('lampiran_file'))
-            && ! $this->documentColumnsAvailable()
+            ($request->hasFile('proposal_file') || $request->hasFile('lampiran_file')) &&
+            ! $this->documentColumnsAvailable()
         ) {
             throw ValidationException::withMessages([
                 'proposal_file' => 'Kolom penyimpanan dokumen belum tersedia. Jalankan perintah `php artisan migrate` terlebih dahulu.',
@@ -479,6 +620,7 @@ class PtPenelitianController extends Controller
 
         DB::transaction(function () use ($ptPenelitian, $data, $anggotaPayload, $rabPayload): void {
             $ptPenelitian->update($data);
+
             $this->syncAnggota($ptPenelitian, $anggotaPayload);
             $this->syncRab($ptPenelitian, $rabPayload);
 
@@ -618,6 +760,7 @@ class PtPenelitianController extends Controller
             'id_tkt' => 'nullable|string|max:100',
             'id_sdg' => 'nullable|string|max:100',
             'id_fokus' => 'nullable|string|max:100',
+            'ringkasan' => 'nullable|string|max:255',
             'tahun' => 'nullable|integer',
             'tahun_pelaksanaan' => 'nullable|integer',
             'biaya_usulan_1' => 'nullable|numeric',
@@ -1153,5 +1296,43 @@ class PtPenelitianController extends Controller
         return redirect()
             ->route('pt-penelitian.index')
             ->with('error', 'Akun Anda belum disetujui oleh admin PT. Silakan hubungi admin di perguruan tinggi Anda.');
+    }
+
+    // HASIL REVIEW
+    public function hasilreview($ptPenelitian)
+    {
+        $penelitian = DB::table('pt_penelitian')
+            ->select(
+                'pt_penelitian.uuid',
+                'pt_penelitian.title',
+                'pt_penelitian.ringkasan',
+                'pt_penelitian.tahun',
+                'pt_penelitian.tahun_pelaksanaan',
+                'pt_penelitian.target_luaran',
+                'pt_penelitian.status',
+                'pt_penelitian_reviews.rekomendasi',
+                'pt_penelitian_reviews.skor_kualitas',
+                'pt_penelitian_reviews.skor_rab',
+                'pt_penelitian_reviews.catatan_umum',
+                'pt_penelitian_reviews.catatan_rab',
+                'pt_penelitian.created_at',
+                'pt_penelitian_reviews.reviewer_id'
+            )
+            ->join('pt_penelitian_reviews', 'pt_penelitian.uuid', '=', 'pt_penelitian_reviews.penelitian_uuid')
+            ->where('pt_penelitian.uuid', $ptPenelitian)
+            ->first();
+
+        $reviewer = DB::table('users')
+            ->select('name', 'email')
+            ->where('id', $penelitian->reviewer_id)
+            ->first();
+
+        $items = [
+            'penelitian' => $penelitian,
+            'reviewer' => $reviewer,
+        ];
+        // dd($items);
+        // die();
+        return Inertia::render('penelitian/hasilreview', $items);
     }
 }

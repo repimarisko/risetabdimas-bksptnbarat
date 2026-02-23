@@ -28,6 +28,7 @@ class PtPenelitian extends Model
         'id_tkt',
         'id_sdg',
         'id_fokus',
+        'ringkasan',
         'biaya_usulan_1',
         'biaya_usulan_2',
         'biaya_usulan_3',

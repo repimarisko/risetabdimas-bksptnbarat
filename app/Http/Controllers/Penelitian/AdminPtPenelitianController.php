@@ -126,7 +126,7 @@ class AdminPtPenelitianController extends Controller
                     'uuid' => $item->uuid,
                     'title' => $item->title,
                     'status' => $item->status,
-                    'created_at' => optional($item->created_at)?->toIso8601String(),
+                    'created_at' => $item->created_at,
                     'reviewers' => $item->reviewers->map(fn(User $user) => [
                         'id' => $user->id,
                         'name' => $user->name,
