@@ -1,11 +1,10 @@
+.git
 node_modules
 vendor
-.git
-.env
 storage
+bootstrap/cache
+.env
+.env.*
 tests
-.vscode
 npm-debug.log
 yarn-error.log
-Docker/
-*.md

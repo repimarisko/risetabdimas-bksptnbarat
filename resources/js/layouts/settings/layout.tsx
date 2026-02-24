@@ -48,40 +48,34 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 description="Kelola profil, keamanan, dan preferensi tampilan"
             />
 
-            <div className="mt-6 flex flex-col lg:flex-row lg:space-x-12">
-                <aside className="w-full max-w-xl lg:w-64">
-                    <nav className="flex flex-col space-y-2">
-                        {sidebarNavItems.map((item, index) => (
-                            <Button
-                                key={`${resolveUrl(item.href)}-${index}`}
-                                size="sm"
-                                variant={isSameUrl(currentPath, item.href) ? 'secondary' : 'ghost'}
-                                asChild
-                                className={cn('w-full justify-start rounded-lg', {
-                                    'bg-blue-50 text-blue-700 hover:bg-blue-100': isSameUrl(
-                                        currentPath,
-                                        item.href,
-                                    ),
-                                })}
-                            >
-                                <Link href={item.href}>
-                                    {item.icon && (
-                                        <item.icon className="mr-2 h-4 w-4" />
-                                    )}
-                                    {item.title}
-                                </Link>
-                            </Button>
-                        ))}
-                    </nav>
-                </aside>
+            <div className="mt-6 space-y-6">
+                <nav className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+                    {sidebarNavItems.map((item, index) => (
+                        <Button
+                            key={`${resolveUrl(item.href)}-${index}`}
+                            size="sm"
+                            variant={isSameUrl(currentPath, item.href) ? 'secondary' : 'ghost'}
+                            asChild
+                            className={cn(
+                                'rounded-full border px-4 py-2 text-sm font-semibold',
+                                isSameUrl(currentPath, item.href)
+                                    ? 'border-blue-200 bg-blue-50 text-blue-700'
+                                    : 'border-transparent text-gray-700 hover:border-gray-200 hover:bg-gray-50',
+                            )}
+                        >
+                            <Link href={item.href}>
+                                {item.icon && <item.icon className="mr-2 h-4 w-4" />}
+                                {item.title}
+                            </Link>
+                        </Button>
+                    ))}
+                </nav>
 
-                <Separator className="my-6 lg:hidden" />
+                <Separator />
 
-                <div className="flex-1">
-                    <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                        {children}
-                    </section>
-                </div>
+                <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                    {children}
+                </section>
             </div>
         </div>
     );

@@ -22,6 +22,12 @@ type PageProps = SharedData & {
     penelitian: {
         data: PenelitianItem[];
     };
+    deletedPenelitian?: Array<{
+        uuid: string;
+        title: string;
+        deleted_at: string | null;
+    }>;
+    showDeletedLink?: boolean;
 };
 
 const currencyFormatter = new Intl.NumberFormat('id-ID', {
@@ -57,9 +63,9 @@ function getStatusMeta(status?: string | null) {
 }
 
 export default function PenelitianIndexAll() {
-    const { penelitian, auth } = usePage<PageProps>().props;
-    const roles = auth?.roles ?? [];
-    const isKetuaLppm = roles.includes('ketua-lppm');
+    const { penelitian, auth, deletedPenelitian = [], showDeletedLink = false } =
+        usePage<PageProps>().props;
+    const isKetuaLppm = (auth?.active_role ?? '') === 'ketua-lppm';
 
     const dashboardBreadcrumb = isKetuaLppm
         ? { title: 'Dashboard Ketua LPPM', href: '/dashboard/ketua-lppm' }
@@ -116,13 +122,54 @@ export default function PenelitianIndexAll() {
                             </h1>
                             <p className="text-sm text-gray-500">{pageDescription}</p>
                         </div>
-                        <a
-                            href="/admin/pt-penelitian/export"
-                            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100"
-                        >
-                            {exportLabel}
-                        </a>
+                        <div className="flex flex-wrap gap-2">
+                            {showDeletedLink ? (
+                                <Link
+                                    href="/admin/pt-penelitian/deleted"
+                                    className="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 shadow-sm transition hover:bg-rose-100"
+                                >
+                                    Arsip Dihapus
+                                </Link>
+                            ) : null}
+                            <a
+                                href="/admin/pt-penelitian/export"
+                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100"
+                            >
+                                {exportLabel}
+                            </a>
+                        </div>
                     </div>
+
+                    {!showDeletedLink && deletedPenelitian.length > 0 ? (
+                        <div className="mb-6 overflow-hidden rounded-2xl border border-rose-100 bg-rose-50 shadow-sm">
+                            <div className="flex items-center justify-between px-6 py-4">
+                                <div>
+                                    <h2 className="text-sm font-semibold text-rose-700">
+                                        Usulan yang Dihapus (Soft Delete)
+                                    </h2>
+                                    <p className="text-xs text-rose-600">
+                                        Daftar singkat 10 terakhir. Hubungi admin jika perlu pemulihan.
+                                    </p>
+                                </div>
+                                <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                                    {deletedPenelitian.length} item
+                                </span>
+                            </div>
+                            <div className="divide-y divide-rose-100">
+                                {deletedPenelitian.map((item) => (
+                                    <div key={item.uuid} className="px-6 py-3 text-sm text-rose-800 flex items-center justify-between">
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold">{item.title}</span>
+                                            <span className="text-xs text-rose-700">
+                                                Dihapus: {item.deleted_at ? dateFormatter.format(new Date(item.deleted_at)) : '-'}
+                                            </span>
+                                        </div>
+                                        <span className="text-[11px] uppercase tracking-wide text-rose-600">Soft Deleted</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : null}
 
                     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
                         {penelitian?.data?.length ? (

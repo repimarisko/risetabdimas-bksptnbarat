@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Docker/php/Dockerfile
+      target: dev
+    volumes:
+      - ./:/var/www/html:cached
+      - ./vendor:/var/www/html/vendor
+      - ./node_modules:/var/www/html/node_modules

@@ -1,14 +1,11 @@
 import { login, register } from '@/routes';
-import type { SharedData } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
 export default function WelcomeV2({
     canRegister = true,
 }: {
     canRegister?: boolean;
 }) {
-    const { auth } = usePage<SharedData>().props;
-
     // Daftar PTN dengan path logo (39 total)
     const ptnList = [
         { name: 'UPN Veteran Jakarta', logo: '/images/logos/upn-veteran-jakarta.png', link: 'https://www.upnvj.ac.id' },
@@ -187,7 +184,7 @@ export default function WelcomeV2({
                         </h3>
 
                         <div className="grid grid-cols-3 items-center justify-items-center gap-6 lg:grid-cols-13">
-                            {ptnList.map((ptn) => (
+                            {sortedPtnList.map((ptn) => (
                                 <div
                                     key={ptn.name}
                                     className="group flex h-16 w-16 items-center justify-center lg:h-14 lg:w-14"

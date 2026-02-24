@@ -6,6 +6,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 import UnauthorizedModalProvider from './components/unauthorized-modal-provider';
+import FlashMessenger from './components/FlashMessenger';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -30,6 +31,7 @@ createInertiaApp({
         root.render(
             <StrictMode>
                 <UnauthorizedModalProvider>
+                    <FlashMessenger initialFlash={props.initialPage.props.flash as any} />
                     <App {...props} />
                 </UnauthorizedModalProvider>
             </StrictMode>,

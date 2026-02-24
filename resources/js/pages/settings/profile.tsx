@@ -4,7 +4,7 @@ import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
 
-import DeleteUser from '@/components/delete-user';
+
 import HeadingSmall from '@/components/heading-small';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/profile';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -28,14 +30,26 @@ export default function Profile({
     mustVerifyEmail: boolean;
     status?: string;
 }) {
-    const { auth } = usePage<SharedData>().props;
+    const { auth, userDetail } = usePage<
+        SharedData & { userDetail?: Record<string, any> | null }
+    >().props;
 
     return (
         <AppHeaderLayout breadcrumbs={breadcrumbs}>
             <Head title="Pengaturan Profil" />
 
             <SettingsLayout>
-                <div className="space-y-6">
+                <div className="space-y-6 lg:px-8">
+                    <div className="flex items-center justify-between">
+                        <Link
+                            href="/dashboard"
+                            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            Kembali ke Dashboard
+                        </Link>
+                    </div>
+
                     <HeadingSmall
                         title="Informasi Profil"
                         description="Perbarui nama dan alamat email Anda"
@@ -87,6 +101,149 @@ export default function Profile({
                                         className="mt-2"
                                         message={errors.email}
                                     />
+                                </div>
+
+                                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                                    Lengkapi data berikut untuk memenuhi syarat pengajuan proposal.
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="nama_lengkap">Nama Lengkap</Label>
+                                        <Input
+                                            id="nama_lengkap"
+                                            name="nama_lengkap"
+                                            defaultValue={userDetail?.nama_lengkap ?? auth.user.name}
+                                            required
+                                        />
+                                        <InputError className="mt-1" message={errors.nama_lengkap} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="hp">No. HP</Label>
+                                        <Input
+                                            id="hp"
+                                            name="hp"
+                                            defaultValue={userDetail?.hp ?? ''}
+                                            required
+                                        />
+                                        <InputError className="mt-1" message={errors.hp} />
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-3">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="nik">NIK</Label>
+                                        <Input
+                                            id="nik"
+                                            name="nik"
+                                            maxLength={16}
+                                            defaultValue={userDetail?.nik ?? ''}
+                                            required
+                                        />
+                                        <InputError className="mt-1" message={errors.nik} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="nip">NIP</Label>
+                                        <Input
+                                            id="nip"
+                                            name="nip"
+                                            maxLength={18}
+                                            defaultValue={userDetail?.nip ?? ''}
+                                        />
+                                        <InputError className="mt-1" message={errors.nip} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="nuptk">NUPTK</Label>
+                                        <Input
+                                            id="nuptk"
+                                            name="nuptk"
+                                            maxLength={16}
+                                            defaultValue={userDetail?.nuptk ?? ''}
+                                        />
+                                        <InputError className="mt-1" message={errors.nuptk} />
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-3">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="tempat_lahir">Tempat Lahir</Label>
+                                        <Input
+                                            id="tempat_lahir"
+                                            name="tempat_lahir"
+                                            defaultValue={userDetail?.tempat_lahir ?? ''}
+                                            required
+                                        />
+                                        <InputError className="mt-1" message={errors.tempat_lahir} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="tanggal_lahir">Tanggal Lahir</Label>
+                                        <Input
+                                            id="tanggal_lahir"
+                                            name="tanggal_lahir"
+                                            type="date"
+                                            defaultValue={userDetail?.tanggal_lahir ?? ''}
+                                            required
+                                        />
+                                        <InputError className="mt-1" message={errors.tanggal_lahir} />
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="alamat">Alamat</Label>
+                                    <Textarea
+                                        id="alamat"
+                                        name="alamat"
+                                        defaultValue={userDetail?.alamat ?? ''}
+                                        required
+                                        rows={3}
+                                    />
+                                    <InputError className="mt-1" message={errors.alamat} />
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="sinta_id">SINTA ID</Label>
+                                        <Input
+                                            id="sinta_id"
+                                            name="sinta_id"
+                                            defaultValue={userDetail?.sinta_id ?? ''}
+                                        />
+                                        <InputError className="mt-1" message={errors.sinta_id} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="scopus_id">Scopus ID</Label>
+                                        <Input
+                                            id="scopus_id"
+                                            name="scopus_id"
+                                            defaultValue={userDetail?.scopus_id ?? ''}
+                                        />
+                                        <InputError className="mt-1" message={errors.scopus_id} />
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="sinta_link">Link SINTA</Label>
+                                        <Input
+                                            id="sinta_link"
+                                            name="sinta_link"
+                                            type="url"
+                                            placeholder="https://sinta.kemdikbud.go.id/..."
+                                            defaultValue={userDetail?.sinta_link ?? ''}
+                                        />
+                                        <InputError className="mt-1" message={errors.sinta_link} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="scopus_link">Link Scopus</Label>
+                                        <Input
+                                            id="scopus_link"
+                                            name="scopus_link"
+                                            type="url"
+                                            placeholder="https://www.scopus.com/..."
+                                            defaultValue={userDetail?.scopus_link ?? ''}
+                                        />
+                                        <InputError className="mt-1" message={errors.scopus_link} />
+                                    </div>
                                 </div>
 
                                 {mustVerifyEmail &&
@@ -141,7 +298,7 @@ export default function Profile({
                     </Form>
                 </div>
 
-                <DeleteUser />
+             
             </SettingsLayout>
         </AppHeaderLayout>
     );

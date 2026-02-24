@@ -6,7 +6,6 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Middleware;
-use Spatie\Permission\Models\Role;
 use App\Models\Menu;
 
 class HandleInertiaRequests extends Middleware
@@ -61,6 +60,7 @@ class HandleInertiaRequests extends Middleware
             $pendingApprovals = DB::table('pt_penelitian_anggota_approvals as approvals')
                 ->join('pt_penelitian_anggotas as anggota', 'anggota.id', '=', 'approvals.anggota_id')
                 ->join('pt_penelitian as penelitian', 'penelitian.uuid', '=', 'anggota.penelitian_uuid')
+                ->join('dosen', 'dosen.uuid', '=', 'approvals.dosen_uuid')
                 ->select(
                     'approvals.id',
                     'approvals.anggota_id',
@@ -72,6 +72,8 @@ class HandleInertiaRequests extends Middleware
                 )
                 ->where('approvals.status', 'pending')
                 ->where('approvals.dosen_uuid', $dosenUuid)
+                ->whereNull('dosen.deleted_at')
+                ->whereNull('penelitian.deleted_at')
                 ->orderByDesc('penelitian.created_at')
                 ->limit(10)
                 ->get()
@@ -97,41 +99,34 @@ class HandleInertiaRequests extends Middleware
             $pendingApprovalsCount = count($pendingApprovals);
         }
 
-        $menuPermissions = [];
-
-        if ($user) {
-            $roleNames = $user->getRoleNames()->toArray();
-
-            if ($activeRole && in_array($activeRole, $roleNames, true)) {
-                $role = $user->roles->firstWhere('name', $activeRole) ?? Role::where('name', $activeRole)->first();
-                if ($role) {
-                    $menuPermissions = $role->permissions->pluck('name')->toArray();
-                }
-            }
-
-            if (empty($menuPermissions)) {
-                $menuPermissions = $user->getAllPermissions()->pluck('name')->toArray();
-            }
+        $allRoles = $user?->getRoleNames()->toArray() ?? [];
+        $activeRole = $request->session()->get('active_role');
+        if ($user && $activeRole && ! in_array($activeRole, $allRoles, true)) {
+            $activeRole = null;
+        }
+        if ($user && ! $activeRole && ! empty($allRoles)) {
+            $activeRole = $allRoles[0];
+            $request->session()->put('active_role', $activeRole);
         }
 
-        $menus = [];
-
-        if (! empty($menuPermissions)) {
-            $menus = Menu::query()
-                ->whereHas('permissions', fn($query) => $query->whereIn('name', $menuPermissions))
+        $menus = $user
+            ? Menu::query()
                 ->orderBy('sort')
                 ->get(['id', 'name', 'slug', 'href', 'icon', 'parent_id', 'sort'])
-                ->map(fn(Menu $menu) => [
-                    'id' => $menu->id,
-                    'name' => $menu->name,
-                    'slug' => $menu->slug,
-                    'href' => $menu->href,
-                    'icon' => $menu->icon,
-                    'parent_id' => $menu->parent_id,
-                    'sort' => $menu->sort,
-                ])
-                ->toArray();
-        }
+                ->map(function (Menu $menu) {
+                    return [
+                        'id' => (int) $menu->id,
+                        'name' => $menu->name,
+                        'slug' => $menu->slug,
+                        'href' => $menu->href,
+                        'icon' => $menu->icon,
+                        'parent_id' => $menu->parent_id,
+                        'sort' => $menu->sort,
+                    ];
+                })
+                ->values()
+                ->all()
+            : [];
 
         return [
             ...parent::share($request),
@@ -139,12 +134,18 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $user,
-                'roles' => $user?->getRoleNames()->toArray() ?? [],
-                'activeRole' => $activeRole,
+                'roles' => $allRoles,
+                'active_role' => $activeRole,
                 'permissions' => $user?->getAllPermissions()->pluck('name')->toArray() ?? [],
                 'pendingApprovals' => $pendingApprovals,
                 'pendingApprovalsCount' => $pendingApprovalsCount,
                 'menus' => $menus,
+            ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
+                'info' => $request->session()->get('info'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

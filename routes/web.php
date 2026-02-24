@@ -1,12 +1,13 @@
 <?php
 
-use App\Http\Controllers\Dashboard\DosenDashboardController;
-use App\Http\Controllers\Users\AdminPtUserApprovalController;
-use App\Http\Controllers\Settings\RoleAssignmentController;
-use Inertia\Inertia;
-use Laravel\Fortify\Features;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+use Laravel\Fortify\Features;
+use App\Http\Controllers\Dashboard\DosenDashboardController;
+use App\Http\Controllers\Settings\RoleAssignmentController;
+use App\Http\Controllers\Settings\RoleMenuController;
+use App\Http\Controllers\Users\AdminPtUserApprovalController;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -70,20 +71,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('dashboard.super-admin');
         Route::get('settings/role-assignment', [RoleAssignmentController::class, 'index'])
             ->name('settings.role-assignment');
-        Route::post('settings/role-assignment/{user}', [RoleAssignmentController::class, 'update'])
+        Route::patch('settings/role-assignment/{user}', [RoleAssignmentController::class, 'update'])
             ->name('settings.role-assignment.update');
-        Route::get('settings/menus', [\App\Http\Controllers\Settings\MenuController::class, 'index'])
-            ->name('settings.menus.index');
-        Route::post('settings/menus', [\App\Http\Controllers\Settings\MenuController::class, 'store'])
-            ->name('settings.menus.store');
-        Route::put('settings/menus/{menu}', [\App\Http\Controllers\Settings\MenuController::class, 'update'])
-            ->name('settings.menus.update');
-        Route::delete('settings/menus/{menu}', [\App\Http\Controllers\Settings\MenuController::class, 'destroy'])
-            ->name('settings.menus.destroy');
+        Route::get('settings/role-menus', [RoleMenuController::class, 'index'])
+            ->name('settings.role-menus.index');
+        Route::patch('settings/role-menus/{role}', [RoleMenuController::class, 'update'])
+            ->name('settings.role-menus.update');
     });
 
-    Route::post('settings/switch-role', [RoleAssignmentController::class, 'switchRole'])
-        ->name('settings.switch-role');
+    // Semua pengguna terautentikasi boleh mengganti role aktif yang dimilikinya
+    Route::post('settings/active-role', function (\Illuminate\Http\Request $request) {
+        $roles = $request->user()?->getRoleNames()->toArray() ?? [];
+        $role = $request->input('role');
+        if (! $role || ! in_array($role, $roles, true)) {
+            return back()->with('error', 'Role tidak valid.');
+        }
+
+        $request->session()->put('active_role', $role);
+
+        $dashboardMap = [
+            'super-admin' => '/dashboard/super-admin',
+            'admin-pt' => '/dashboard/admin-pt',
+            'ketua-lppm' => '/dashboard/ketua-lppm',
+            'dosen' => '/dashboard/dosen',
+        ];
+
+        $redirectTo = $dashboardMap[$role] ?? '/dashboard';
+
+        return redirect($redirectTo)->with('success', 'Role aktif diperbarui.');
+    })->name('settings.active-role');
 });
 
 require __DIR__ . '/settings.php';
