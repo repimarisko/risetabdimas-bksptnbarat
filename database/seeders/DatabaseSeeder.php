@@ -105,5 +105,12 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(DosenSeeder::class);
+        $this->call([
+            RefJenisPertanyaanSeeder::class,
+            RefPertanyaanSkemaSeeder::class,
+        ]);
+        $this->call([
+            ReviewerSeeder::class,
+        ]);
     }
 }

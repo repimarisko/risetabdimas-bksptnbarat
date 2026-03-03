@@ -74,7 +74,7 @@ class LoginResponse implements LoginResponseContract
 
     protected function buildSecureAbsoluteUrl(string $path): string
     {
-        $normalizedPath = '/'.ltrim($path, '/');
+        $normalizedPath = '/' . ltrim($path, '/');
 
         return url($normalizedPath, [], true);
     }

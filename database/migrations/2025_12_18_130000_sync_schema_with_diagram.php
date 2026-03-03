@@ -195,8 +195,9 @@ return new class extends Migration
 
         if (! Schema::hasTable('pt_penugasan_review')) {
             Schema::create('pt_penugasan_review', function (Blueprint $table) {
-                $table->bigIncrements('id');
+                $table->uuid('id')->primary(); // ← ganti bigIncrements
                 $table->string('id_penelitian', 100);
+                $table->string('id_jenis_penugasan', 100);
                 $table->foreignId('id_reviewer')->constrained('reviewer')->cascadeOnDelete();
                 $table->date('tanggal_penugasan')->nullable();
                 $table->date('batas_waktu')->nullable();
@@ -210,7 +211,7 @@ return new class extends Migration
         if (! Schema::hasTable('pt_nilai_review')) {
             Schema::create('pt_nilai_review', function (Blueprint $table) {
                 $table->bigIncrements('id');
-                $table->unsignedBigInteger('id_penugasan');
+                $table->string('id_penugasan', 36); // ← ganti unsignedBigInteger
                 $table->string('kriteria', 255)->nullable();
                 $table->float('bobot')->nullable();
                 $table->float('skor')->nullable();

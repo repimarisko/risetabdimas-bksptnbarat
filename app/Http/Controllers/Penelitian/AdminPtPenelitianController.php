@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -33,10 +34,10 @@ class AdminPtPenelitianController extends Controller
         $deleted = $isSuperAdmin
             ? collect()
             : PtPenelitian::onlyTrashed()
-                ->when($uuidPt, fn($query, $uuid) => $query->where('uuid_pt', $uuid))
-                ->orderByDesc('deleted_at')
-                ->limit(10)
-                ->get(['uuid', 'title', 'deleted_at']);
+            ->when($uuidPt, fn($query, $uuid) => $query->where('uuid_pt', $uuid))
+            ->orderByDesc('deleted_at')
+            ->limit(10)
+            ->get(['uuid', 'title', 'deleted_at']);
 
         return Inertia::render('penelitian/index-all', [
             'penelitian' => $penelitian,
@@ -174,7 +175,7 @@ class AdminPtPenelitianController extends Controller
                     'uuid' => $item->uuid,
                     'title' => $item->title,
                     'status' => $item->status,
-                    'created_at' => optional($item->created_at)?->toIso8601String(),
+                    'created_at' =>  $item->created_at,
                     'reviewers' => $item->reviewers->map(fn(User $user) => [
                         'id' => $user->id,
                         'name' => $user->name,
@@ -328,5 +329,211 @@ class AdminPtPenelitianController extends Controller
         if ($uuidPt && $ptPenelitian->uuid_pt && $ptPenelitian->uuid_pt !== $uuidPt) {
             abort(Response::HTTP_FORBIDDEN, 'Anda tidak diizinkan mengakses data ini.');
         }
+    }
+    // MENU PENUGASAN REVIEW
+    public function penugasanReview(Request $request)
+    {
+        $idpt = $request->user()->uuid_pt;
+        $role = $request->user()->roles->pluck('name')->first();
+        // var_dump($role);
+        // die();
+
+        $query = DB::table('pt_penelitian')
+            ->leftJoin('pt_penugasan_review', 'pt_penelitian.uuid', '=', 'pt_penugasan_review.id_penelitian')
+            ->leftJoin('pt_review_administrasi', 'pt_penugasan_review.id', '=', 'pt_review_administrasi.id_penugasan')
+            ->leftJoin('users', 'pt_penelitian.created_by', '=', 'users.id')
+            ->where('pt_penelitian.status', 'disetujui')
+            ->whereNull('pt_penelitian.deleted_at');
+
+        if ($role !== 'super-admin') {
+            $query->where('pt_penelitian.uuid_pt', $idpt);
+        }
+
+        $penelitian = $query
+            ->select(
+                'pt_penelitian.uuid',
+                'pt_penelitian.title',
+                'pt_review_administrasi.hasil as status_review_administrasi',
+                'pt_penelitian.tahun',
+                'pt_penelitian.tahun_pelaksanaan',
+                'pt_penelitian.status',
+                'users.id as user_id',
+                'users.name as user_name',
+                'users.email as user_email'
+            )
+            ->get()
+            ->map(fn($item) => [
+                'uuid' => $item->uuid,
+                'title' => $item->title,
+                'tahun' => $item->tahun,
+                'tahun_pelaksanaan' => $item->tahun_pelaksanaan,
+                'status' => $item->status,
+                'status_review_administrasi' => $item->status_review_administrasi,
+                'user' => $item->user_id ? [
+                    'id' => $item->user_id,
+                    'name' => $item->user_name,
+                    'email' => $item->user_email,
+                ] : null,
+            ])
+            ->toArray();
+
+        // var_dump($penelitian);
+        // die();
+        // Ambil semua reviewer
+        $reviewers = DB::table('reviewer')
+            ->join('users', 'reviewer.id_user', '=', 'users.id')
+
+            ->select(
+                'reviewer.id',
+                'users.name',
+                'users.email',
+
+            )
+            ->get()
+            ->map(fn($item) => [
+                'id'    => $item->id,
+                'name'  => $item->name,
+                'email' => $item->email,
+
+            ])
+            ->toArray();
+
+        // Ambil penugasan yang sudah ada, group by id_penelitian
+        $uuids = array_column($penelitian, 'uuid');
+
+        $penugasanRaw = DB::table('pt_penugasan_review')
+            ->whereIn('pt_penugasan_review.id_penelitian', $uuids)
+            ->join('reviewer', 'pt_penugasan_review.id_reviewer', '=', 'reviewer.id')
+            ->join('users', 'reviewer.id_user', '=', 'users.id')
+            ->join('ref_jenis_penugasan', 'pt_penugasan_review.id_jenis_penugasan', '=', 'ref_jenis_penugasan.id')
+            // ->leftjoin('pt_penelitian', 'pt_penugasan_review.id_penelitian', '=', 'pt_penelitian.uuid')
+            ->select(
+                'pt_penugasan_review.id',
+                'pt_penugasan_review.id_penelitian',
+                'pt_penugasan_review.id_reviewer', // ✅ tambah ini
+                'pt_penugasan_review.id_jenis_penugasan',
+                'pt_penugasan_review.tanggal_penugasan',
+                'pt_penugasan_review.batas_waktu',
+                'pt_penugasan_review.status_review',
+                'ref_jenis_penugasan.nama as jenis_nama',
+                'users.name as reviewer_name',
+                'users.email as reviewer_email'
+            )
+            ->get();
+        // var_dump($penugasanRaw);
+        // die();
+        // Group by id_penelitian
+        $penugasan = [];
+        foreach ($penugasanRaw as $item) {
+            $penugasan[$item->id_penelitian][] = [
+                'id'                  => $item->id,
+                'id_jenis_penugasan'  => $item->id_jenis_penugasan,
+                'id_reviewer'  => $item->id_reviewer,
+                'jenis_nama'          => $item->jenis_nama,
+                'reviewer_name'       => $item->reviewer_name,
+                'reviewer_email'      => $item->reviewer_email,
+                'tanggal_penugasan'   => $item->tanggal_penugasan,
+                'batas_waktu'         => $item->batas_waktu,
+                'status_review'       => $item->status_review,
+            ];
+        }
+
+        $breadcrumbs = [
+            ['title' => 'Dashboard',         'href' => '/dashboard'],
+            ['title' => 'Penugasan Review',  'href' => '/admin/pt-penelitian/penugasan-review'],
+        ];
+
+        return Inertia::render('penelitian/penugasanReview/index', [
+            'penelitian' => $penelitian,
+            'reviewers'  => $reviewers,
+            'penugasan'  => $penugasan,
+            'breadcrumbs' => $breadcrumbs,
+        ]);
+    }
+
+    // STORE PENUGASAN
+    public function storePenugasan(Request $request)
+    {
+        $request->validate([
+            'id_penelitian'      => 'required|exists:pt_penelitian,uuid',
+            'id_reviewer'        => 'required|exists:reviewer,id',
+            'id_jenis_penugasan' => 'required|exists:ref_jenis_penugasan,id',
+            'tanggal_penugasan'  => 'required|date',
+            'batas_waktu'        => 'required|date|after_or_equal:tanggal_penugasan',
+        ]);
+        // JIKA REVIEWER ADALAH ANGGOTA PENELITIAN, MAKA TIDAK BISA DI PLOTTING
+        $idreviewer = $request->id_reviewer;
+        $idPenelitian = $request->id_penelitian;
+
+        $reviewer = DB::table('reviewer')
+            ->where('id', $idreviewer)
+            ->first();
+
+        $exists = DB::table('pt_penelitian_anggotas')
+            ->join('dosen', 'pt_penelitian_anggotas.dosen_uuid', '=', 'dosen.uuid')
+            ->where('pt_penelitian_anggotas.penelitian_uuid', $idPenelitian)
+            ->where('dosen.id_user', $reviewer->id_user)
+            ->exists();
+
+        if ($exists) {
+            return back()->with('error', 'Reviewer tidak dapat ditugaskan karena merupakan anggota pada penelitian ini.');
+        }
+        // JIKA REVIEWER ADALAH ANGGOTA PENELITIAN, MAKA TIDAK BISA DI PLOTTING
+        DB::table('pt_penugasan_review')->insert([
+            'id'                 => (string) Str::uuid(), // ← tambahkan
+            'id_penelitian'      => $request->id_penelitian,
+            'id_reviewer'        => $request->id_reviewer,
+            'id_jenis_penugasan' => $request->id_jenis_penugasan,
+            'tanggal_penugasan'  => $request->tanggal_penugasan,
+            'batas_waktu'        => $request->batas_waktu,
+            'status_review'      => 'Pending',
+            'created_at'         => now(),
+            'updated_at'         => now(),
+        ]);
+
+        return back()->with('success', 'Reviewer berhasil ditugaskan.');
+    }
+
+    // UPDATE PENUGASAN
+    public function updatePenugasan(Request $request, $id)
+    {
+        $request->validate([
+            'id_reviewer'        => 'required|exists:reviewer,id',
+            'id_jenis_penugasan' => 'required|exists:ref_jenis_penugasan,id',
+            'tanggal_penugasan'  => 'required|date',
+            'batas_waktu'        => 'required|date|after_or_equal:tanggal_penugasan',
+        ]);
+
+        $exists = DB::table('pt_penugasan_review')->where('id', $id)->exists();
+
+        if (!$exists) {
+            return back()->withErrors(['not_found' => 'Penugasan tidak ditemukan.']);
+        }
+
+        DB::table('pt_penugasan_review')
+            ->where('id', $id)
+            ->update([
+                'id_reviewer'        => $request->id_reviewer,
+                'id_jenis_penugasan' => $request->id_jenis_penugasan,
+                'tanggal_penugasan'  => $request->tanggal_penugasan,
+                'batas_waktu'        => $request->batas_waktu,
+                'updated_at'         => now(),
+            ]);
+
+        return back()->with('success', 'Penugasan berhasil diperbarui.');
+    }
+
+    // DELETE PENUGASAN
+    public function deletePenugasan($id)
+    {
+        $exists = DB::table('pt_penugasan_review')->where('id', $id)->exists();
+
+        if (!$exists) {
+            return back()->withErrors(['not_found' => 'Penugasan tidak ditemukan.']);
+        }
+
+        DB::table('pt_penugasan_review')->where('id', $id)->delete();
+
+        return back()->with('success', 'Penugasan berhasil dihapus.');
     }
 }

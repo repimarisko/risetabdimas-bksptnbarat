@@ -32,13 +32,13 @@ export default function Dashboard() {
             {/* Content placeholders */}
             <div className="mx-auto max-w-7xl px-4 pb-10">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-gray-200">
+                    <div className="relative aspect-video overflow-hidden  border border-gray-200">
                         <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/10" />
                     </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-gray-200">
+                    <div className="relative aspect-video overflow-hidden  border border-gray-200">
                         <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/10" />
                     </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-gray-200">
+                    <div className="relative aspect-video overflow-hidden  border border-gray-200">
                         <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/10" />
                     </div>
                 </div>

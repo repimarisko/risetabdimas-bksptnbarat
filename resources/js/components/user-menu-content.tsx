@@ -10,7 +10,7 @@ import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import { type User } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { Check, LogOut, Settings, SwitchCamera } from 'lucide-react';
 
 interface UserMenuContentProps {
     user: User;
@@ -70,7 +70,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 </>
             )}
             <DropdownMenuGroup>
-                {roles.length > 1 && (
+                {/* {roles.length > 1 && (
                     <>
                         <DropdownMenuLabel className="text-xs uppercase text-gray-500">
                             Role aktif
@@ -91,7 +91,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                         ))}
                         <DropdownMenuSeparator />
                     </>
-                )}
+                )} */}
 
                 <DropdownMenuItem asChild>
                     <Link
@@ -119,6 +119,8 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     Log out
                 </Link>
             </DropdownMenuItem>
+
+      
         </>
     );
 }

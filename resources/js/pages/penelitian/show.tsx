@@ -81,21 +81,21 @@ export default function PenelitianShow() {
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                     <button
                         onClick={() => handleStatusChange('approve')}
-                        className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300"
+                        className=" bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300"
                         disabled={statusNormalized.includes('disetujui')}
                     >
                         Setujui Usulan
                     </button>
                     <button
                         onClick={() => handleStatusChange('reject')}
-                        className="rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
+                        className=" bg-rose-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
                         disabled={statusNormalized.includes('ditolak')}
                     >
                         Tolak Usulan
                     </button>
                 </div>
 
-                <div className="mt-8 grid gap-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="mt-8 grid gap-6  border border-gray-200 bg-white p-6 shadow-sm">
                     <DetailRow label="Pengusul">
                         {penelitian.email_pengusul ?? '-'}
                     </DetailRow>

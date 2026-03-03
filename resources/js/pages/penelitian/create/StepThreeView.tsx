@@ -59,13 +59,13 @@ export default function StepThreeView({
     onSubmit,
 }: StepThreeViewProps) {
     return (
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-white  p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Konfirmasi & Ajukan Proposal
             </h2>
 
             <div className="space-y-6">
-                <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                <div className="border border-gray-200  p-6 bg-gray-50">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                         Identitas Proposal
                     </h3>
@@ -163,7 +163,7 @@ export default function StepThreeView({
                     </div>
                 </div>
 
-                <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                <div className="border border-gray-200  p-6 bg-gray-50">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                         Anggota Penelitian
                     </h3>
@@ -233,7 +233,7 @@ export default function StepThreeView({
                     )}
                 </div>
 
-                <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                <div className="border border-gray-200  p-6 bg-gray-50">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                         Rencana Anggaran Biaya
                     </h3>
@@ -254,7 +254,7 @@ export default function StepThreeView({
                                 return (
                                     <div
                                         key={year}
-                                        className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                                        className=" border border-gray-200 bg-white p-4 "
                                     >
                                         <div className="mb-3 flex items-center justify-between">
                                             <h4 className="text-sm font-semibold text-gray-900">
@@ -335,7 +335,7 @@ export default function StepThreeView({
                                 );
                             })}
 
-                            <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+                            <div className=" border border-indigo-200 bg-indigo-50 p-4">
                                 <div className="flex justify-between text-sm font-semibold">
                                     <span className="text-gray-700">
                                         Total RAB Keseluruhan
@@ -349,7 +349,7 @@ export default function StepThreeView({
                     )}
                 </div>
 
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <div className="bg-yellow-50 border border-yellow-200  p-6">
                     <div className="flex items-start">
                         <svg
                             className="w-6 h-6 text-yellow-600 mt-0.5 mr-3"
@@ -383,13 +383,13 @@ export default function StepThreeView({
             <div className="flex justify-between mt-8">
                 <button
                     onClick={onBack}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold  hover:bg-gray-50 transition-colors"
                 >
                     Kembali
                 </button>
                 <button
                     onClick={onSubmit}
-                    className="px-8 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-lg"
+                    className="px-8 py-3 bg-green-600 text-white font-semibold  hover:bg-green-700 transition-colors "
                 >
                     Ajukan Proposal
                 </button>

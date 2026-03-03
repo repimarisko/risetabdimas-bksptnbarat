@@ -41,8 +41,8 @@ class HandleInertiaRequests extends Middleware
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         $user = $request->user();
-        $activeRole = $request->session()->get('active_role', $user?->role);
-
+        $activeRole = (string) ($request->session()->get('active_role') ?? $user?->getRoleNames()->first() ?? '');
+        $activeRole = $activeRole ?: null;
         if ($user && $activeRole && ! $request->session()->has('active_role')) {
             $request->session()->put('active_role', $activeRole);
         }
@@ -111,21 +111,21 @@ class HandleInertiaRequests extends Middleware
 
         $menus = $user
             ? Menu::query()
-                ->orderBy('sort')
-                ->get(['id', 'name', 'slug', 'href', 'icon', 'parent_id', 'sort'])
-                ->map(function (Menu $menu) {
-                    return [
-                        'id' => (int) $menu->id,
-                        'name' => $menu->name,
-                        'slug' => $menu->slug,
-                        'href' => $menu->href,
-                        'icon' => $menu->icon,
-                        'parent_id' => $menu->parent_id,
-                        'sort' => $menu->sort,
-                    ];
-                })
-                ->values()
-                ->all()
+            ->orderBy('sort')
+            ->get(['id', 'name', 'slug', 'href', 'icon', 'parent_id', 'sort'])
+            ->map(function (Menu $menu) {
+                return [
+                    'id' => (int) $menu->id,
+                    'name' => $menu->name,
+                    'slug' => $menu->slug,
+                    'href' => $menu->href,
+                    'icon' => $menu->icon,
+                    'parent_id' => $menu->parent_id,
+                    'sort' => $menu->sort,
+                ];
+            })
+            ->values()
+            ->all()
             : [];
 
         return [

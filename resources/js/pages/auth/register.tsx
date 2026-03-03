@@ -100,7 +100,7 @@ export default function Register() {
                                     name="uuid_pt"
                                     required
                                     tabIndex={4}
-                                    className="h-11 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                    className="h-11  border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
                                     defaultValue=""
                                 >
                                     <option value="" disabled>
@@ -151,7 +151,7 @@ export default function Register() {
 
                             <Button
                                 type="submit"
-                                className="mt-2 w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm"
+                                className="mt-2 w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold  shadow-sm"
                                 tabIndex={7}
                                 data-test="register-user-button"
                             >

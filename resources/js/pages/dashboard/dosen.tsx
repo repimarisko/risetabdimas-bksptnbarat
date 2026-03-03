@@ -81,7 +81,7 @@ export default function DashboardDosen() {
             </div>
 
             <div className="mx-auto max-w-7xl px-4 pb-10">
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+                <div className="overflow-hidden  border border-gray-200 bg-white shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-6 py-4">
                         <div>
                             <h2 className="text-lg font-semibold text-gray-900">
@@ -130,7 +130,7 @@ export default function DashboardDosen() {
                                                 ) : null}
                                             </div>
                                         </div>
-                                        <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                                        <span className="inline-flex items-center  bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
                                             {formatStatus(item.status)}
                                         </span>
                                     </div>
@@ -159,7 +159,7 @@ function DashboardCard({
     children: ReactNode;
 }) {
     return (
-        <div className="relative aspect-video overflow-hidden rounded-xl border border-gray-200 bg-white p-6">
+        <div className="relative aspect-video overflow-hidden  border border-gray-200 bg-white p-6">
             <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/10" />
             <div className="relative z-10 flex h-full flex-col justify-between">
                 <div>

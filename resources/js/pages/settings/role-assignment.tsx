@@ -109,14 +109,14 @@ export default function RoleAssignment() {
                                 Tetapkan role aktif untuk setiap akun dan pastikan aksesnya sesuai.
                             </p>
                             {flash?.success && (
-                                <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                                <div className="mt-2 inline-flex items-center gap-2  bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                                     <CheckCircle2 className="h-4 w-4" />
                                     {flash.success}
                                 </div>
                             )}
                         </div>
 
-                        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
+                        <div className="flex items-center gap-2  border border-gray-200 bg-white px-3 py-2 shadow-sm">
                             <Search className="h-4 w-4 text-gray-400" />
                             <Input
                                 value={search}
@@ -190,7 +190,7 @@ export default function RoleAssignment() {
                                                             return (
                                                                 <label
                                                                     key={role.id}
-                                                                    className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700"
+                                                                    className="inline-flex items-center gap-2  border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700"
                                                                 >
                                                                     <input
                                                                         type="checkbox"

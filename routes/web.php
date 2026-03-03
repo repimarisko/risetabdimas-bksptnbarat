@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\Dashboard\DosenDashboardController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Settings\RoleAssignmentController;
 use App\Http\Controllers\Settings\RoleMenuController;
 use App\Http\Controllers\Users\AdminPtUserApprovalController;
@@ -16,31 +17,9 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function (Request $request) {
-        $user = $request->user();
 
-        if ($user?->hasRole('super-admin')) {
-            return redirect()->route('dashboard.super-admin');
-        }
-
-        if ($user?->hasRole('ketua-lppm')) {
-            return redirect()->route('dashboard.ketua-lppm');
-        }
-
-        if ($user?->hasRole('admin-pt')) {
-            return redirect()->route('dashboard.admin-pt');
-        }
-
-        if ($user?->hasRole('reviewer')) {
-            return redirect()->route('dashboard.reviewer');
-        }
-
-        if ($user?->hasRole('dosen')) {
-            return redirect()->route('dashboard.dosen');
-        }
-
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
 
     Route::middleware('role:dosen')->group(function () {
         Route::get('dashboard/dosen', DosenDashboardController::class)
@@ -62,9 +41,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::middleware('role:reviewer')->group(function () {
-        Route::get('dashboard/reviewer', fn() => redirect()->route('reviewer.pt-penelitian.index'))
+        Route::get('dashboard/reviewer', fn() => Inertia::render('dashboard/reviewer'))
             ->name('dashboard.reviewer');
     });
+
+
 
     Route::middleware('role:super-admin')->group(function () {
         Route::get('dashboard/super-admin', fn() => Inertia::render('dashboard/super-admin'))
@@ -77,6 +58,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('settings.role-menus.index');
         Route::patch('settings/role-menus/{role}', [RoleMenuController::class, 'update'])
             ->name('settings.role-menus.update');
+        Route::get('settings/menus', [\App\Http\Controllers\Settings\MenuController::class, 'index'])
+            ->name('settings.menus.index');
+        Route::post('settings/menus', [\App\Http\Controllers\Settings\MenuController::class, 'store'])
+            ->name('settings.menus.store');
+        Route::put('settings/menus/{menu}', [\App\Http\Controllers\Settings\MenuController::class, 'update'])
+            ->name('settings.menus.update');
+        Route::delete('settings/menus/{menu}', [\App\Http\Controllers\Settings\MenuController::class, 'destroy'])
+            ->name('settings.menus.destroy');
     });
 
     // Semua pengguna terautentikasi boleh mengganti role aktif yang dimilikinya
@@ -94,6 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'admin-pt' => '/dashboard/admin-pt',
             'ketua-lppm' => '/dashboard/ketua-lppm',
             'dosen' => '/dashboard/dosen',
+            'reviewer' => '/dashboard/reviewer',
         ];
 
         $redirectTo = $dashboardMap[$role] ?? '/dashboard';

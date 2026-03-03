@@ -47,7 +47,7 @@ class DosenDashboardController extends Controller
                 'tahun',
                 'tahun_pelaksanaan',
             ])
-            ->map(static fn (PtPenelitian $item) => [
+            ->map(static fn(PtPenelitian $item) => [
                 'uuid' => $item->uuid,
                 'title' => $item->title,
                 'status' => $item->status,
@@ -76,7 +76,7 @@ class DosenDashboardController extends Controller
             foreach ($keywords as $keyword) {
                 $inner->orWhereRaw(
                     'LOWER(COALESCE(status, \'\')) LIKE ?',
-                    ['%'.Str::lower($keyword).'%']
+                    ['%' . Str::lower($keyword) . '%']
                 );
             }
         });

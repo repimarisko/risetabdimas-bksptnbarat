@@ -104,12 +104,12 @@ export default function StepOneView({
     };
 
     return (
-        <div className="bg-white rounded-md shadow-lg p-8 space-y-6">
+        <div className="bg-white  p-8 space-y-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Identitas Proposal Penelitian
             </h2>
             {showStepOneErrors ? (
-                <div className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="mb-6  border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                     <p className="font-semibold">
                         Mohon lengkapi data berikut sebelum melanjutkan:
                     </p>
@@ -137,7 +137,7 @@ export default function StepOneView({
                                 placeholder="Masukkan judul penelitian..."
                                 data-step-one-field="judul"
                                 aria-invalid={showStepOneErrors && hasStepOneError('judul')}
-                                className={`w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                                     showStepOneErrors && hasStepOneError('judul')
                                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                         : ''
@@ -164,7 +164,7 @@ export default function StepOneView({
                                     aria-invalid={
                                         showStepOneErrors && hasStepOneError('id_skema')
                                     }
-                                    className={`w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                                    className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                                         showStepOneErrors && hasStepOneError('id_skema')
                                             ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                             : ''
@@ -197,7 +197,7 @@ export default function StepOneView({
                                     aria-invalid={
                                         showStepOneErrors && hasStepOneError('id_fokus')
                                     }
-                                    className={`w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                                    className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                                         showStepOneErrors && hasStepOneError('id_fokus')
                                             ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                             : ''
@@ -231,7 +231,7 @@ export default function StepOneView({
                                 rows={4}
                                 data-step-one-field="ringkasan"
                                 aria-invalid={showStepOneErrors && hasStepOneError('ringkasan')}
-                                className={`w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                                     showStepOneErrors && hasStepOneError('ringkasan')
                                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                         : ''
@@ -255,7 +255,7 @@ export default function StepOneView({
                             <select
                                 value={formData.id_sdg}
                                 onChange={(event) => onInputChange('id_sdg', event.target.value)}
-                                className="w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                className="w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                             >
                                 <option value="">Pilih SDG...</option>
                                 {sdgSelectOptions.map((option) => (
@@ -277,7 +277,7 @@ export default function StepOneView({
                                 aria-invalid={
                                     showStepOneErrors && hasStepOneError('id_tkt')
                                 }
-                                className={`w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                                     showStepOneErrors && hasStepOneError('id_tkt')
                                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                         : ''
@@ -310,7 +310,7 @@ export default function StepOneView({
                             }
                             placeholder="Tuliskan target luaran penelitian Anda..."
                             rows={4}
-                            className="w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                            className="w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                         />
                     </div>
                 ) : null}
@@ -330,7 +330,7 @@ export default function StepOneView({
                                 aria-invalid={
                                     showStepOneErrors && hasStepOneError('lama_waktu')
                                 }
-                                className={`w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                                     showStepOneErrors && hasStepOneError('lama_waktu')
                                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                         : ''
@@ -362,7 +362,7 @@ export default function StepOneView({
                                 aria-invalid={
                                     showStepOneErrors && hasStepOneError('tahun_pengajuan')
                                 }
-                                className={`w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                                     showStepOneErrors && hasStepOneError('tahun_pengajuan')
                                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                         : ''
@@ -393,7 +393,7 @@ export default function StepOneView({
                                 aria-invalid={
                                     showStepOneErrors && hasStepOneError('tahun_pelaksanaan')
                                 }
-                                className={`w-full px-4 py-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                                     showStepOneErrors && hasStepOneError('tahun_pelaksanaan')
                                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                         : ''
@@ -438,7 +438,7 @@ export default function StepOneView({
                                 tabIndex={-1}
                                 role="group"
                                 aria-invalid={showStepOneErrors && hasStepOneError('proposal_file')}
-                                className={`border-2 border-dashed rounded-md p-6 text-center transition-all focus:outline-none ${
+                                className={`border-2 border-dashed  p-6 text-center transition-all focus:outline-none ${
                                     showStepOneErrors && hasStepOneError('proposal_file')
                                         ? 'border-red-500 bg-red-50'
                                         : 'border-gray-300 hover:border-indigo-500'
@@ -482,7 +482,7 @@ export default function StepOneView({
                                             <button
                                                 type="button"
                                                 onClick={() => openPreview(proposalPreviewUrl, 'proposal')}
-                                                className="mt-2 inline-flex items-center rounded-md bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                                className="mt-2 inline-flex items-center  bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
                                             >
                                                 Preview Proposal
                                             </button>
@@ -508,7 +508,7 @@ export default function StepOneView({
                                     Unggah baru hanya jika ingin mengganti.
                                 </p>
                             ) : null}
-                            <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:border-indigo-500 transition-all">
+                            <div className="border-2 border-dashed border-gray-300  p-6 text-center hover:border-indigo-500 transition-all">
                                 <input
                                     type="file"
                                     accept=".pdf,.doc,.docx,.zip"
@@ -545,7 +545,7 @@ export default function StepOneView({
                                             <button
                                                 type="button"
                                                 onClick={() => openPreview(lampiranPreviewUrl, 'lampiran')}
-                                                className="mt-2 inline-flex items-center rounded-md bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                                className="mt-2 inline-flex items-center  bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
                                             >
                                                 Preview Lampiran
                                             </button>
@@ -561,7 +561,7 @@ export default function StepOneView({
             <div className="flex justify-end mt-8">
                 <button
                     onClick={onNext}
-                    className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition-colors"
+                    className="px-6 py-3 bg-indigo-600 text-white font-semibold  hover:bg-indigo-700 transition-colors"
                 >
                     Selanjutnya
                 </button>

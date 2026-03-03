@@ -817,7 +817,7 @@ export default function PenelitianCreate() {
             <div className="bg-gray-50">
                 <div className="mx-auto max-w-7xl px-4 py-10">
                     {currentStep !== 5 ? (
-                        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                        <div className="bg-white   p-6 mb-6">
                             <div className="flex items-center">
                                 {timelineSteps.map((step, index) => {
                                     const isActive = activeTimelineStep === step.number;
@@ -826,7 +826,7 @@ export default function PenelitianCreate() {
                                         <div key={step.number} className="flex-1 flex items-center">
                                             <div className="flex flex-col items-center w-full">
                                                 <div
-                                                    className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition-all ${
+                                                    className={`flex h-9 w-9 items-center justify-center  border text-sm font-semibold transition-all ${
                                                         isActive
                                                             ? 'bg-[#1d3b8b] text-white border-[#1d3b8b]'
                                                             : isCompleted

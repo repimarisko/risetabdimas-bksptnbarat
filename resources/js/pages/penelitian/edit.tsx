@@ -872,14 +872,14 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
             <div className="fixed inset-0 z-30 bg-gray-900/60 overflow-y-auto py-10">
                 <div className="mx-auto max-w-7xl px-4">
                     <div
-                        className="relative bg-gray-50 rounded-2xl shadow-2xl"
+                        className="relative bg-gray-50 "
                         role="dialog"
                         aria-modal="true"
                     >
                         <button
                             type="button"
                             onClick={handleClose}
-                            className="absolute right-4 top-4 rounded-full bg-white p-2 text-gray-500 shadow hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="absolute right-4 top-4  bg-white p-2 text-gray-500  hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             aria-label="Tutup"
                         >
                             <X className="h-5 w-5" />
@@ -899,17 +899,17 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
                                     <button
                                         type="button"
                                         onClick={handleClose}
-                                        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-white"
+                                        className=" border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-white"
                                     >
                                         Kembali ke daftar
                                     </button>
-                                    <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
+                                    <span className=" bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
                                         {penelitian.title ?? 'Tanpa judul'}
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                            <div className="bg-white  p-6 mb-6">
                                 <div className="flex items-center">
                                     {timelineSteps.map((step, index) => {
                                         const isActive = activeTimelineStep === step.number;
@@ -918,7 +918,7 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
                                             <div key={step.number} className="flex-1 flex items-center">
                                                 <div className="flex flex-col items-center w-full">
                                                     <div
-                                                        className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition-all ${
+                                                        className={`flex h-9 w-9 items-center justify-center  border text-sm font-semibold transition-all ${
                                                             isActive
                                                                 ? 'bg-[#1d3b8b] text-white border-[#1d3b8b]'
                                                                 : isCompleted
@@ -934,7 +934,7 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
                                                 </div>
                                                 {index < timelineSteps.length - 1 ? (
                                                     <div
-                                                        className={`mx-2 h-0.5 flex-1 rounded ${
+                                                        className={`mx-2 h-0.5 flex-1  ${
                                                             isCompleted ? 'bg-[#1d3b8b]' : 'bg-[#c5ceda]'
                                                         }`}
                                                     />

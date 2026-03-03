@@ -49,7 +49,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             />
 
             <div className="mt-6 space-y-6">
-                <nav className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+                <nav className="flex flex-wrap items-center gap-2  border border-gray-200 bg-white px-3 py-2 shadow-sm">
                     {sidebarNavItems.map((item, index) => (
                         <Button
                             key={`${resolveUrl(item.href)}-${index}`}
@@ -57,7 +57,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                             variant={isSameUrl(currentPath, item.href) ? 'secondary' : 'ghost'}
                             asChild
                             className={cn(
-                                'rounded-full border px-4 py-2 text-sm font-semibold',
+                                ' border px-4 py-2 text-sm font-semibold',
                                 isSameUrl(currentPath, item.href)
                                     ? 'border-blue-200 bg-blue-50 text-blue-700'
                                     : 'border-transparent text-gray-700 hover:border-gray-200 hover:bg-gray-50',
@@ -73,7 +73,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
                 <Separator />
 
-                <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <section className=" border border-gray-200 bg-white p-6 shadow-sm">
                     {children}
                 </section>
             </div>

@@ -74,6 +74,7 @@ class PtPenelitianController extends Controller
         $isVerified = $this->userVerified($request->user());
         $isProfileComplete = $this->profileComplete($request->user());
         $eligibilitySkema = DB::table('ref_skema')
+            ->where('jenis_skema', 'penelitian')
             ->select(
                 'uuid',
                 'nama',
@@ -138,6 +139,7 @@ class PtPenelitianController extends Controller
             ->select('uuid', 'nama', 'nama_singkat')
             ->whereNull('deleted_at')
             ->where(fn($query) => $query->whereNull('status')->orWhere('status', 'aktif'))
+            ->where('jenis_skema', 'penelitian')
             ->orderBy('nama')
             ->get()
             ->map(fn($record) => [
