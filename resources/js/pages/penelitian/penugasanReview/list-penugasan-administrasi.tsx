@@ -254,8 +254,8 @@ export default function PenugasanReviewShow() {
                                                 <td className="px-6 py-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         <Link
-                                                            href={`/reviewer/pt-penelitian/penugasan/${item.id_penugasan}/nilai`}
-                                                            className="inline-flex items-center gap-1.5 bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition-colors"
+                                                            href={`/reviewer/pt-penelitian/penugasan/${item.id_penugasan}/nilai-administrasi`}
+                                                            className="inline-flex items-center gap-1.5 bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
                                                         >
                                                             <PenLine className="w-3.5 h-3.5" />
                                                             Nilai

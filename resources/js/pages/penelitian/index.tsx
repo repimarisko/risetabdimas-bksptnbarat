@@ -152,6 +152,7 @@ export default function PenelitianIndex() {
                     onClose={() => setShowEligibility(false)}
                     schemes={eligibility?.schemes ?? []}
                     profile={eligibility?.profile}
+                    submissionLocked={submissionLocked}
                 />
             )}
 
@@ -518,11 +519,12 @@ function getInitials(name: string) {
 
 type EligibilityModalProps = {
     onClose: () => void;
+    submissionLocked: boolean; // ← tambah ini
     schemes: NonNullable<PageProps['eligibility']>['schemes'];
     profile?: PageProps['eligibility'] extends { profile: infer P } ? P : undefined;
 };
 
-function EligibilityModal({ onClose, schemes, profile }: EligibilityModalProps) {
+function EligibilityModal({ onClose, schemes, profile, submissionLocked }: EligibilityModalProps) {
     const requirements = [
         { label: 'Profil Dosen tersedia', fulfilled: profile?.has_profile ?? false },
         { label: 'Akun terverifikasi', fulfilled: profile?.verified ?? false },
@@ -623,19 +625,15 @@ function EligibilityModal({ onClose, schemes, profile }: EligibilityModalProps) 
 
                 {/* Footer modal */}
                 <div className="flex justify-end gap-3 border-t px-6 py-4">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                    >
-                        Tutup
-                    </button>
-                    <Link
-                        href="/pt-penelitian/create"
-                        className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-semibold text-white  transition hover:bg-blue-500"
-                    >
-                        Buat Usulan
-                    </Link>
+                    {submissionLocked ? (
+                        <button disabled className="...bg-gray-200 text-gray-500...">
+                            + Tambah Usulan
+                        </button>
+                    ) : (
+                        <Link href="/pt-penelitian/create" className="...bg-blue-600...">
+                            + Tambah Usulan
+                        </Link>
+                    )}
                 </div>
             </div>
         </div>

@@ -4,7 +4,7 @@ export const roleMenuSlugs: Record<string, string[]> = {
     'dosen':       ['dashboard', 'pt-penelitian', 'pt-penelitian-perbaikan'],
     'admin-pt':    ['dashboard', 'admin-pt-penelitian', 'pt-skema', 'users-approvals'],
     'ketua-lppm':  ['dashboard', 'admin-pt-penelitian'],
-    'reviewer':    ['dashboard', 'reviewer-dashboard', 'penugasan-review'],
+    'reviewer':    ['dashboard', 'reviewer-dashboard', 'penugasan-review', 'penugasan-substansi'],
     'super-admin': ['dashboard', 'pt-skema', 'role-assignment', 'settings-menus'],
 };
 

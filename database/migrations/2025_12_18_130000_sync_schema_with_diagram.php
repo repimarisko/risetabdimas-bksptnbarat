@@ -144,54 +144,54 @@ return new class extends Migration
             });
         }
 
-        if (! Schema::hasTable('pt_anggota_dosen')) {
-            Schema::create('pt_anggota_dosen', function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->string('id_penelitian', 100);
-                $table->foreignId('id_user')->nullable()->constrained('users')->cascadeOnDelete();
-                $table->string('peran', 50)->nullable();
-                $table->boolean('status_aktif')->default(true);
-                $table->boolean('persetujuan')->default(false);
-                $table->text('tugas')->nullable();
+        // if (! Schema::hasTable('pt_anggota_dosen')) {
+        //     Schema::create('pt_anggota_dosen', function (Blueprint $table) {
+        //         $table->bigIncrements('id');
+        //         $table->string('id_penelitian', 100);
+        //         $table->foreignId('id_user')->nullable()->constrained('users')->cascadeOnDelete();
+        //         $table->string('peran', 50)->nullable();
+        //         $table->boolean('status_aktif')->default(true);
+        //         $table->boolean('persetujuan')->default(false);
+        //         $table->text('tugas')->nullable();
 
-                $table->foreign('id_penelitian')->references('uuid')->on('pt_penelitian')->cascadeOnDelete();
-            });
-        }
+        //         $table->foreign('id_penelitian')->references('uuid')->on('pt_penelitian')->cascadeOnDelete();
+        //     });
+        // }
 
-        if (! Schema::hasTable('pt_anggota_mahasiswa')) {
-            Schema::create('pt_anggota_mahasiswa', function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->foreignId('id_user')->nullable()->constrained('users')->cascadeOnDelete();
-                $table->string('id_penelitian', 100);
-                $table->string('nama', 255)->nullable();
-                $table->string('peran', 50)->nullable();
-                $table->boolean('status_aktif')->default(true);
-                $table->boolean('persetujuan')->default(false);
-                $table->text('tugas')->nullable();
+        // if (! Schema::hasTable('pt_anggota_mahasiswa')) {
+        //     Schema::create('pt_anggota_mahasiswa', function (Blueprint $table) {
+        //         $table->bigIncrements('id');
+        //         $table->foreignId('id_user')->nullable()->constrained('users')->cascadeOnDelete();
+        //         $table->string('id_penelitian', 100);
+        //         $table->string('nama', 255)->nullable();
+        //         $table->string('peran', 50)->nullable();
+        //         $table->boolean('status_aktif')->default(true);
+        //         $table->boolean('persetujuan')->default(false);
+        //         $table->text('tugas')->nullable();
 
-                $table->foreign('id_penelitian')->references('uuid')->on('pt_penelitian')->cascadeOnDelete();
-            });
-        }
+        //         $table->foreign('id_penelitian')->references('uuid')->on('pt_penelitian')->cascadeOnDelete();
+        //     });
+        // }
 
-        if (! Schema::hasTable('pt_rab_detail')) {
-            Schema::create('pt_rab_detail', function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->string('id_penelitian', 100);
-                $table->unsignedInteger('id_komponen_biaya');
-                $table->integer('tahun_ke')->nullable();
-                $table->string('uraian_item', 255)->nullable();
-                $table->double('volume')->nullable();
-                $table->string('satuan', 50)->nullable();
-                $table->double('harga_satuan')->nullable();
-                $table->double('total_harga')->nullable();
-                $table->text('keterangan')->nullable();
-                $table->timestamp('created_at')->nullable();
-                $table->timestamp('updated_at')->nullable();
+        // if (! Schema::hasTable('pt_rab_detail')) {
+        //     Schema::create('pt_rab_detail', function (Blueprint $table) {
+        //         $table->bigIncrements('id');
+        //         $table->string('id_penelitian', 100);
+        //         $table->unsignedInteger('id_komponen_biaya');
+        //         $table->integer('tahun_ke')->nullable();
+        //         $table->string('uraian_item', 255)->nullable();
+        //         $table->double('volume')->nullable();
+        //         $table->string('satuan', 50)->nullable();
+        //         $table->double('harga_satuan')->nullable();
+        //         $table->double('total_harga')->nullable();
+        //         $table->text('keterangan')->nullable();
+        //         $table->timestamp('created_at')->nullable();
+        //         $table->timestamp('updated_at')->nullable();
 
-                $table->foreign('id_penelitian')->references('uuid')->on('pt_penelitian')->cascadeOnDelete();
-                $table->foreign('id_komponen_biaya')->references('id')->on('ref_komponen_biaya')->cascadeOnDelete();
-            });
-        }
+        //         $table->foreign('id_penelitian')->references('uuid')->on('pt_penelitian')->cascadeOnDelete();
+        //         $table->foreign('id_komponen_biaya')->references('id')->on('ref_komponen_biaya')->cascadeOnDelete();
+        //     });
+        // }
 
         if (! Schema::hasTable('pt_penugasan_review')) {
             Schema::create('pt_penugasan_review', function (Blueprint $table) {
@@ -208,20 +208,20 @@ return new class extends Migration
             });
         }
 
-        if (! Schema::hasTable('pt_nilai_review')) {
-            Schema::create('pt_nilai_review', function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->string('id_penugasan', 36); // ← ganti unsignedBigInteger
-                $table->string('kriteria', 255)->nullable();
-                $table->float('bobot')->nullable();
-                $table->float('skor')->nullable();
-                $table->float('nilai_akhir')->nullable();
-                $table->text('catatan')->nullable();
-                $table->timestamps();
+        // if (! Schema::hasTable('pt_nilai_review')) {
+        //     Schema::create('pt_nilai_review', function (Blueprint $table) {
+        //         $table->bigIncrements('id');
+        //         $table->string('id_penugasan', 36); // ← ganti unsignedBigInteger
+        //         $table->string('kriteria', 255)->nullable();
+        //         $table->float('bobot')->nullable();
+        //         $table->float('skor')->nullable();
+        //         $table->float('nilai_akhir')->nullable();
+        //         $table->text('catatan')->nullable();
+        //         $table->timestamps();
 
-                $table->foreign('id_penugasan')->references('id')->on('pt_penugasan_review')->cascadeOnDelete();
-            });
-        }
+        //         $table->foreign('id_penugasan')->references('id')->on('pt_penugasan_review')->cascadeOnDelete();
+        //     });
+        // }
 
         if (! Schema::hasTable('pt_dokumen')) {
             Schema::create('pt_dokumen', function (Blueprint $table) {

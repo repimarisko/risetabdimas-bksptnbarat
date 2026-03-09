@@ -7,6 +7,7 @@ interface Props {
 
 const Items = [
     { name: 'Review Administrasi',  href: '/reviewer/pt-penelitian/penugasan', slug: 'penugasan-review' },
+    { name: 'Review Substansi',  href: '/reviewer/pt-penelitian/penugasan-substansi', slug: 'penugasan-substansi' },
 ];
 
 export function NavReviewer({ showMenu }: Props) {

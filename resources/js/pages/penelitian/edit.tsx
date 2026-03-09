@@ -895,18 +895,6 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
                                         mengajukan usulan baru.
                                     </p>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={handleClose}
-                                        className=" border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-white"
-                                    >
-                                        Kembali ke daftar
-                                    </button>
-                                    <span className=" bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
-                                        {penelitian.title ?? 'Tanpa judul'}
-                                    </span>
-                                </div>
                             </div>
 
                             <div className="bg-white  p-6 mb-6">

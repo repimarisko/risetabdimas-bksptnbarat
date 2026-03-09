@@ -426,6 +426,7 @@ class PtPenelitianController extends Controller
             $this->normalizePayload($request);
             $this->ensureSupportingTables();
             $validated = $this->validatedData($request);
+
             $data = $validated['fields'];
             $anggotaPayload = $validated['anggota'];
             $rabPayload = $validated['rab'];
@@ -687,6 +688,7 @@ class PtPenelitianController extends Controller
                 'rab' => $rabEntries,
                 'anggota' => $anggota,
                 'lama_waktu' => $lamaWaktu,
+                'ringkasan'      => $ptPenelitian->ringkasan,
             ],
             'skemaOptions' => $skemaOptions,
             'fokusOptions' => $fokusOptions,
@@ -869,6 +871,8 @@ class PtPenelitianController extends Controller
             'id_tkt' => 'nullable|string|max:100',
             'id_sdg' => 'nullable|string|max:100',
             'id_fokus' => 'nullable|string|max:100',
+            'ringkasan'      => 'nullable|string',           // ✅ tambahkan
+            'lama_kegiatan'  => 'nullable|integer',          // ✅ tambahkan (sesuaikan nama kolom DB)
             'tahun' => 'nullable|integer',
             'tahun_pelaksanaan' => 'nullable|integer',
             'biaya_usulan_1' => 'nullable|numeric',
@@ -1023,6 +1027,38 @@ class PtPenelitianController extends Controller
         ]);
     }
 
+    protected function authorizePreviewAccess(Request $request, PtPenelitian $ptPenelitian): void
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            abort(Response::HTTP_FORBIDDEN, 'Anda tidak diizinkan mengakses data ini.');
+        }
+
+        if ($ptPenelitian->created_by === $user->id) {
+            return;
+        }
+
+        $dosenUuid = optional($user->dosen)->uuid;
+
+        if ($dosenUuid && $ptPenelitian->anggota()->where('dosen_uuid', $dosenUuid)->exists()) {
+            return;
+        }
+
+        if ($user->hasRole('reviewer') && $ptPenelitian->reviewers()->where('reviewer_id', $user->id)->exists()) {
+            return;
+        }
+
+        if ($user->hasAnyRole([
+            User::ROLE_SUPER_ADMIN,
+            User::ROLE_ADMIN_PT,
+            User::ROLE_KETUA_LPPM,
+        ])) {
+            return;
+        }
+
+        abort(Response::HTTP_FORBIDDEN, 'Anda tidak diizinkan mengakses data ini.');
+    }
     protected function buildPreviewNavigation(Request $request): array
     {
         $user = $request->user();
@@ -1273,6 +1309,7 @@ class PtPenelitianController extends Controller
 
             $records = collect($entry['items'] ?? [])
                 ->map(fn(array $item) => [
+                    'uuid' => (string) Str::uuid(), // ✅ tambahkan ini
                     'id_penelitian' => $ptPenelitian->uuid,
                     'id_komponen' => $item['id_komponen'],
                     'nama_item' => $item['nama_item'],

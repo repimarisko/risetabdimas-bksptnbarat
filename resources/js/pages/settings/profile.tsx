@@ -273,26 +273,25 @@ export default function Profile({
                                         </div>
                                     )}
 
-                                <div className="flex items-center gap-4">
-                                    <Button
-                                        disabled={processing}
-                                        data-test="update-profile-button"
-                                    >
-                                        Save
-                                    </Button>
+                            <div className="flex items-center gap-4">
+                                <Button disabled={processing} data-test="update-profile-button">
+                                    Save
+                                </Button>
 
-                                    <Transition
-                                        show={recentlySuccessful}
-                                        enter="transition ease-in-out"
-                                        enterFrom="opacity-0"
-                                        leave="transition ease-in-out"
-                                        leaveTo="opacity-0"
-                                    >
-                                        <p className="text-sm text-neutral-600">
-                                            Saved
-                                        </p>
-                                    </Transition>
-                                </div>
+                                <Transition
+                                    show={recentlySuccessful}
+                                    enter="transition ease-in-out duration-300"
+                                    enterFrom="opacity-0 translate-y-1"
+                                    enterTo="opacity-100 translate-y-0"
+                                    leave="transition ease-in-out duration-300"
+                                    leaveFrom="opacity-100"
+                                    leaveTo="opacity-0"
+                                >
+                                    <div className="flex items-center gap-2  border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
+                                        ✅ Profil berhasil disimpan!
+                                    </div>
+                                </Transition>
+                            </div>
                             </>
                         )}
                     </Form>

@@ -56,7 +56,7 @@ export default function PenugasanReviewIndex() {
                     <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
                             <h1 className="text-2xl font-semibold text-gray-900">
-                                Penugasan Review Administrasi
+                                Penugasan Review Substansi
                             </h1>
                             <p className="text-sm text-gray-500 mt-1">
                                 Daftar skema penelitian beserta status penugasan reviewer.
@@ -171,7 +171,7 @@ export default function PenugasanReviewIndex() {
                                             {/* Aksi */}
                                             <td className="px-6 py-4 text-right">
                                                 <Link
-                                                    href={`/reviewer/pt-penelitian/penugasan/${item.id_skema}/administrasi`}
+                                                    href={`/reviewer/pt-penelitian/penugasan/${item.id_skema}/substansi`}
                                                     className="inline-flex items-center gap-1.5 bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
                                                 >
                                                     <ListCheck className="w-3.5 h-3.5" />

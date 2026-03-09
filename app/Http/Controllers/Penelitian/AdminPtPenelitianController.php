@@ -335,118 +335,96 @@ class AdminPtPenelitianController extends Controller
     {
         $idpt = $request->user()->uuid_pt;
         $role = $request->user()->roles->pluck('name')->first();
-        // var_dump($role);
-        // die();
 
+        // ✅ Query utama - pisah join per jenis penugasan
         $query = DB::table('pt_penelitian')
-            ->leftJoin('pt_penugasan_review', 'pt_penelitian.uuid', '=', 'pt_penugasan_review.id_penelitian')
-            ->leftJoin('pt_review_administrasi', 'pt_penugasan_review.id', '=', 'pt_review_administrasi.id_penugasan')
+            ->leftJoin('pt_penugasan_review as penugasan_adm', function ($join) {
+                $join->on('pt_penelitian.uuid', '=', 'penugasan_adm.id_penelitian')
+                    ->where('penugasan_adm.id_jenis_penugasan', 1);
+            })
+            ->leftJoin('pt_penugasan_review as penugasan_sub', function ($join) {
+                $join->on('pt_penelitian.uuid', '=', 'penugasan_sub.id_penelitian')
+                    ->where('penugasan_sub.id_jenis_penugasan', 2);
+            })
+            ->leftJoin('pt_review_administrasi', 'penugasan_adm.id', '=', 'pt_review_administrasi.id_penugasan')
             ->leftJoin('users', 'pt_penelitian.created_by', '=', 'users.id')
             ->where('pt_penelitian.status', 'disetujui')
-            ->whereNull('pt_penelitian.deleted_at');
+            ->whereNull('pt_penelitian.deleted_at')
+            ->select(
+                'pt_penelitian.uuid',
+                'pt_penelitian.title',
+                'pt_penelitian.tahun',
+                'pt_penelitian.tahun_pelaksanaan',
+                'pt_penelitian.status',
+                // ✅ Administrasi
+                'penugasan_adm.id as id_penugasan_adm',
+                'penugasan_adm.id_reviewer as id_reviewer_adm',
+                'penugasan_adm.status_review as status_review_adm',
+                'penugasan_adm.batas_waktu as batas_waktu_adm',
+                'pt_review_administrasi.hasil as hasil_adm',
+                // ✅ Substansi
+                'penugasan_sub.id as id_penugasan_sub',
+                'penugasan_sub.id_reviewer as id_reviewer_sub',
+                'penugasan_sub.status_review as status_review_sub',
+                'penugasan_sub.batas_waktu as batas_waktu_sub',
+                // ✅ User pengusul
+                'users.id as user_id',
+                'users.name as user_name',
+                'users.email as user_email'
+            );
 
         if ($role !== 'super-admin') {
             $query->where('pt_penelitian.uuid_pt', $idpt);
         }
 
-        $penelitian = $query
-            ->select(
-                'pt_penelitian.uuid',
-                'pt_penelitian.title',
-                'pt_review_administrasi.hasil as status_review_administrasi',
-                'pt_penelitian.tahun',
-                'pt_penelitian.tahun_pelaksanaan',
-                'pt_penelitian.status',
-                'users.id as user_id',
-                'users.name as user_name',
-                'users.email as user_email'
-            )
-            ->get()
+        $penelitian = $query->get()
             ->map(fn($item) => [
-                'uuid' => $item->uuid,
-                'title' => $item->title,
-                'tahun' => $item->tahun,
+                'uuid'             => $item->uuid,
+                'title'            => $item->title,
+                'tahun'            => $item->tahun,
                 'tahun_pelaksanaan' => $item->tahun_pelaksanaan,
-                'status' => $item->status,
-                'status_review_administrasi' => $item->status_review_administrasi,
+                'status'           => $item->status,
+                'administrasi' => [
+                    'id_penugasan'  => $item->id_penugasan_adm,
+                    'id_reviewer'   => $item->id_reviewer_adm,
+                    'status_review' => $item->status_review_adm,
+                    'batas_waktu'   => $item->batas_waktu_adm,
+                    'hasil'         => $item->hasil_adm,
+                ],
+                'substansi' => [
+                    'id_penugasan'  => $item->id_penugasan_sub,
+                    'id_reviewer'   => $item->id_reviewer_sub,
+                    'status_review' => $item->status_review_sub,
+                    'batas_waktu'   => $item->batas_waktu_sub,
+                ],
                 'user' => $item->user_id ? [
-                    'id' => $item->user_id,
-                    'name' => $item->user_name,
+                    'id'    => $item->user_id,
+                    'name'  => $item->user_name,
                     'email' => $item->user_email,
                 ] : null,
             ])
             ->toArray();
 
-        // var_dump($penelitian);
-        // die();
-        // Ambil semua reviewer
+        // ✅ Reviewer list
         $reviewers = DB::table('reviewer')
             ->join('users', 'reviewer.id_user', '=', 'users.id')
-
-            ->select(
-                'reviewer.id',
-                'users.name',
-                'users.email',
-
-            )
+            ->select('reviewer.id', 'users.name', 'users.email')
             ->get()
             ->map(fn($item) => [
                 'id'    => $item->id,
                 'name'  => $item->name,
                 'email' => $item->email,
-
             ])
             ->toArray();
 
-        // Ambil penugasan yang sudah ada, group by id_penelitian
-        $uuids = array_column($penelitian, 'uuid');
-
-        $penugasanRaw = DB::table('pt_penugasan_review')
-            ->whereIn('pt_penugasan_review.id_penelitian', $uuids)
-            ->join('reviewer', 'pt_penugasan_review.id_reviewer', '=', 'reviewer.id')
-            ->join('users', 'reviewer.id_user', '=', 'users.id')
-            ->join('ref_jenis_penugasan', 'pt_penugasan_review.id_jenis_penugasan', '=', 'ref_jenis_penugasan.id')
-            // ->leftjoin('pt_penelitian', 'pt_penugasan_review.id_penelitian', '=', 'pt_penelitian.uuid')
-            ->select(
-                'pt_penugasan_review.id',
-                'pt_penugasan_review.id_penelitian',
-                'pt_penugasan_review.id_reviewer', // ✅ tambah ini
-                'pt_penugasan_review.id_jenis_penugasan',
-                'pt_penugasan_review.tanggal_penugasan',
-                'pt_penugasan_review.batas_waktu',
-                'pt_penugasan_review.status_review',
-                'ref_jenis_penugasan.nama as jenis_nama',
-                'users.name as reviewer_name',
-                'users.email as reviewer_email'
-            )
-            ->get();
-        // var_dump($penugasanRaw);
-        // die();
-        // Group by id_penelitian
-        $penugasan = [];
-        foreach ($penugasanRaw as $item) {
-            $penugasan[$item->id_penelitian][] = [
-                'id'                  => $item->id,
-                'id_jenis_penugasan'  => $item->id_jenis_penugasan,
-                'id_reviewer'  => $item->id_reviewer,
-                'jenis_nama'          => $item->jenis_nama,
-                'reviewer_name'       => $item->reviewer_name,
-                'reviewer_email'      => $item->reviewer_email,
-                'tanggal_penugasan'   => $item->tanggal_penugasan,
-                'batas_waktu'         => $item->batas_waktu,
-                'status_review'       => $item->status_review,
-            ];
-        }
-
         $breadcrumbs = [
-            ['title' => 'Dashboard',         'href' => '/dashboard'],
-            ['title' => 'Penugasan Review',  'href' => '/admin/pt-penelitian/penugasan-review'],
+            ['title' => 'Dashboard',        'href' => '/dashboard'],
+            ['title' => 'Penugasan Review', 'href' => '/admin/pt-penelitian/penugasan-review'],
         ];
 
         return Inertia::render('penelitian/penugasanReview/index', [
-            'penelitian' => $penelitian,
-            'reviewers'  => $reviewers,
-            'penugasan'  => $penugasan,
+            'penelitian'  => $penelitian,
+            'reviewers'   => $reviewers,
             'breadcrumbs' => $breadcrumbs,
         ]);
     }
