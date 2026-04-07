@@ -23,6 +23,8 @@ type Penelitian = {
     nuptk: string;
     reviewer_nama_lengkap: string;
     reviewer_nuptk: string;
+    tanggal_penugasan: string;
+    batas_waktu: string;
 };
 
 type PageProps = {
@@ -61,6 +63,10 @@ export default function PenugasanReviewShow() {
     const totalPending = penelitian.filter(p => p.status_review !== 'Selesai').length;
     const totalSelesai = penelitian.filter(p => p.status_review === 'Selesai').length;
     const totalLolos   = penelitian.filter(p => p.hasil === 'Lolos').length;
+
+    // Remove undefined variable. If needed, compute batasReview from data.
+    // For example, take the first `batas_waktu` from penelitian:
+    const batasReview = penelitian[0]?.batas_waktu ?? '';
 
     return (
         <AppHeaderLayout

@@ -72,6 +72,8 @@ class ReviewPtPenelitianController extends Controller
                 'pt_penelitian.uuid as id_penelitian',
                 'pt_review_administrasi.status_review',
                 'pt_review_administrasi.hasil',
+                'pt_penugasan_review.tanggal_penugasan',
+                'pt_penugasan_review.batas_waktu',
                 'ref_skema.uuid as id_skema',
                 'reviewer.id as reviewer_id',
                 'reviewer.id_user as reviewer_user_id',
@@ -149,6 +151,7 @@ class ReviewPtPenelitianController extends Controller
             'review'       => $review,
             'detail'       => $detail,
             'id_penugasan' => $id_penugasan,
+            'penugasan' => $penugasan
         ]);
     }
 

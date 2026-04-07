@@ -361,12 +361,14 @@ class AdminPtPenelitianController extends Controller
                 'penugasan_adm.id_reviewer as id_reviewer_adm',
                 'penugasan_adm.status_review as status_review_adm',
                 'penugasan_adm.batas_waktu as batas_waktu_adm',
+                'penugasan_adm.tanggal_penugasan as tanggal_penugasan_adm',
                 'pt_review_administrasi.hasil as hasil_adm',
                 // ✅ Substansi
                 'penugasan_sub.id as id_penugasan_sub',
                 'penugasan_sub.id_reviewer as id_reviewer_sub',
                 'penugasan_sub.status_review as status_review_sub',
                 'penugasan_sub.batas_waktu as batas_waktu_sub',
+                'penugasan_sub.tanggal_penugasan as tanggal_penugasan_sub',
                 // ✅ User pengusul
                 'users.id as user_id',
                 'users.name as user_name',
@@ -388,6 +390,7 @@ class AdminPtPenelitianController extends Controller
                     'id_penugasan'  => $item->id_penugasan_adm,
                     'id_reviewer'   => $item->id_reviewer_adm,
                     'status_review' => $item->status_review_adm,
+                    'tanggal_penugasan' => $item->tanggal_penugasan_adm,
                     'batas_waktu'   => $item->batas_waktu_adm,
                     'hasil'         => $item->hasil_adm,
                 ],
@@ -395,6 +398,7 @@ class AdminPtPenelitianController extends Controller
                     'id_penugasan'  => $item->id_penugasan_sub,
                     'id_reviewer'   => $item->id_reviewer_sub,
                     'status_review' => $item->status_review_sub,
+                    'tanggal_penugasan' => $item->tanggal_penugasan_sub,
                     'batas_waktu'   => $item->batas_waktu_sub,
                 ],
                 'user' => $item->user_id ? [
@@ -421,7 +425,8 @@ class AdminPtPenelitianController extends Controller
             ['title' => 'Dashboard',        'href' => '/dashboard'],
             ['title' => 'Penugasan Review', 'href' => '/admin/pt-penelitian/penugasan-review'],
         ];
-
+        // var_dump($penelitian);
+        // die();
         return Inertia::render('penelitian/penugasanReview/index', [
             'penelitian'  => $penelitian,
             'reviewers'   => $reviewers,

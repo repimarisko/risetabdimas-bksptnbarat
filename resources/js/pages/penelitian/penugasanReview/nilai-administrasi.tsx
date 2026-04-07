@@ -18,7 +18,17 @@ import {
 import { useState } from 'react';
 
 type Breadcrumb = { title: string; href: string };
-
+type Penugasan = {
+    id: string;
+    id_penelitian: string;
+    id_jenis_penugasan: number;
+    id_reviewer: number;
+    tanggal_penugasan: string;
+    batas_waktu: string;
+    status_review: string;
+    created_at: string;
+    updated_at: string;
+};
 type Pertanyaan = {
     id: string;
     nomor_urut: number;
@@ -33,6 +43,7 @@ type ReviewDetail = {
 type PageProps = {
     breadcrumbs?: Breadcrumb[];
     pertanyaans?: Pertanyaan[];
+
     review?: {
         id: string;
         hasil: string | null;
@@ -41,6 +52,8 @@ type PageProps = {
     } | null;
     detail?: Record<string, ReviewDetail>;
     id_penugasan?: string;
+    penugasan?: Penugasan | null; // ← tambahkan ini
+    
 };
 
 const toggleBtnClass = (active: boolean, activeColor: 'green' | 'red', disabled: boolean): string => {
@@ -66,7 +79,20 @@ export default function PenugasanReviewNilai() {
         review = null,
         detail = {},
         id_penugasan,
+        penugasan = null, // ← tambahkan ini
     } = usePage<PageProps>().props;
+// true jika batas_waktu sudah lewat
+const isDeadlinePassed = penugasan?.batas_waktu
+    ? (() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // reset ke awal hari ini
+
+        const deadline = new Date(penugasan.batas_waktu);
+        deadline.setHours(0, 0, 0, 0); // reset ke awal hari deadline
+
+        return today > deadline; // lewat hanya jika SETELAH tanggal deadline
+    })()
+    : false;
 
     const options = [...pertanyaans].sort((a, b) => a.nomor_urut - b.nomor_urut);
 
@@ -161,7 +187,12 @@ export default function PenugasanReviewNilai() {
                                 : 'Draft tersimpan — lanjutkan mengisi dan selesaikan review.'}
                         </div>
                     )}
-
+                    {isDeadlinePassed && !isSelesai && (
+                        <div className="flex items-center gap-2 px-3 py-2.5 text-xs sm:text-sm font-medium border bg-red-50 border-red-200 text-red-700 w-full sm:w-fit">
+                            <AlertCircle className="w-4 h-4 shrink-0" />
+                            Batas waktu review telah habis — penilaian tidak dapat diubah.
+                        </div>
+                    )}
                     {/* ── Checklist Administrasi ── */}
                     <div className="border border-gray-200 bg-white overflow-hidden">
                         <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100">
@@ -329,7 +360,7 @@ export default function PenugasanReviewNilai() {
                             !review || isSelesai ? 'justify-end' : 'flex-col sm:flex-row sm:justify-end'
                         }`}>
                             {!review ? (
-                                <button onClick={handleSimpan} disabled={processing}
+                                <button onClick={handleSimpan}   disabled={processing || isDeadlinePassed}  // ← tambahkan
                                     className="flex items-center justify-center gap-2 px-6 py-2.5 bg-green-600 text-sm font-semibold text-white hover:bg-green-700 transition disabled:opacity-40 disabled:cursor-not-allowed">
                                     {processing
                                         ? <><Loader2 className="w-4 h-4 animate-spin shrink-0" /> Menyimpan...</>
@@ -342,7 +373,7 @@ export default function PenugasanReviewNilai() {
                                 </div>
                             ) : (
                                 <>
-                                    <button onClick={handleSimpan} disabled={processing}
+                                    <button onClick={handleSimpan}   disabled={processing || isDeadlinePassed}  // ← tambahkan
                                         className="flex items-center justify-center gap-2 px-5 py-2.5 border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 transition disabled:opacity-50">
                                         {processing
                                             ? <><Loader2 className="w-4 h-4 animate-spin shrink-0" /> Memperbarui...</>
@@ -352,7 +383,7 @@ export default function PenugasanReviewNilai() {
                                     {/* ── Selesaikan → buka modal konfirmasi ── */}
                                     <button
                                         onClick={() => setShowConfirm(true)}
-                                        disabled={processing || !allAnswered || !hasil}
+                                        disabled={processing || !allAnswered || !hasil || isDeadlinePassed}  // ← tambahkan
                                         className="flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
                                     >
                                         <CheckCircle2 className="w-4 h-4 shrink-0" />

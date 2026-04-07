@@ -15,6 +15,7 @@ type PenugasanInfo = {
     status_review: string | null;
     batas_waktu: string | null;
     hasil?: string | null; // hanya administrasi
+    tanggal_penugasan?: string | null; // hanya administrasi
 };
 
 type Penelitian = {
@@ -474,7 +475,7 @@ export default function PenugasanReviewIndex() {
             status_review: data.status_review ?? '',
             reviewer_name: '',
             reviewer_email: '',
-            tanggal_penugasan: '',
+            tanggal_penugasan: data.tanggal_penugasan ?? '', // ← ambil dari data
             jenis_nama: jenis === 1 ? 'Administrasi' : 'Substansi',
         });
         setModalMode('edit');
