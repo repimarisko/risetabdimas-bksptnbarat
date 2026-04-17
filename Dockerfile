@@ -43,9 +43,9 @@ WORKDIR /var/www/html
 COPY . /var/www/html
 
 COPY ./Docker/nginx.conf /etc/nginx/conf.d/default.conf
-COPY ./Docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./Docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./Docker/php.ini /usr/local/etc/php/conf.d/custom.ini
-COPY ./Docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./Docker/php/docker-entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN mkdir -p /var/www/html/storage \
     /var/www/html/storage/framework/cache \
