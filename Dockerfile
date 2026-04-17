@@ -28,42 +28,40 @@ RUN apt-get update && apt-get install -y \
         zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 20
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get update && apt-get install -y nodejs \
     && npm install -g npm \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Remove default nginx config
 RUN rm -f /etc/nginx/sites-enabled/default
 RUN rm -f /etc/nginx/conf.d/default.conf
 
-# Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy full application source
 COPY . /var/www/html
 
-# Copy docker configs
-COPY ./docker/nginx.conf /etc/nginx/conf.d/default.conf
-COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY ./docker/php.ini /usr/local/etc/php/conf.d/custom.ini
-COPY ./docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./Docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./Docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./Docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY ./Docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-# Permissions
-RUN chmod +x /usr/local/bin/entrypoint.sh \
+RUN mkdir -p /var/www/html/storage \
+    /var/www/html/storage/framework/cache \
+    /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/logs \
+    /var/www/html/bootstrap/cache \
+    && chmod +x /usr/local/bin/entrypoint.sh \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Install backend dependencies
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
-# Install frontend dependencies and build assets
-RUN npm install && npm run build
+RUN npm install --no-audit --no-fund \
+    && npm run build
 
-# Laravel optimizations
 RUN php artisan config:clear || true \
     && php artisan cache:clear || true \
     && php artisan route:clear || true \
