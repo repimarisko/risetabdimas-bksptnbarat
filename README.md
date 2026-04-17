@@ -32,7 +32,7 @@ Setup cepat untuk menjalankan aplikasi Laravel + Vite di Docker.
    docker compose exec web php artisan migrate --force
    ```
 
-Backend dapat diakses di http://localhost:8000 dan Vite HMR di http://localhost:5173.
+Backend dapat diakses di http://localhost:9090 dan Vite HMR di http://localhost:5173.
 
 ## Perintah tambahan
 - Hentikan kontainer: `docker compose down`
