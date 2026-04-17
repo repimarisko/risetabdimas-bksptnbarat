@@ -38,19 +38,6 @@ class ReviewPtPenelitianController extends Controller
             )
             ->get();
 
-        // echo "<pre>";
-        // print_r($skema);
-        // echo "</pre>";
-        // die();
-
-
-        // vardump session
-        // Note: In Laravel, you can inspect the session via the request() helper or session() helper.
-        // Example using request()
-        // echo "<pre>";
-        // print_r(session()->all());
-        // echo "</pre>";
-        // die();
         return Inertia::render('penelitian/penugasanReview/index-reviewer', [
             'skema' => $skema,
         ]);
@@ -62,7 +49,7 @@ class ReviewPtPenelitianController extends Controller
 
         $penelitian = DB::table('pt_penugasan_review')
             ->join('pt_penelitian', 'pt_penugasan_review.id_penelitian', '=', 'pt_penelitian.uuid')
-            ->leftJoin('pt_review_administrasi', 'pt_penugasan_review.id', '=', 'pt_review_administrasi.id_penugasan') // ✅ fix
+            ->leftJoin('pt_review_administrasi', 'pt_penugasan_review.id', '=', 'pt_review_administrasi.id_penugasan')
             ->join('reviewer', 'pt_penugasan_review.id_reviewer', '=', 'reviewer.id')
             ->join('ref_skema', 'pt_penelitian.id_skema', '=', 'ref_skema.uuid')
             ->leftJoin('user_detail as peneliti_detail', 'peneliti_detail.id_user', '=', 'pt_penelitian.created_by')
@@ -93,48 +80,37 @@ class ReviewPtPenelitianController extends Controller
             ->where('pt_penelitian.id_skema', $id_skema)
             ->get();
 
-
-
-        // echo "<pre>";
-        // print_r($penelitian);
-        // echo "</pre>";
-        // die();
-        return Inertia::render('penelitian/penugasanReview/list-penugasan-administrasi', ['penelitian' => $penelitian,]);
+        return Inertia::render('penelitian/penugasanReview/list-penugasan-administrasi', [
+            'penelitian' => $penelitian,
+        ]);
     }
 
     public function nilaiAdministrasi($id_penugasan)
     {
         $userid = $this->getUserId();
 
-        // Ambil reviewer berdasarkan user login
         $reviewer = DB::table('reviewer')->where('id_user', $userid)->first();
 
         if (!$reviewer) {
             abort(403, 'Data reviewer tidak ditemukan.');
         }
 
-        // Validasi penugasan milik reviewer ini
         $penugasan = DB::table('pt_penugasan_review')
             ->where('id', $id_penugasan)
             ->where('id_reviewer', $reviewer->id)
             ->where('id_jenis_penugasan', 1)
             ->first();
-        // echo "<pre>";
-        // print_r($penugasan);
-        // echo "</pre>";
-        // die();
+
         if (!$penugasan) {
             abort(404, 'Data penugasan tidak ditemukan atau bukan milik Anda.');
         }
 
-        // Ambil pertanyaan administrasi
         $pertanyaan = DB::table('ref_pertanyaan_administrasi')
             ->select('id', 'nomor_urut', 'pertanyaan')
             ->where('is_active', 1)
             ->orderBy('nomor_urut')
             ->get();
 
-        // Cek apakah sudah pernah disubmit sebelumnya
         $review = DB::table('pt_review_administrasi')
             ->where('id_penugasan', $id_penugasan)
             ->first();
@@ -151,7 +127,7 @@ class ReviewPtPenelitianController extends Controller
             'review'       => $review,
             'detail'       => $detail,
             'id_penugasan' => $id_penugasan,
-            'penugasan' => $penugasan
+            'penugasan'    => $penugasan,
         ]);
     }
 
@@ -159,14 +135,12 @@ class ReviewPtPenelitianController extends Controller
     {
         $userid = $this->getUserId();
 
-        // Ambil reviewer berdasarkan user login
         $reviewer = DB::table('reviewer')->where('id_user', $userid)->first();
 
         if (!$reviewer) {
             return back()->withErrors(['error' => 'Data reviewer tidak ditemukan.']);
         }
 
-        // Validasi penugasan milik reviewer ini
         $penugasan = DB::table('pt_penugasan_review')
             ->where('id', $id_penugasan)
             ->where('id_reviewer', $reviewer->id)
@@ -183,16 +157,12 @@ class ReviewPtPenelitianController extends Controller
             'status'   => 'required|in:Draft,Selesai',
         ]);
 
-        // Cek apakah review sudah ada
         $review = DB::table('pt_review_administrasi')
             ->where('id_penugasan', $id_penugasan)
             ->first();
 
-
-
-
         if (!$review) {
-            $id_review = (string) \Illuminate\Support\Str::uuid();
+            $id_review = (string) Str::uuid();
 
             DB::table('pt_review_administrasi')->insert([
                 'id'            => $id_review,
@@ -216,8 +186,6 @@ class ReviewPtPenelitianController extends Controller
                 ]);
         }
 
-
-        // Insert/update detail jawaban per pertanyaan
         foreach ($request->jawaban as $id_pertanyaan => $jawaban) {
             $existing = DB::table('pt_review_administrasi_detail')
                 ->where('id_review', $id_review)
@@ -230,7 +198,7 @@ class ReviewPtPenelitianController extends Controller
                     ->update(['jawaban' => $jawaban]);
             } else {
                 DB::table('pt_review_administrasi_detail')->insert([
-                    'id'            => (string) \Illuminate\Support\Str::uuid(), // ✅ generate manual
+                    'id'            => (string) Str::uuid(),
                     'id_review'     => $id_review,
                     'id_pertanyaan' => $id_pertanyaan,
                     'jawaban'       => $jawaban,
@@ -258,12 +226,11 @@ class ReviewPtPenelitianController extends Controller
         if (!$penugasan) {
             return back()->withErrors(['error' => 'Data penugasan tidak ditemukan.']);
         }
+
         $id_skema = DB::table('pt_penelitian')
             ->where('uuid', $penugasan->id_penelitian)
             ->value('id_skema');
-        // var_dump($id_skema);
-        // die();
-        // Update status di pt_review_administrasi
+
         DB::table('pt_review_administrasi')
             ->where('id_penugasan', $id_penugasan)
             ->update([
@@ -271,7 +238,6 @@ class ReviewPtPenelitianController extends Controller
                 'updated_at'    => now(),
             ]);
 
-        // ✅ Update juga status di pt_penugasan_review
         DB::table('pt_penugasan_review')
             ->where('id', $id_penugasan)
             ->update([
@@ -283,6 +249,7 @@ class ReviewPtPenelitianController extends Controller
             'id_skema' => $id_skema
         ])->with('success', 'Review berhasil disimpan.');
     }
+
     public function detail($id_penelitian)
     {
         $penelitian = DB::table('pt_penelitian')
@@ -295,10 +262,10 @@ class ReviewPtPenelitianController extends Controller
                 'pt_penelitian.title',
                 'pt_penelitian.tahun',
                 'pt_penelitian.ringkasan',
-                'pt_penelitian.proposal_path',    // ✅
-                'pt_penelitian.proposal_filename', // ✅
-                'pt_penelitian.lampiran_path',    // ✅
-                'pt_penelitian.lampiran_filename', // ✅
+                'pt_penelitian.proposal_path',
+                'pt_penelitian.proposal_filename',
+                'pt_penelitian.lampiran_path',
+                'pt_penelitian.lampiran_filename',
                 'pt_penelitian.tahun_pelaksanaan',
                 'pt_penelitian.ringkasan',
                 'ref_skema.uuid as id_skema',
@@ -315,11 +282,10 @@ class ReviewPtPenelitianController extends Controller
             ->where('pt_penelitian.uuid', $id_penelitian)
             ->first();
 
-        if (! $penelitian) {
+        if (!$penelitian) {
             abort(404, 'Penelitian tidak ditemukan.');
         }
 
-        // Ambil ketua peneliti
         $ketua = DB::table('pt_penelitian_anggotas')
             ->join('dosen', 'pt_penelitian_anggotas.dosen_uuid', '=', 'dosen.uuid')
             ->join('user_detail', 'dosen.id_user', '=', 'user_detail.id_user')
@@ -335,7 +301,6 @@ class ReviewPtPenelitianController extends Controller
             ->where('pt_penelitian_anggotas.peran', 'like', '%Ketua%')
             ->first();
 
-        // Ambil semua anggota
         $anggota = DB::table('pt_penelitian_anggotas')
             ->join('dosen', 'pt_penelitian_anggotas.dosen_uuid', '=', 'dosen.uuid')
             ->join('user_detail', 'dosen.id_user', '=', 'user_detail.id_user')
@@ -366,13 +331,13 @@ class ReviewPtPenelitianController extends Controller
             ->whereNull($table . '.deleted_at')
             ->get();
 
-        $penelitian->ketua       = $ketua;
-        $penelitian->anggota     = $anggota;
+        $penelitian->ketua = $ketua;
+        $penelitian->anggota = $anggota;
         $penelitian->rab_tahun_1 = $rabQuery('pt_rab_tahun_1');
         $penelitian->rab_tahun_2 = $rabQuery('pt_rab_tahun_2');
         $penelitian->rab_tahun_3 = $rabQuery('pt_rab_tahun_3');
         $penelitian->rab_tahun_4 = $rabQuery('pt_rab_tahun_4');
-        // dump($penelitian);
+
         $penelitian->proposal_url = $penelitian->proposal_path
             ? route('reviewer.pt-penelitian.download', ['id_penelitian' => $id_penelitian, 'type' => 'proposal'])
             : null;
@@ -380,6 +345,7 @@ class ReviewPtPenelitianController extends Controller
         $penelitian->lampiran_url = $penelitian->lampiran_path
             ? route('reviewer.pt-penelitian.download', ['id_penelitian' => $id_penelitian, 'type' => 'lampiran'])
             : null;
+
         return Inertia::render('penelitian/penugasanReview/detail', [
             'penelitian' => $penelitian,
         ]);
@@ -387,7 +353,7 @@ class ReviewPtPenelitianController extends Controller
 
     public function download($id_penelitian, $type)
     {
-        $userid   = $this->getUserId();
+        $userid = $this->getUserId();
         $reviewer = DB::table('reviewer')->where('id_user', $userid)->first();
 
         if (!$reviewer) {
@@ -412,23 +378,20 @@ class ReviewPtPenelitianController extends Controller
             abort(404, 'Penelitian tidak ditemukan.');
         }
 
-        // ✅ Samakan pola dengan contoh
-        $type     = $type === 'lampiran' ? 'lampiran' : 'proposal';
-        $path     = $type === 'proposal' ? $penelitian->proposal_path     : $penelitian->lampiran_path;
-        $filename = $type === 'proposal' ? ($penelitian->proposal_filename ?? 'proposal.pdf')
+        $type = $type === 'lampiran' ? 'lampiran' : 'proposal';
+        $path = $type === 'proposal' ? $penelitian->proposal_path : $penelitian->lampiran_path;
+        $filename = $type === 'proposal'
+            ? ($penelitian->proposal_filename ?? 'proposal.pdf')
             : ($penelitian->lampiran_filename ?? 'lampiran.pdf');
 
         abort_if(!$path, 404);
 
-        // ✅ Pakai disk public seperti contoh
         $disk = Storage::disk('public');
 
         abort_if(!$disk->exists($path), 404);
 
-        // ✅ Pakai response()->download() dengan full path
         return response()->download($disk->path($path), $filename);
     }
-
 
     // REVIEW SUBSTANSI PENELITIAN
     public function indexSkemaSubstansi()
@@ -458,15 +421,11 @@ class ReviewPtPenelitianController extends Controller
             )
             ->get();
 
-        // echo "<pre>";
-        // print_r($skema);
-        // echo "</pre>";
-        // die();
         return Inertia::render('penelitian/penugasanReview/index-reviewer-substansi', [
             'skema' => $skema,
         ]);
     }
-    // ─── List Penugasan Substansi ─────────────────────────────────────────────────
+
     public function listPenugasanSubstansi($id_skema)
     {
         $userid = $this->getUserId();
@@ -482,6 +441,7 @@ class ReviewPtPenelitianController extends Controller
                 'pt_penugasan_review.id as id_penugasan',
                 'pt_penelitian.uuid as id_penelitian',
                 'pt_review_substansi.status_review',
+                'pt_review_substansi.status_penilaian',
                 'pt_review_substansi.nilai_akhir as hasil',
                 'ref_skema.uuid as id_skema',
                 'reviewer.id as reviewer_id',
@@ -507,26 +467,36 @@ class ReviewPtPenelitianController extends Controller
         ]);
     }
 
-    // ─── Tampilkan form penilaian substansi ───────────────────────────────────────
     public function nilaiSubstansi($id_penugasan)
     {
-        $userid   = $this->getUserId();
+        $userid = $this->getUserId();
         $reviewer = DB::table('reviewer')->where('id_user', $userid)->first();
-        if (!$reviewer) abort(403, 'Data reviewer tidak ditemukan.');
+
+        if (!$reviewer) {
+            abort(403, 'Data reviewer tidak ditemukan.');
+        }
 
         $penugasan = DB::table('pt_penugasan_review')
             ->where('id', $id_penugasan)
             ->where('id_reviewer', $reviewer->id)
             ->where('id_jenis_penugasan', 2)
             ->first();
-        if (!$penugasan) abort(404, 'Data penugasan tidak ditemukan atau bukan milik Anda.');
 
-        $existingReview  = DB::table('pt_review_substansi')->where('id_penugasan', $id_penugasan)->first();
+        if (!$penugasan) {
+            abort(404, 'Data penugasan tidak ditemukan atau bukan milik Anda.');
+        }
+
+        $existingReview = DB::table('pt_review_substansi')
+            ->where('id_penugasan', $id_penugasan)
+            ->first();
+
         $existingDetails = [];
         if ($existingReview) {
             $existingDetails = DB::table('pt_review_substansi_detail')
                 ->where('id_review', $existingReview->id)
-                ->get()->keyBy('id_pertanyaan')->toArray();
+                ->get()
+                ->keyBy('id_pertanyaan')
+                ->toArray();
         }
 
         $pertanyaan = DB::table('ref_pertanyaan_skema')
@@ -541,8 +511,8 @@ class ReviewPtPenelitianController extends Controller
             ->orderBy('ref_jenis_pertanyaan.nomor_urut')
             ->get()
             ->map(function ($item) use ($existingDetails) {
-                $detail         = $existingDetails[$item->id_pertanyaan] ?? null;
-                $item->nilai    = $detail ? $detail->nilai    : null;
+                $detail = $existingDetails[$item->id_pertanyaan] ?? null;
+                $item->nilai = $detail ? $detail->nilai : null;
                 $item->komentar = $detail ? ($detail->komentar ?? '') : '';
                 return $item;
             });
@@ -551,20 +521,21 @@ class ReviewPtPenelitianController extends Controller
             'pertanyaans'     => $pertanyaan,
             'id_penugasan'    => $id_penugasan,
             'existing_review' => $existingReview ? [
-                'id'            => $existingReview->id,
-                'komentar'      => $existingReview->komentar,
-                'nilai_akhir'   => $existingReview->nilai_akhir,
-                'status_review' => $existingReview->status_review, // ← wajib untuk lock frontend
+                'id'                => $existingReview->id,
+                'komentar'          => $existingReview->komentar,
+                'nilai_akhir'       => $existingReview->nilai_akhir,
+                'status_review'     => $existingReview->status_review,
+                'status_penilaian'  => $existingReview->status_penilaian,
             ] : null,
         ]);
     }
 
-    // ─── Simpan Draft ─────────────────────────────────────────────────────────────
     public function storeSubstansi(Request $request, $id_penugasan)
     {
         $request->validate([
             'komentar'                  => 'nullable|string|max:5000',
             'nilai_akhir'               => 'required|numeric|min:0',
+            'status_penilaian'          => 'required|in:rekomendasi,tidak_rekomendasi',
             'penilaian'                 => 'required|array|min:1',
             'penilaian.*.id_pertanyaan' => 'required|string',
             'penilaian.*.bobot'         => 'required|numeric|min:0|max:100',
@@ -575,7 +546,6 @@ class ReviewPtPenelitianController extends Controller
         [$userid, $reviewer] = $this->getReviewer();
         $this->validatePenugasan($id_penugasan, $reviewer->id);
 
-        // Tolak jika sudah Selesai
         $existing = DB::table('pt_review_substansi')->where('id_penugasan', $id_penugasan)->first();
         if ($existing && $existing->status_review === 'Selesai') {
             return back()->withErrors(['error' => 'Penilaian sudah ditandai Selesai dan tidak dapat diubah.']);
@@ -586,8 +556,12 @@ class ReviewPtPenelitianController extends Controller
             $reviewId = $this->upsertReview($existing, $id_penugasan, $request, $userid, 'Draft');
             $this->upsertDetail($reviewId, $request->penilaian);
 
-            DB::table('pt_penugasan_review')->where('id', $id_penugasan)
-                ->update(['status_review' => 'Draft', 'updated_at' => now()]);
+            DB::table('pt_penugasan_review')
+                ->where('id', $id_penugasan)
+                ->update([
+                    'status_review' => 'Draft',
+                    'updated_at'    => now(),
+                ]);
 
             DB::commit();
             return redirect()->back()->with('success', 'Draft penilaian berhasil disimpan.');
@@ -597,12 +571,12 @@ class ReviewPtPenelitianController extends Controller
         }
     }
 
-    // ─── Tandai Selesai ───────────────────────────────────────────────────────────
     public function finalizeSubstansi(Request $request, $id_penugasan)
     {
         $request->validate([
             'komentar'                  => 'nullable|string|max:5000',
             'nilai_akhir'               => 'required|numeric|min:0',
+            'status_penilaian'          => 'required|in:rekomendasi,tidak_rekomendasi',
             'penilaian'                 => 'required|array|min:1',
             'penilaian.*.id_pertanyaan' => 'required|string',
             'penilaian.*.bobot'         => 'required|numeric|min:0|max:100',
@@ -623,8 +597,12 @@ class ReviewPtPenelitianController extends Controller
             $reviewId = $this->upsertReview($existing, $id_penugasan, $request, $userid, 'Selesai');
             $this->upsertDetail($reviewId, $request->penilaian);
 
-            DB::table('pt_penugasan_review')->where('id', $id_penugasan)
-                ->update(['status_review' => 'Selesai', 'updated_at' => now()]);
+            DB::table('pt_penugasan_review')
+                ->where('id', $id_penugasan)
+                ->update([
+                    'status_review' => 'Selesai',
+                    'updated_at'    => now(),
+                ]);
 
             DB::commit();
             return redirect()->back()->with('success', 'Penilaian berhasil ditandai Selesai.');
@@ -634,13 +612,15 @@ class ReviewPtPenelitianController extends Controller
         }
     }
 
-    // ─── Private Helpers ──────────────────────────────────────────────────────────
-
     private function getReviewer(): array
     {
-        $userid   = $this->getUserId();
+        $userid = $this->getUserId();
         $reviewer = DB::table('reviewer')->where('id_user', $userid)->first();
-        if (!$reviewer) abort(403, 'Data reviewer tidak ditemukan.');
+
+        if (!$reviewer) {
+            abort(403, 'Data reviewer tidak ditemukan.');
+        }
+
         return [$userid, $reviewer];
     }
 
@@ -651,38 +631,50 @@ class ReviewPtPenelitianController extends Controller
             ->where('id_reviewer', $reviewerId)
             ->where('id_jenis_penugasan', 2)
             ->first();
-        if (!$penugasan) abort(404, 'Data penugasan tidak ditemukan atau bukan milik Anda.');
+
+        if (!$penugasan) {
+            abort(404, 'Data penugasan tidak ditemukan atau bukan milik Anda.');
+        }
     }
 
     private function upsertReview($existing, string $id_penugasan, Request $request, $userid, string $status): string
     {
         if ($existing) {
-            DB::table('pt_review_substansi')->where('id', $existing->id)->update([
-                'komentar'      => $request->komentar,
-                'nilai_akhir'   => $request->nilai_akhir,
-                'status_review' => $status,
-                'updated_at'    => now(),
-            ]);
+            DB::table('pt_review_substansi')
+                ->where('id', $existing->id)
+                ->update([
+                    'komentar'          => $request->komentar,
+                    'nilai_akhir'       => $request->nilai_akhir,
+                    'status_penilaian'  => $request->status_penilaian,
+                    'status_review'     => $status,
+                    'updated_at'        => now(),
+                ]);
+
             return $existing->id;
         }
 
         $reviewId = (string) Str::uuid();
+
         DB::table('pt_review_substansi')->insert([
-            'id'            => $reviewId,
-            'id_penugasan'  => $id_penugasan,
-            'komentar'      => $request->komentar,
-            'nilai_akhir'   => $request->nilai_akhir,
-            'status_review' => $status,
-            'created_by'    => $userid,
-            'created_at'    => now(),
-            'updated_at'    => now(),
+            'id'                => $reviewId,
+            'id_penugasan'      => $id_penugasan,
+            'komentar'          => $request->komentar,
+            'nilai_akhir'       => $request->nilai_akhir,
+            'status_penilaian'  => $request->status_penilaian,
+            'status_review'     => $status,
+            'created_by'        => $userid,
+            'created_at'        => now(),
+            'updated_at'        => now(),
         ]);
+
         return $reviewId;
     }
 
     private function upsertDetail(string $reviewId, array $penilaian): void
     {
-        DB::table('pt_review_substansi_detail')->where('id_review', $reviewId)->delete();
+        DB::table('pt_review_substansi_detail')
+            ->where('id_review', $reviewId)
+            ->delete();
 
         $details = array_map(fn($item) => [
             'id'            => (string) Str::uuid(),
@@ -697,6 +689,7 @@ class ReviewPtPenelitianController extends Controller
 
         DB::table('pt_review_substansi_detail')->insert($details);
     }
+
     private function getUserId()
     {
         return optional(request()->user())->id;

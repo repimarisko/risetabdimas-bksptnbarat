@@ -21,6 +21,7 @@ return new class extends Migration
             $table->text('komentar')->nullable();
             $table->integer('nilai_akhir')->nullable();
             $table->enum('status_review', ['Draft', 'Selesai'])->default('Draft');
+            $table->enum('status_penilaian', ['rekomendasi', 'tidak_rekomendasi'])->default('tidak_rekomendasi');
             $table->uuid('created_by')->nullable();
             $table->timestamps();
 

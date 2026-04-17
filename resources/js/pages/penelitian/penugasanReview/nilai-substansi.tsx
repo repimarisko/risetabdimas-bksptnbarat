@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Head, router, usePage } from '@inertiajs/react';
-import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import DashboardNav from '@/components/DashboardNav';
+import AppHeaderLayout from '@/layouts/app/app-header-layout';
+import { Head, router, usePage } from '@inertiajs/react';
+import { useEffect, useMemo, useState } from 'react';
 
 type Breadcrumb = { title: string; href: string };
 
@@ -14,11 +14,14 @@ type Pertanyaan = {
     komentar: string;
 };
 
+type StatusPenilaian = 'rekomendasi' | 'tidak_rekomendasi';
+
 type ExistingReview = {
     id: string;
     komentar: string;
     nilai_akhir: number;
-    status_review: string; // 'Draft' | 'Selesai'
+    status_review: string;
+    status_penilaian: StatusPenilaian;
 } | null;
 
 type PageProps = {
@@ -39,6 +42,7 @@ const SKOR_OPTIONS = [
     { value: 1, label: '1 - Buruk' },
     { value: 2, label: '2 - Sangat Kurang' },
     { value: 3, label: '3 - Kurang' },
+    { value: 4, label: '4 - Sedang' },
     { value: 5, label: '5 - Cukup' },
     { value: 6, label: '6 - Baik' },
     { value: 7, label: '7 - Sangat Baik' },
@@ -52,14 +56,19 @@ export default function NilaiSubstansi() {
         existing_review,
     } = usePage<PageProps>().props;
 
-    // Jika status Selesai → semua input di-lock
     const isLocked = existing_review?.status_review === 'Selesai';
 
-    const [processing, setProcessing]         = useState(false);
+    const [processing, setProcessing] = useState(false);
     const [processingFinalize, setProcessingFinalize] = useState(false);
-    const [showConfirm, setShowConfirm]       = useState(false);
-    const [komentar, setKomentar]             = useState(existing_review?.komentar ?? '');
-    const [nilaiAkhir, setNilaiAkhir]         = useState(existing_review?.nilai_akhir ?? 0);
+    const [showConfirm, setShowConfirm] = useState(false);
+
+    const [komentar, setKomentar] = useState(existing_review?.komentar ?? '');
+    const [nilaiAkhir, setNilaiAkhir] = useState(
+        existing_review?.nilai_akhir ?? 0,
+    );
+    const [statusPenilaian, setStatusPenilaian] = useState<StatusPenilaian>(
+        existing_review?.status_penilaian ?? 'tidak_rekomendasi',
+    );
 
     const [penilaian, setPenilaian] = useState<PenilaianItem[]>(
         pertanyaans.map((p) => ({
@@ -71,92 +80,148 @@ export default function NilaiSubstansi() {
     );
 
     const groupedPertanyaans = useMemo(() => {
-        const groups: { jenis: string; items: { item: Pertanyaan; originalIdx: number }[] }[] = [];
+        const groups: {
+            jenis: string;
+            items: { item: Pertanyaan; originalIdx: number }[];
+        }[] = [];
         pertanyaans.forEach((item, idx) => {
             const last = groups[groups.length - 1];
             if (last && last.jenis === item.jenis) {
                 last.items.push({ item, originalIdx: idx });
             } else {
-                groups.push({ jenis: item.jenis, items: [{ item, originalIdx: idx }] });
+                groups.push({
+                    jenis: item.jenis,
+                    items: [{ item, originalIdx: idx }],
+                });
             }
         });
         return groups;
     }, [pertanyaans]);
 
     useEffect(() => {
-        const total = penilaian.reduce((sum, item) => sum + item.bobot * item.nilai, 0);
+        const total = penilaian.reduce(
+            (sum, item) => sum + item.bobot * item.nilai,
+            0,
+        );
         setNilaiAkhir(total);
     }, [penilaian]);
 
-    const updatePenilaian = (index: number, field: keyof PenilaianItem, value: unknown) => {
+    const updatePenilaian = (
+        index: number,
+        field: keyof PenilaianItem,
+        value: unknown,
+    ) => {
         if (isLocked) return;
         setPenilaian((prev) =>
-            prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+            prev.map((item, i) =>
+                i === index ? { ...item, [field]: value } : item,
+            ),
         );
     };
 
-    // ── Simpan sebagai Draft ──────────────────────────────────────────────
     const handleSimpan = () => {
         setProcessing(true);
         router.post(
             `/reviewer/pt-penelitian/penugasan/${id_penugasan}/simpan-nilai-substansi`,
-            { komentar, nilai_akhir: nilaiAkhir, penilaian },
-            { onFinish: () => setProcessing(false) },
+            {
+                komentar,
+                nilai_akhir: nilaiAkhir,
+                status_penilaian: statusPenilaian,
+                penilaian,
+            },
+            {
+                onFinish: () => setProcessing(false),
+            },
         );
     };
 
-    // ── Tandai Selesai ───────────────────────────────────────────────────
     const handleSelesai = () => {
         setProcessingFinalize(true);
         router.post(
             `/reviewer/pt-penelitian/penugasan/${id_penugasan}/selesai-substansi`,
-            { komentar, nilai_akhir: nilaiAkhir, penilaian },
-            { onFinish: () => { setProcessingFinalize(false); setShowConfirm(false); } },
+            {
+                komentar,
+                nilai_akhir: nilaiAkhir,
+                status_penilaian: statusPenilaian,
+                penilaian,
+            },
+            {
+                onFinish: () => {
+                    setProcessingFinalize(false);
+                    setShowConfirm(false);
+                },
+            },
         );
     };
 
     const defaultBreadcrumbs: Breadcrumb[] = [
         { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Penugasan Review', href: '/admin/pt-penelitian/penugasan-review' },
+        {
+            title: 'Penugasan Review',
+            href: '/admin/pt-penelitian/penugasan-review',
+        },
         { title: 'Penilaian Substansi', href: '#' },
     ];
 
     return (
-        <AppHeaderLayout breadcrumbs={breadcrumbs.length ? breadcrumbs : defaultBreadcrumbs}>
+        <AppHeaderLayout
+            breadcrumbs={breadcrumbs.length ? breadcrumbs : defaultBreadcrumbs}
+        >
             <Head title="Penilaian Substansi" />
             <DashboardNav />
 
             <div className="bg-gray-50">
-                <div className="mx-auto px-4 py-10 space-y-6">
-
-                    {/* ── Banner locked ── */}
+                <div className="mx-auto space-y-6 px-4 py-10">
                     {isLocked && (
-                        <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 px-5 py-3">
-                            <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        <div className="flex items-center gap-3 border border-emerald-200 bg-emerald-50 px-5 py-3">
+                            <svg
+                                className="h-4 w-4 shrink-0 text-emerald-500"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clipRule="evenodd"
+                                />
                             </svg>
                             <p className="text-sm text-emerald-700">
-                                Penilaian ini telah <strong>ditandai Selesai</strong> dan tidak dapat diubah lagi.
+                                Penilaian ini telah{' '}
+                                <strong>ditandai Selesai</strong> dan tidak
+                                dapat diubah lagi.
                             </p>
                         </div>
                     )}
 
-                    {/* ── Tabel Penilaian ── */}
-                    <div className="bg-white border border-gray-200 overflow-hidden">
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <div className="overflow-hidden border border-gray-200 bg-white">
+                        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                             <div className="flex items-center gap-2">
-                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                                <svg
+                                    className="h-4 w-4 text-gray-500"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                                    />
                                 </svg>
-                                <h1 className="text-sm font-semibold text-gray-800">Penilaian Substansi</h1>
+                                <h1 className="text-sm font-semibold text-gray-800">
+                                    Penilaian Substansi
+                                </h1>
                             </div>
-                            {/* Status badge */}
+
                             {existing_review && (
-                                <span className={`text-xs font-semibold px-2 py-0.5 border ${
-                                    isLocked
-                                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                        : 'bg-amber-50 border-amber-200 text-amber-700'
-                                }`}>
+                                <span
+                                    className={`border px-2 py-0.5 text-xs font-semibold ${
+                                        isLocked
+                                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                            : 'border-amber-200 bg-amber-50 text-amber-700'
+                                    }`}
+                                >
                                     {existing_review.status_review}
                                 </span>
                             )}
@@ -165,78 +230,175 @@ export default function NilaiSubstansi() {
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="bg-gray-50 border-b border-gray-200 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                        <th className="px-6 py-3 w-12">No</th>
-                                        <th className="px-4 py-3" colSpan={2}>Kriteria</th>
-                                        <th className="px-4 py-3 w-24 text-center">Bobot%</th>
-                                        <th className="px-4 py-3 w-48">Skor</th>
+                                    <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                                        <th className="w-12 px-6 py-3">No</th>
+                                        <th className="px-4 py-3" colSpan={2}>
+                                            Kriteria
+                                        </th>
+                                        <th className="w-24 px-4 py-3 text-center">
+                                            Bobot%
+                                        </th>
+                                        <th className="w-48 px-4 py-3">Skor</th>
                                         <th className="px-4 py-3">Komentar</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
                                     {groupedPertanyaans.map((group) => (
                                         <>
-                                            <tr key={`group-${group.jenis}`} className="bg-gray-100 border-t border-b border-gray-200">
-                                                <td colSpan={6} className="px-4 py-2 text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                            <tr
+                                                key={`group-${group.jenis}`}
+                                                className="border-t border-b border-gray-200 bg-gray-100"
+                                            >
+                                                <td
+                                                    colSpan={6}
+                                                    className="px-4 py-2 text-xs font-bold tracking-wider text-gray-600 uppercase"
+                                                >
                                                     {group.jenis}
                                                 </td>
                                             </tr>
-                                            {group.items.map(({ item, originalIdx }) => (
-                                                <tr key={originalIdx} className={`border-b border-gray-100 transition-colors ${isLocked ? 'bg-gray-50/50' : 'hover:bg-gray-50'}`}>
-                                                    <td className="px-6 py-3 text-gray-400 text-xs">{originalIdx + 1}</td>
 
-                                                    <td className="px-4 py-3 text-gray-700 leading-snug" colSpan={2}>
-                                                        <span dangerouslySetInnerHTML={{ __html: item.pertanyaan }} />
-                                                    </td>
+                                            {group.items.map(
+                                                ({ item, originalIdx }) => (
+                                                    <tr
+                                                        key={originalIdx}
+                                                        className={`border-b border-gray-100 transition-colors ${
+                                                            isLocked
+                                                                ? 'bg-gray-50/50'
+                                                                : 'hover:bg-gray-50'
+                                                        }`}
+                                                    >
+                                                        <td className="px-6 py-3 text-xs text-gray-400">
+                                                            {originalIdx + 1}
+                                                        </td>
 
-                                                    <td className="px-4 py-3 text-center text-gray-600 font-medium">{item.bobot}</td>
-
-                                                    <td className="px-4 py-3">
-                                                        {isLocked ? (
-                                                            <span className="text-sm text-gray-700 font-medium">
-                                                                {SKOR_OPTIONS.find(o => o.value === penilaian[originalIdx]?.nilai)?.label ?? '—'}
-                                                            </span>
-                                                        ) : (
-                                                            <select
-                                                                value={penilaian[originalIdx]?.nilai ?? 1}
-                                                                onChange={(e) => updatePenilaian(originalIdx, 'nilai', Number(e.target.value))}
-                                                                className="w-full text-sm border border-gray-300 px-2 py-1.5 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
-                                                            >
-                                                                {SKOR_OPTIONS.map((opt) => (
-                                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                                ))}
-                                                            </select>
-                                                        )}
-                                                    </td>
-
-                                                    <td className="px-4 py-3">
-                                                        {isLocked ? (
-                                                            <span className="text-sm text-gray-500">{penilaian[originalIdx]?.komentar || '—'}</span>
-                                                        ) : (
-                                                            <input
-                                                                type="text"
-                                                                value={penilaian[originalIdx]?.komentar ?? ''}
-                                                                onChange={(e) => updatePenilaian(originalIdx, 'komentar', e.target.value)}
-                                                                placeholder="Tulis komentar..."
-                                                                className="w-full text-sm border border-gray-300 px-2 py-1.5 text-gray-700 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+                                                        <td
+                                                            className="px-4 py-3 leading-snug text-gray-700"
+                                                            colSpan={2}
+                                                        >
+                                                            <span
+                                                                dangerouslySetInnerHTML={{
+                                                                    __html: item.pertanyaan,
+                                                                }}
                                                             />
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                                        </td>
+
+                                                        <td className="px-4 py-3 text-center font-medium text-gray-600">
+                                                            {item.bobot}
+                                                        </td>
+
+                                                        <td className="px-4 py-3">
+                                                            {isLocked ? (
+                                                                <span className="text-sm font-medium text-gray-700">
+                                                                    {SKOR_OPTIONS.find(
+                                                                        (o) =>
+                                                                            o.value ===
+                                                                            penilaian[
+                                                                                originalIdx
+                                                                            ]
+                                                                                ?.nilai,
+                                                                    )?.label ??
+                                                                        '—'}
+                                                                </span>
+                                                            ) : (
+                                                                <select
+                                                                    value={
+                                                                        penilaian[
+                                                                            originalIdx
+                                                                        ]
+                                                                            ?.nilai ??
+                                                                        1
+                                                                    }
+                                                                    onChange={(
+                                                                        e,
+                                                                    ) =>
+                                                                        updatePenilaian(
+                                                                            originalIdx,
+                                                                            'nilai',
+                                                                            Number(
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                            ),
+                                                                        )
+                                                                    }
+                                                                    className="w-full border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 transition focus:border-transparent focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                                                                >
+                                                                    {SKOR_OPTIONS.map(
+                                                                        (
+                                                                            opt,
+                                                                        ) => (
+                                                                            <option
+                                                                                key={
+                                                                                    opt.value
+                                                                                }
+                                                                                value={
+                                                                                    opt.value
+                                                                                }
+                                                                            >
+                                                                                {
+                                                                                    opt.label
+                                                                                }
+                                                                            </option>
+                                                                        ),
+                                                                    )}
+                                                                </select>
+                                                            )}
+                                                        </td>
+
+                                                        <td className="px-4 py-3">
+                                                            {isLocked ? (
+                                                                <span className="text-sm text-gray-500">
+                                                                    {penilaian[
+                                                                        originalIdx
+                                                                    ]
+                                                                        ?.komentar ||
+                                                                        '—'}
+                                                                </span>
+                                                            ) : (
+                                                                <input
+                                                                    type="text"
+                                                                    value={
+                                                                        penilaian[
+                                                                            originalIdx
+                                                                        ]
+                                                                            ?.komentar ??
+                                                                        ''
+                                                                    }
+                                                                    onChange={(
+                                                                        e,
+                                                                    ) =>
+                                                                        updatePenilaian(
+                                                                            originalIdx,
+                                                                            'komentar',
+                                                                            e
+                                                                                .target
+                                                                                .value,
+                                                                        )
+                                                                    }
+                                                                    placeholder="Tulis komentar..."
+                                                                    className="w-full border border-gray-300 px-2 py-1.5 text-sm text-gray-700 placeholder-gray-300 transition focus:border-transparent focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                                                                />
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ),
+                                            )}
                                         </>
                                     ))}
                                 </tbody>
 
                                 <tfoot>
-                                    <tr className="bg-green-50 border-t border-green-200">
+                                    <tr className="border-t border-green-200 bg-green-50">
                                         <td colSpan={3} />
-                                        <td className="px-4 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wide whitespace-nowrap">
+                                        <td className="px-4 py-3 text-right text-xs font-bold tracking-wide whitespace-nowrap text-gray-600 uppercase">
                                             Nilai Saat Ini
                                         </td>
-                                        <td className="px-4 py-3 text-xs font-semibold text-gray-500">:</td>
+                                        <td className="px-4 py-3 text-xs font-semibold text-gray-500">
+                                            :
+                                        </td>
                                         <td className="px-4 py-3">
-                                            <span className="inline-block bg-white border border-green-200 px-4 py-1.5 text-sm font-bold text-gray-800 min-w-[80px]">
+                                            <span className="inline-block min-w-[80px] border border-green-200 bg-white px-4 py-1.5 text-sm font-bold text-gray-800">
                                                 {nilaiAkhir}
                                             </span>
                                         </td>
@@ -246,66 +408,127 @@ export default function NilaiSubstansi() {
                         </div>
                     </div>
 
-                    {/* ── Komentar Keseluruhan ── */}
-                    <div className="bg-white border border-gray-200 overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-100">
-                            <h2 className="text-sm font-semibold text-gray-800">Komentar Keseluruhan</h2>
-                            <p className="text-xs text-gray-400 mt-0.5">
-                                Kesimpulan atau rekomendasi umum terhadap proposal penelitian ini.
+                    <div className="overflow-hidden border border-gray-200 bg-white">
+                        <div className="border-b border-gray-100 px-6 py-4">
+                            <h2 className="text-sm font-semibold text-gray-800">
+                                Status Penilaian
+                            </h2>
+                            <p className="mt-0.5 text-xs text-gray-400">
+                                Pilih hasil rekomendasi reviewer terhadap
+                                proposal penelitian ini.
                             </p>
                         </div>
                         <div className="px-6 py-5">
                             {isLocked ? (
-                                <p className="text-sm text-gray-600 whitespace-pre-wrap">{komentar || '—'}</p>
+                                <p className="text-sm text-gray-600">
+                                    {statusPenilaian === 'rekomendasi'
+                                        ? 'Rekomendasi'
+                                        : 'Tidak Rekomendasi'}
+                                </p>
+                            ) : (
+                                <select
+                                    value={statusPenilaian}
+                                    onChange={(e) =>
+                                        setStatusPenilaian(
+                                            e.target.value as StatusPenilaian,
+                                        )
+                                    }
+                                    className="w-full border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition focus:border-transparent focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                                >
+                                    <option value="rekomendasi">
+                                        Rekomendasi
+                                    </option>
+                                    <option value="tidak_rekomendasi">
+                                        Tidak Rekomendasi
+                                    </option>
+                                </select>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="overflow-hidden border border-gray-200 bg-white">
+                        <div className="border-b border-gray-100 px-6 py-4">
+                            <h2 className="text-sm font-semibold text-gray-800">
+                                Komentar Keseluruhan
+                            </h2>
+                            <p className="mt-0.5 text-xs text-gray-400">
+                                Kesimpulan atau rekomendasi umum terhadap
+                                proposal penelitian ini.
+                            </p>
+                        </div>
+                        <div className="px-6 py-5">
+                            {isLocked ? (
+                                <p className="text-sm whitespace-pre-wrap text-gray-600">
+                                    {komentar || '—'}
+                                </p>
                             ) : (
                                 <textarea
                                     rows={4}
                                     value={komentar}
-                                    onChange={(e) => setKomentar(e.target.value)}
+                                    onChange={(e) =>
+                                        setKomentar(e.target.value)
+                                    }
                                     placeholder="Tuliskan komentar dan rekomendasi Anda secara keseluruhan..."
-                                    className="w-full text-sm border border-gray-300 px-4 py-3 text-gray-700 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none transition"
+                                    className="w-full resize-none border border-gray-300 px-4 py-3 text-sm text-gray-700 placeholder-gray-300 transition focus:border-transparent focus:ring-2 focus:ring-blue-400 focus:outline-none"
                                 />
                             )}
                         </div>
                     </div>
 
-                    {/* ── Actions ── */}
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-gray-500 text-xs">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <svg
+                                className="h-4 w-4"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fillRule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                    clipRule="evenodd"
+                                />
                             </svg>
-                            <span>Nilai akhir dihitung dari <strong>bobot × skor</strong> setiap kriteria.</span>
+                            <span>
+                                Nilai akhir dihitung dari{' '}
+                                <strong>bobot × skor</strong> setiap kriteria.
+                            </span>
                         </div>
 
                         <div className="flex items-center gap-3">
                             <button
                                 type="button"
                                 onClick={() => window.history.back()}
-                                className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                                className="border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
                             >
                                 Kembali
                             </button>
 
                             {!isLocked && (
                                 <>
-                                    {/* Simpan Draft */}
                                     <button
                                         type="button"
                                         onClick={handleSimpan}
                                         disabled={processing}
-                                        className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
-                                        {processing ? 'Menyimpan...' : 'Simpan Draft'}
+                                        {processing
+                                            ? 'Menyimpan...'
+                                            : 'Simpan Draft'}
                                     </button>
 
-                                    {/* Tandai Selesai */}
                                     <button
                                         type="button"
                                         onClick={() => setShowConfirm(true)}
-                                        disabled={processingFinalize || !existing_review}
-                                        className="px-6 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-all hover:shadow active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title={!existing_review ? 'Simpan draft dulu sebelum menandai Selesai' : ''}
+                                        disabled={
+                                            processingFinalize ||
+                                            !existing_review
+                                        }
+                                        className="bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-emerald-700 hover:shadow active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                                        title={
+                                            !existing_review
+                                                ? 'Simpan draft dulu sebelum menandai Selesai'
+                                                : ''
+                                        }
                                     >
                                         Tandai Selesai
                                     </button>
@@ -313,24 +536,36 @@ export default function NilaiSubstansi() {
                             )}
                         </div>
                     </div>
-
                 </div>
             </div>
 
-            {/* ── Modal Konfirmasi Selesai ── */}
             {showConfirm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                    <div className="bg-white border border-gray-200 shadow-xl w-full max-w-md mx-4 p-6 space-y-4">
+                    <div className="mx-4 w-full max-w-md space-y-4 border border-gray-200 bg-white p-6 shadow-xl">
                         <div className="flex items-start gap-3">
-                            <div className="bg-amber-100 p-2 shrink-0">
-                                <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            <div className="shrink-0 bg-amber-100 p-2">
+                                <svg
+                                    className="h-5 w-5 text-amber-600"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                        clipRule="evenodd"
+                                    />
                                 </svg>
                             </div>
                             <div>
-                                <h3 className="text-sm font-bold text-gray-900">Tandai Penilaian Selesai?</h3>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    Setelah ditandai <strong>Selesai</strong>, penilaian ini <strong>tidak dapat diubah</strong> lagi. Pastikan semua nilai dan komentar sudah benar.
+                                <h3 className="text-sm font-bold text-gray-900">
+                                    Tandai Penilaian Selesai?
+                                </h3>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Setelah ditandai <strong>Selesai</strong>,
+                                    penilaian ini{' '}
+                                    <strong>tidak dapat diubah</strong> lagi.
+                                    Pastikan semua nilai dan komentar sudah
+                                    benar.
                                 </p>
                             </div>
                         </div>
@@ -338,7 +573,7 @@ export default function NilaiSubstansi() {
                             <button
                                 type="button"
                                 onClick={() => setShowConfirm(false)}
-                                className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                                className="border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
                             >
                                 Batal
                             </button>
@@ -346,9 +581,11 @@ export default function NilaiSubstansi() {
                                 type="button"
                                 onClick={handleSelesai}
                                 disabled={processingFinalize}
-                                className="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                                className="bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
                             >
-                                {processingFinalize ? 'Memproses...' : 'Ya, Tandai Selesai'}
+                                {processingFinalize
+                                    ? 'Memproses...'
+                                    : 'Ya, Tandai Selesai'}
                             </button>
                         </div>
                     </div>

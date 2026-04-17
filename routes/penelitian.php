@@ -3,6 +3,7 @@
 use App\Http\Controllers\Penelitian\AdminPtPenelitianController;
 use App\Http\Controllers\Penelitian\AdminPtSkemaController;
 use App\Http\Controllers\Penelitian\PtPenelitianController;
+use App\Http\Controllers\Penelitian\ReportPenelitianController;
 use App\Http\Controllers\Penelitian\ReviewPtPenelitianController;
 use Illuminate\Support\Facades\Route;
 
@@ -84,7 +85,12 @@ Route::middleware(['auth', 'verified', 'active_role:admin-pt,ketua-lppm,super-ad
             Route::put('/{id}', [AdminPtPenelitianController::class, 'updatePenugasan'])->name('update');
             Route::delete('/{id}', [AdminPtPenelitianController::class, 'deletePenugasan'])->name('delete');
         });
-
+        // REPORT
+        // Report
+        Route::prefix('/report')->as('report.')->group(function () {
+            Route::get('/', [ReportPenelitianController::class, 'index'])->name('index');
+            Route::get('/export', [ReportPenelitianController::class, 'exportExcel']);
+        });
         // Super Admin only
         Route::middleware('active_role:super-admin')->group(function () {
             Route::get('/deleted', [AdminPtPenelitianController::class, 'deleted'])->name('deleted');
@@ -98,7 +104,6 @@ Route::middleware(['auth', 'verified', 'active_role:admin-pt,ketua-lppm,super-ad
         Route::delete('/{ptPenelitian}', [AdminPtPenelitianController::class, 'destroy'])->name('destroy');
     });
 
-// ─────────────────────────────────────────────
 // SKEMA
 // ─────────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'active_role:admin-pt,ketua-lppm,super-admin'])
