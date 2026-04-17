@@ -7,11 +7,47 @@ services:
     restart: unless-stopped
     env_file:
       - .env.docker
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: db_risetabdimas_bksptnbarat
+      DB_USERNAME: docker
+      DB_PASSWORD: us3R@dev.2025
     ports:
       - "9090:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - risetabdimas
+
+  mysql:
+    image: mysql:8.0
+    container_name: risetabdimas-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: db_risetabdimas_bksptnbarat
+      MYSQL_USER: docker
+      MYSQL_PASSWORD: us3R@dev.2025
+      MYSQL_ROOT_PASSWORD: root@docker2026
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -udocker -p$${MYSQL_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql.sql:/docker-entrypoint-initdb.d/01-import.sql:ro
     networks:
       - risetabdimas
 
 networks:
   risetabdimas:
     driver: bridge
+
+volumes:
+  mysql_data:
