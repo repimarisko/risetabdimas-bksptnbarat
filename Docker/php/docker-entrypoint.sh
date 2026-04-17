@@ -121,5 +121,16 @@ if [ "$#" -gt 0 ]; then
   exec "$@"
 fi
 
+# Guard against broken nginx include targets (e.g. default.conf accidentally
+# becoming a directory because of an incorrect bind mount/source path).
+if [ -d /etc/nginx/conf.d/default.conf ]; then
+  rm -rf /etc/nginx/conf.d/default.conf || true
+fi
+
+# Keep a single app nginx config file.
+if [ -f /etc/nginx/conf.d/default.conf ] && [ ! -f /etc/nginx/conf.d/app.conf ]; then
+  mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/app.conf || true
+fi
+
 # Start nginx + php-fpm under supervisord
 exec supervisord -n -c /etc/supervisor/conf.d/supervisord.conf
