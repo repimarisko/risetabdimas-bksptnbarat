@@ -1,42 +1,57 @@
-test 1# Riset Abdimas BKS PTN Barat
+# Riset Abdimas BKS PTN Barat
 
-Setup cepat untuk menjalankan aplikasi Laravel + Vite di Docker.
+Setup Docker produksi dengan ketentuan:
+- MySQL berada di VM terpisah.
+- Aplikasi berjalan dalam 1 container (App + Web Server).
+- Aplikasi diakses lewat port `9090`.
 
 ## Prasyarat
 - Docker dan Docker Compose (plugin bawaan Docker Desktop sudah cukup).
 
-## Langkah awal
-1. Review dan sesuaikan nilai di `.env.docker` (APP_URL, DB_HOST ke IP/hostname VM MySQL, DB_*, dsb). APP_KEY dibiarkan kosong dulu.
-2. Build image:  
-   ```bash
-   docker compose build
-   ```
-3. Install dependency PHP:  
-   ```bash
-   docker compose run --rm web composer install
-   ```
-4. (Opsional, hanya pertama kali) siapkan dependency JS agar volume `node_modules` terisi:  
-   ```bash
-   docker compose run --rm vite npm install
-   ```
-5. Buat APP_KEY dan tempel ke `.env.docker`:  
-   ```bash
-   docker compose run --rm web php artisan key:generate --ansi --show
-   ```
-6. Jalankan seluruh stack (Nginx+PHP-FPM dalam satu kontainer, Vite dev server; MySQL di VM terpisah):  
-   ```bash
-   docker compose up -d
-   ```
-7. Migrasi database:  
-   ```bash
-   docker compose exec web php artisan migrate --force
-   ```
+## Konfigurasi `.env.docker`
+Pastikan nilai DB mengarah ke VM MySQL:
 
-Backend dapat diakses di http://localhost:8000 dan Vite HMR di http://localhost:5173.
+```env
+DB_CONNECTION=mysql
+DB_HOST=10.250.30.19
+DB_PORT=3306
+DB_DATABASE=db_risetabdimas_bksptnbarat
+DB_USERNAME=docker
+DB_PASSWORD=us3R@dev.2025
+```
 
-## Perintah tambahan
-- Hentikan kontainer: `docker compose down`
-- Lihat log: `docker compose logs -f web` atau `docker compose logs -f vite`
-- Build aset produksi: `docker compose run --rm vite npm run build`
+`APP_URL` juga harus mengarah ke:
 
-> Catatan: kontainer menggunakan env dari `.env.docker`, jadi `.env` pribadi Anda tidak disentuh.
+```env
+APP_URL=http://localhost:9090
+```
+
+## Jalankan
+Build dan jalankan container:
+
+```bash
+docker compose up -d --build
+```
+
+## Verifikasi Menyeluruh
+Pastikan hanya 1 container/service yang aktif:
+
+```bash
+docker compose ps
+```
+
+Lihat log aplikasi:
+
+```bash
+docker compose logs -f app
+```
+
+Akses aplikasi:
+
+```text
+http://localhost:9090
+```
+
+## Perintah Tambahan
+- Jalankan migrasi: `docker compose exec app php artisan migrate --force`
+- Stop container: `docker compose down`
