@@ -3,6 +3,12 @@ import { LucideIcon } from 'lucide-react';
 
 export interface Auth {
     user: User;
+    roles: string[];
+    active_role?: string | null;
+    permissions: string[];
+    menus?: MenuItem[];
+    pendingApprovals?: PendingApproval[];
+    pendingApprovalsCount?: number;
 }
 
 export interface BreadcrumbItem {
@@ -30,6 +36,16 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
+export interface PendingApproval {
+    id: number;
+    anggota_id: number;
+    penelitian_uuid: string;
+    title: string | null;
+    status?: string | null;
+    approval_status?: string | null;
+    created_at?: string | null;
+}
+
 export interface User {
     id: number;
     name: string;
@@ -39,5 +55,21 @@ export interface User {
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
+    uuid_pt?: string | null;
+    dosen?: {
+        uuid?: string;
+        uuid_pt?: string | null;
+        verified_at?: string | null;
+    } | null;
     [key: string]: unknown; // This allows for additional properties...
+}
+
+export interface MenuItem {
+    id: number;
+    name: string;
+    slug: string;
+    href?: string | null;
+    icon?: string | null;
+    parent_id?: number | null;
+    sort?: number;
 }

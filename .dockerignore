@@ -1,0 +1,10 @@
+.git
+node_modules
+vendor
+storage
+bootstrap/cache
+.env
+.env.*
+tests
+npm-debug.log
+yarn-error.log

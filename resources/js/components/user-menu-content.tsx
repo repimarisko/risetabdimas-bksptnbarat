@@ -9,8 +9,8 @@ import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import { type User } from '@/types';
-import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { Check, LogOut, Settings, SwitchCamera } from 'lucide-react';
 
 interface UserMenuContentProps {
     user: User;
@@ -18,10 +18,20 @@ interface UserMenuContentProps {
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
+    const { auth } = usePage<{ auth: any }>().props;
+    const roles: string[] = auth?.roles ?? [];
+    const activeRole: string | null | undefined = auth?.active_role;
 
     const handleLogout = () => {
         cleanup();
         router.flushAll();
+    };
+
+    const handleSwitchRole = (role: string) => {
+        if (role === activeRole) {
+            return;
+        }
+        router.post('/settings/active-role', { role }, { preserveScroll: false });
     };
 
     return (
@@ -32,7 +42,57 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {roles.length > 1 && (
+                <>
+                    <DropdownMenuLabel className="text-xs font-semibold text-gray-500">
+                        Role Aktif
+                    </DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                        {roles.map((role) => {
+                            const isActive = role === activeRole;
+                            return (
+                                <DropdownMenuItem
+                                    key={role}
+                                    className="flex items-center justify-between"
+                                    onSelect={() => handleSwitchRole(role)}
+                                >
+                                    <span className="text-sm capitalize">{role}</span>
+                                    {isActive ? (
+                                        <span className="text-[10px] font-semibold text-emerald-600">
+                                            Aktif
+                                        </span>
+                                    ) : null}
+                                </DropdownMenuItem>
+                            );
+                        })}
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                </>
+            )}
             <DropdownMenuGroup>
+                {/* {roles.length > 1 && (
+                    <>
+                        <DropdownMenuLabel className="text-xs uppercase text-gray-500">
+                            Role aktif
+                        </DropdownMenuLabel>
+                        {roles.map((role) => (
+                            <DropdownMenuItem
+                                key={role}
+                                onClick={() => {
+                                    if (role === activeRole) return;
+                                    router.post('/settings/switch-role', { role }, { preserveScroll: true });
+                                    cleanup();
+                                }}
+                            >
+                                <SwitchCamera className="mr-2" />
+                                {role}
+                                {activeRole === role && <Check className="ml-auto h-4 w-4" />}
+                            </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                    </>
+                )} */}
+
                 <DropdownMenuItem asChild>
                     <Link
                         className="block w-full"
@@ -59,6 +119,8 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     Log out
                 </Link>
             </DropdownMenuItem>
+
+      
         </>
     );
 }
