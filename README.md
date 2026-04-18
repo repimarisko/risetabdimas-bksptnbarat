@@ -4,6 +4,7 @@ Setup Docker produksi dengan ketentuan:
 - MySQL berjalan internal Docker (service `mysql`).
 - Import database otomatis dari file `sql.sql` saat inisialisasi pertama.
 - Aplikasi berjalan pada service `app` (App + Web Server).
+- Adminer berjalan sebagai service internal dan diproxy lewat aplikasi.
 - Aplikasi diakses lewat port `9090`.
 
 ## Prasyarat
@@ -38,7 +39,7 @@ docker compose up -d --build
 Import `sql.sql` dijalankan otomatis oleh container MySQL saat volume database masih kosong (first run).
 
 ## Verifikasi Menyeluruh
-Pastikan service `app` dan `mysql` aktif:
+Pastikan service `app`, `mysql`, dan `adminer` aktif:
 
 ```bash
 docker compose ps
@@ -60,6 +61,18 @@ Akses aplikasi:
 
 ```text
 http://localhost:9090
+```
+
+Akses Adminer:
+
+```text
+http://localhost:9090/adminer.php
+```
+
+Jika dipasang di domain production, path-nya tetap:
+
+```text
+https://risetabdimas-bksptnbarat.unand.ac.id/adminer.php
 ```
 
 ## Perintah Tambahan
