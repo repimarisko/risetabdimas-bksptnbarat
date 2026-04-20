@@ -361,6 +361,9 @@ export default function PenelitianPreview({
                                             <DetailItem label="Status">
                                                 {penelitian.status ?? '—'}
                                             </DetailItem>
+                                            <DetailItem label="Tanggal Disetujui">
+                                                {penelitian.approved_at ? dateFormatter.format(new Date(penelitian.approved_at)) : '—'}
+                                            </DetailItem>
                                             <DetailItem label="Tahun Pengajuan">
                                                 {penelitian.tahun ?? '—'}
                                             </DetailItem>

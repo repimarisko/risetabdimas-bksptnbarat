@@ -528,6 +528,32 @@ export default function PenelitianCreate() {
             setStepOneAttempted(false);
         }
 
+        if (currentStep === 2) {
+            let isRabValid = true;
+            for (const year of Object.keys(formData.rab)) {
+                const items = formData.rab[Number(year)];
+                if (!items) continue;
+
+                for (const item of items) {
+                    const isJumlahValid = item.jumlah_item !== null && item.jumlah_item !== undefined && item.jumlah_item.toString().trim() !== '';
+                    const isHargaValid = item.harga_satuan !== null && item.harga_satuan !== undefined && item.harga_satuan.toString().trim() !== '';
+                    const isKomponenValid = Boolean(item.id_komponen);
+                    const isNamaValid = Boolean(item.nama_item && item.nama_item.toString().trim() !== '');
+
+                    if (!isJumlahValid || !isHargaValid || !isKomponenValid || !isNamaValid) {
+                        isRabValid = false;
+                        break;
+                    }
+                }
+                if (!isRabValid) break;
+            }
+
+            if (!isRabValid) {
+                window.alert('Mohon lengkapi seluruh isian pada baris RAB (Komponen, Nama Item, Jumlah, dan Harga) sebelum melanjutkan.');
+                return;
+            }
+        }
+
         setCurrentStep((prev) => Math.min(prev + 1, 4));
     };
 

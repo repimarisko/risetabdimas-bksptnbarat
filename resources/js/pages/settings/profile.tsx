@@ -43,7 +43,7 @@ export default function Profile({
                     <div className="flex items-center justify-between">
                         <Link
                             href="/dashboard"
-                            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100"
+                            className="inline-flex items-center gap-2  border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100"
                         >
                             <ArrowLeft className="h-4 w-4" />
                             Kembali ke Dashboard
@@ -103,7 +103,7 @@ export default function Profile({
                                     />
                                 </div>
 
-                                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                                <div className=" border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
                                     Lengkapi data berikut untuk memenuhi syarat pengajuan proposal.
                                 </div>
 
@@ -153,7 +153,7 @@ export default function Profile({
                                         <InputError className="mt-1" message={errors.nip} />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="nuptk">NUPTK</Label>
+                                        <Label htmlFor="nuptk">NIDN/NUPTK</Label>
                                         <Input
                                             id="nuptk"
                                             name="nuptk"
@@ -264,33 +264,32 @@ export default function Profile({
 
                                             {status ===
                                                 'verification-link-sent' && (
-                                                <div className="mt-2 text-sm font-medium text-green-600">
-                                                    A new verification link has
-                                                    been sent to your email
-                                                    address.
-                                                </div>
-                                            )}
+                                                    <div className="mt-2 text-sm font-medium text-green-600">
+                                                        A new verification link has
+                                                        been sent to your email
+                                                        address.
+                                                    </div>
+                                                )}
                                         </div>
                                     )}
 
                                 <div className="flex items-center gap-4">
-                                    <Button
-                                        disabled={processing}
-                                        data-test="update-profile-button"
-                                    >
+                                    <Button disabled={processing} data-test="update-profile-button">
                                         Save
                                     </Button>
 
                                     <Transition
                                         show={recentlySuccessful}
-                                        enter="transition ease-in-out"
-                                        enterFrom="opacity-0"
-                                        leave="transition ease-in-out"
+                                        enter="transition ease-in-out duration-300"
+                                        enterFrom="opacity-0 translate-y-1"
+                                        enterTo="opacity-100 translate-y-0"
+                                        leave="transition ease-in-out duration-300"
+                                        leaveFrom="opacity-100"
                                         leaveTo="opacity-0"
                                     >
-                                        <p className="text-sm text-neutral-600">
-                                            Saved
-                                        </p>
+                                        <div className="flex items-center gap-2  border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
+                                            ✅ Profil berhasil disimpan!
+                                        </div>
                                     </Transition>
                                 </div>
                             </>
@@ -298,7 +297,7 @@ export default function Profile({
                     </Form>
                 </div>
 
-             
+
             </SettingsLayout>
         </AppHeaderLayout>
     );

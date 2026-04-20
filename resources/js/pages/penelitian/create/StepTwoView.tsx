@@ -337,7 +337,7 @@ export default function StepTwoView({
                                                             className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:cursor-not-allowed disabled:bg-gray-100"
                                                         >
                                                             <option value="">Pilih peran...</option>
-                                                            {PERAN_OPTIONS.map((peran) => (
+                                                            {PERAN_OPTIONS.filter(peran => isKetuaLocked || peran !== 'Ketua Peneliti').map((peran) => (
                                                                 <option key={peran} value={peran}>
                                                                     {peran}
                                                                 </option>
