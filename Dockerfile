@@ -34,7 +34,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN rm -f /etc/nginx/sites-enabled/default
-RUN rm -f /etc/nginx/conf.d/default.conf
+RUN rm -rf /etc/nginx/conf.d/default.conf
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -42,10 +42,10 @@ WORKDIR /var/www/html
 
 COPY . /var/www/html
 
-COPY ./Docker/nginx.conf /etc/nginx/conf.d/default.conf
-COPY ./Docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./Docker/nginx/default.conf /etc/nginx/conf.d/app.conf
+COPY ./Docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./Docker/php.ini /usr/local/etc/php/conf.d/custom.ini
-COPY ./Docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./Docker/php/docker-entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN mkdir -p /var/www/html/storage \
     /var/www/html/storage/framework/cache \
