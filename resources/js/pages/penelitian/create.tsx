@@ -68,7 +68,7 @@ const createInitialFormData = (): FormDataState => ({
     id_skema: '',
     id_fokus: '',
     ringkasan: '',
-    id_sdg: '',
+    id_sdg: [],
     id_tkt: '',
     lama_waktu: '',
     tahun_pengajuan: '',
@@ -513,6 +513,18 @@ export default function PenelitianCreate() {
         });
     }, []);
 
+    const activeSkema = useMemo(() => {
+        return rawSkemaOptions.find((s) => s.uuid === formData.id_skema) ?? null;
+    }, [rawSkemaOptions, formData.id_skema]);
+
+    const skemaBudget = useMemo(() => {
+        if (!activeSkema) return undefined;
+        return {
+            min: activeSkema.biaya_minimal ?? null,
+            max: activeSkema.biaya_maksimal ?? null,
+        };
+    }, [activeSkema]);
+
     const handleNext = () => {
         if (currentStep === 1) {
             const missing = getMissingStepOneFields(formData);
@@ -727,7 +739,7 @@ export default function PenelitianCreate() {
             title: formData.judul,
             id_skema: formData.id_skema || null,
             id_tkt: formData.id_tkt || null,
-            id_sdg: formData.id_sdg || null,
+            id_sdg: formData.id_sdg.length > 0 ? formData.id_sdg : null,
             id_fokus: formData.id_fokus || null,
             ringkasan: formData.ringkasan || null,           // ✅ tambahkan
             lama_kegiatan: formData.lama_waktu               // ✅ tambahkan (sesuaikan nama kolom DB)
@@ -886,6 +898,7 @@ export default function PenelitianCreate() {
                             tahunPelaksanaan={tahunPelaksanaan}
                             kelompokOptions={kelompokOptions}
                         kelompokLookup={kelompokLookup}
+                        skemaBudget={skemaBudget}
                         onBack={handleBack}
                         onNext={handleNext}
                         onAddAnggota={handleAddAnggota}

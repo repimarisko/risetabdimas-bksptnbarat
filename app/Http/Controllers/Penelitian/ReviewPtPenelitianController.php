@@ -255,7 +255,6 @@ class ReviewPtPenelitianController extends Controller
         $penelitian = DB::table('pt_penelitian')
             ->join('ref_skema', 'pt_penelitian.id_skema', '=', 'ref_skema.uuid')
             ->leftJoin('ref_tkt', 'pt_penelitian.id_tkt', '=', 'ref_tkt.uuid')
-            ->leftJoin('ref_sdg', 'pt_penelitian.id_sdg', '=', 'ref_sdg.uuid')
             ->leftJoin('ref_fokus', 'pt_penelitian.id_fokus', '=', 'ref_fokus.uuid')
             ->select(
                 'pt_penelitian.uuid',
@@ -267,13 +266,11 @@ class ReviewPtPenelitianController extends Controller
                 'pt_penelitian.lampiran_path',
                 'pt_penelitian.lampiran_filename',
                 'pt_penelitian.tahun_pelaksanaan',
-                'pt_penelitian.ringkasan',
+                'pt_penelitian.id_sdg',
                 'ref_skema.uuid as id_skema',
                 'ref_skema.nama as nama_skema',
                 'ref_tkt.tkt',
                 'ref_tkt.level as level_tkt',
-                'ref_sdg.sdg',
-                'ref_sdg.level as level_sdg',
                 'ref_fokus.fokus',
                 'pt_penelitian.created_by',
                 'pt_penelitian.created_at',
@@ -285,6 +282,13 @@ class ReviewPtPenelitianController extends Controller
         if (!$penelitian) {
             abort(404, 'Penelitian tidak ditemukan.');
         }
+
+        $sdgIds = [];
+        if ($penelitian->id_sdg) {
+            $decoded = json_decode($penelitian->id_sdg, true);
+            $sdgIds = is_array($decoded) ? $decoded : [$penelitian->id_sdg];
+        }
+        $penelitian->sdgs = DB::table('ref_sdg')->whereIn('uuid', $sdgIds)->get();
 
         $ketua = DB::table('pt_penelitian_anggotas')
             ->join('dosen', 'pt_penelitian_anggotas.dosen_uuid', '=', 'dosen.uuid')
@@ -317,15 +321,15 @@ class ReviewPtPenelitianController extends Controller
             ->get();
 
         $rabQuery = fn($table) => DB::table($table)
-            ->leftJoin('ref_komponen_biaya', $table . '.id_komponen', '=', 'ref_komponen_biaya.id')
-            ->leftJoin('ref_komponen_rab', 'ref_komponen_biaya.id_komponen_rab', '=', 'ref_komponen_rab.id')
+            ->leftJoin('pt_komponen_biaya', $table . '.id_komponen', '=', 'pt_komponen_biaya.id')
+            ->leftJoin('ref_komponen_rab', 'pt_komponen_biaya.id_komponen_rab', '=', 'ref_komponen_rab.id')
             ->select(
                 $table . '.uuid',
                 $table . '.nama_item',
                 $table . '.jumlah_item',
                 $table . '.harga_satuan',
                 $table . '.total_biaya',
-                'ref_komponen_rab.nama as nama_komponen_rab',
+                'ref_komponen_rab.nama_komponen as nama_komponen_rab',
             )
             ->where($table . '.id_penelitian', $id_penelitian)
             ->whereNull($table . '.deleted_at')

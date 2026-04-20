@@ -21,7 +21,7 @@ type StepOneViewProps = {
     showStepOneErrors: boolean;
     hasStepOneError: (key: StepOneFieldKey) => boolean;
     getStepOneLabel: (key: StepOneFieldKey) => string;
-    onInputChange: (field: InputField, value: string) => void;
+    onInputChange: (field: InputField, value: string | string[]) => void;
     onFileChange: (
         field: 'proposal_file' | 'lampiran_file',
         file: File | null,
@@ -252,18 +252,37 @@ export default function StepOneView({
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Keterkaitan dengan SDGs
                             </label>
-                            <select
-                                value={formData.id_sdg}
-                                onChange={(event) => onInputChange('id_sdg', event.target.value)}
-                                className="w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                            >
-                                <option value="">Pilih SDG...</option>
-                                {sdgSelectOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="space-y-3 mt-2 max-h-48 overflow-y-auto w-full px-4 py-3 border border-gray-300 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
+                                {sdgSelectOptions.map((option) => {
+                                    const isChecked = Array.isArray(formData.id_sdg) 
+                                        ? formData.id_sdg.includes(option.value) 
+                                        : formData.id_sdg === option.value;
+                                    return (
+                                        <label key={option.value} className="flex items-start space-x-3 cursor-pointer group">
+                                            <div className="flex items-center h-5">
+                                                <input
+                                                    type="checkbox"
+                                                    value={option.value}
+                                                    checked={isChecked}
+                                                    onChange={(e) => {
+                                                        let current = Array.isArray(formData.id_sdg) ? [...formData.id_sdg] : (formData.id_sdg ? [formData.id_sdg] : []);
+                                                        if (e.target.checked) {
+                                                            current.push(option.value);
+                                                        } else {
+                                                            current = current.filter(id => id !== option.value);
+                                                        }
+                                                        onInputChange('id_sdg', current);
+                                                    }}
+                                                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 mt-0.5 transition-colors"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">{option.label}</span>
+                                            </div>
+                                        </label>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         <div>

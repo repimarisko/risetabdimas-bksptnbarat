@@ -97,7 +97,7 @@ type PenelitianPreviewProps = {
     references: {
         skema: ReferenceRecord | null;
         fokus: ReferenceRecord | null;
-        sdg: ReferenceRecord | null;
+        sdg: ReferenceRecord[] | null;
         tkt: ReferenceRecord | null;
     };
     budget: BudgetSummary;
@@ -549,8 +549,8 @@ export default function PenelitianPreview({
                                         <DetailLine
                                             label="SDG Terkait"
                                             value={
-                                                references.sdg
-                                                    ? `${references.sdg.sdg} (Level ${references.sdg.level ?? '—'})`
+                                                references.sdg && references.sdg.length > 0
+                                                    ? references.sdg.map(s => `${s.sdg} (Level ${s.level ?? '—'})`).join(', ')
                                                     : 'Belum ditentukan'
                                             }
                                         />
