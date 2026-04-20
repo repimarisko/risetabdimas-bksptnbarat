@@ -178,12 +178,12 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className="relative size-10 rounded-full p-0"
+                                    className="relative size-10  p-0"
                                     aria-label="Notifikasi persetujuan anggota"
                                 >
                                     <Bell className="h-5 w-5" />
                                     {pendingApprovalsCount > 0 ? (
-                                        <span className="absolute -right-0.5 -top-0.5 inline-flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white">
+                                        <span className="absolute -right-0.5 -top-0.5 inline-flex min-h-[18px] min-w-[18px] items-center justify-center  bg-amber-500 px-1.5 text-xs font-semibold text-white">
                                             {pendingApprovalsCount}
                                         </span>
                                     ) : null}
@@ -228,7 +228,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                                 'approve',
                                                             )
                                                         }
-                                                        className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500"
+                                                        className="flex-1  bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500"
                                                     >
                                                         Setujui
                                                     </button>
@@ -240,7 +240,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                                 'reject',
                                                             )
                                                         }
-                                                        className="flex-1 rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
+                                                        className="flex-1  border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
                                                     >
                                                         Tolak
                                                     </button>
@@ -255,14 +255,14 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className="size-10 rounded-full p-1"
+                                    className="size-10  p-1"
                                 >
-                                    <Avatar className="size-8 overflow-hidden rounded-full">
+                                    <Avatar className="size-8 overflow-hidden ">
                                         <AvatarImage
                                             src={auth.user.avatar}
                                             alt={auth.user.name}
                                         />
-                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                        <AvatarFallback className=" bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                                             {getInitials(auth.user.name)}
                                         </AvatarFallback>
                                     </Avatar>

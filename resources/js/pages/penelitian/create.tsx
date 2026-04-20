@@ -68,7 +68,7 @@ const createInitialFormData = (): FormDataState => ({
     id_skema: '',
     id_fokus: '',
     ringkasan: '',
-    id_sdg: '',
+    id_sdg: [],
     id_tkt: '',
     lama_waktu: '',
     tahun_pengajuan: '',
@@ -513,6 +513,18 @@ export default function PenelitianCreate() {
         });
     }, []);
 
+    const activeSkema = useMemo(() => {
+        return rawSkemaOptions.find((s) => s.uuid === formData.id_skema) ?? null;
+    }, [rawSkemaOptions, formData.id_skema]);
+
+    const skemaBudget = useMemo(() => {
+        if (!activeSkema) return undefined;
+        return {
+            min: activeSkema.biaya_minimal ?? null,
+            max: activeSkema.biaya_maksimal ?? null,
+        };
+    }, [activeSkema]);
+
     const handleNext = () => {
         if (currentStep === 1) {
             const missing = getMissingStepOneFields(formData);
@@ -526,6 +538,32 @@ export default function PenelitianCreate() {
 
             setStepOneInvalidFields([]);
             setStepOneAttempted(false);
+        }
+
+        if (currentStep === 2) {
+            let isRabValid = true;
+            for (const year of Object.keys(formData.rab)) {
+                const items = formData.rab[Number(year)];
+                if (!items) continue;
+
+                for (const item of items) {
+                    const isJumlahValid = item.jumlah_item !== null && item.jumlah_item !== undefined && item.jumlah_item.toString().trim() !== '';
+                    const isHargaValid = item.harga_satuan !== null && item.harga_satuan !== undefined && item.harga_satuan.toString().trim() !== '';
+                    const isKomponenValid = Boolean(item.id_komponen);
+                    const isNamaValid = Boolean(item.nama_item && item.nama_item.toString().trim() !== '');
+
+                    if (!isJumlahValid || !isHargaValid || !isKomponenValid || !isNamaValid) {
+                        isRabValid = false;
+                        break;
+                    }
+                }
+                if (!isRabValid) break;
+            }
+
+            if (!isRabValid) {
+                window.alert('Mohon lengkapi seluruh isian pada baris RAB (Komponen, Nama Item, Jumlah, dan Harga) sebelum melanjutkan.');
+                return;
+            }
         }
 
         setCurrentStep((prev) => Math.min(prev + 1, 4));
@@ -727,9 +765,12 @@ export default function PenelitianCreate() {
             title: formData.judul,
             id_skema: formData.id_skema || null,
             id_tkt: formData.id_tkt || null,
-            id_sdg: formData.id_sdg || null,
+            id_sdg: formData.id_sdg.length > 0 ? formData.id_sdg : null,
             id_fokus: formData.id_fokus || null,
-            ringkasan: formData.ringkasan || null,
+            ringkasan: formData.ringkasan || null,           // ✅ tambahkan
+            lama_kegiatan: formData.lama_waktu               // ✅ tambahkan (sesuaikan nama kolom DB)
+                ? Number(formData.lama_waktu)
+                : null,
             biaya_usulan_1: getYearTotal(1),
             biaya_usulan_2: getYearTotal(2),
             biaya_usulan_3: getYearTotal(3),
@@ -817,7 +858,7 @@ export default function PenelitianCreate() {
             <div className="bg-gray-50">
                 <div className="mx-auto max-w-7xl px-4 py-10">
                     {currentStep !== 5 ? (
-                        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                        <div className="bg-white   p-6 mb-6">
                             <div className="flex items-center">
                                 {timelineSteps.map((step, index) => {
                                     const isActive = activeTimelineStep === step.number;
@@ -826,7 +867,7 @@ export default function PenelitianCreate() {
                                         <div key={step.number} className="flex-1 flex items-center">
                                             <div className="flex flex-col items-center w-full">
                                                 <div
-                                                    className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition-all ${
+                                                    className={`flex h-9 w-9 items-center justify-center  border text-sm font-semibold transition-all ${
                                                         isActive
                                                             ? 'bg-[#1d3b8b] text-white border-[#1d3b8b]'
                                                             : isCompleted
@@ -883,6 +924,7 @@ export default function PenelitianCreate() {
                             tahunPelaksanaan={tahunPelaksanaan}
                             kelompokOptions={kelompokOptions}
                         kelompokLookup={kelompokLookup}
+                        skemaBudget={skemaBudget}
                         onBack={handleBack}
                         onNext={handleNext}
                         onAddAnggota={handleAddAnggota}

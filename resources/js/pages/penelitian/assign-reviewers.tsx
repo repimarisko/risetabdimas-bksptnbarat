@@ -79,7 +79,7 @@ export default function AssignReviewersPage() {
                                 Tetapkan reviewer agar judul muncul pada akun reviewer terkait.
                             </p>
                         </div>
-                        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
+                        <div className="flex items-center gap-2  border border-gray-200 bg-white px-3 py-2 shadow-sm">
                             <Search className="h-4 w-4 text-gray-400" />
                             <input
                                 value={search}
@@ -90,7 +90,7 @@ export default function AssignReviewersPage() {
                         </div>
                     </div>
 
-                    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <div className="overflow-hidden  border border-gray-200 bg-white shadow-sm">
                         {filteredItems.length ? (
                             <div className="divide-y divide-gray-100">
                                 {filteredItems.map((item) => (
@@ -115,7 +115,7 @@ export default function AssignReviewersPage() {
                                                     item.reviewers.map((rev) => (
                                                         <span
                                                             key={rev.id}
-                                                            className="rounded-full bg-indigo-50 px-2 py-1 text-indigo-700"
+                                                            className=" bg-indigo-50 px-2 py-1 text-indigo-700"
                                                         >
                                                             {rev.name}
                                                         </span>
@@ -137,7 +137,7 @@ export default function AssignReviewersPage() {
                                                             : '',
                                                     }))
                                                 }
-                                                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 md:w-64"
+                                                className="w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 md:w-64"
                                             >
                                                 <option value="">Pilih reviewer...</option>
                                                 {reviewers.map((rev) => (
@@ -149,7 +149,7 @@ export default function AssignReviewersPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => handleAssign(item.uuid)}
-                                                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
+                                                className="inline-flex items-center justify-center  bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
                                             >
                                                 Assign Reviewer
                                             </button>

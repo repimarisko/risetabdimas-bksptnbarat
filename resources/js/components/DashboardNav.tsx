@@ -1,284 +1,63 @@
-import { dashboard } from '@/routes';
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, ClipboardList, FlaskConical, Home } from 'lucide-react';
+import { Home } from 'lucide-react';
 import { type SharedData, type MenuItem } from '@/types';
-
+import { NavDosen } from './nav/nav-dosen';
+import { NavAdminPt } from './nav/nav-admin-pt';
+import { NavKetuaLppm } from './nav/nav-ketua-lppm';
+import { NavReviewer } from './nav/nav-reviewer';
+import { NavSuperAdmin } from './nav/nav-super-admin';
+import { knownSlugs, resolveDashboardUrl, roleMenuSlugs } from './nav/nav-config';
+ 
 export default function DashboardNav() {
     const { auth } = usePage<SharedData>().props;
-    const activeRole = auth.active_role ?? null;
+    const roles   = auth.roles ?? [];
+    const menus   = auth.menus ?? [];
+    const currentRole = auth.active_role ?? roles[0] ?? null;
 
-    const isDosen = activeRole === 'dosen';
-    const isKetuaLppm = activeRole === 'ketua-lppm';
-    const isAdminPt = activeRole === 'admin-pt';
-    const isSuperAdmin = activeRole === 'super-admin';
-
-    const menuPermissions = new Set(
-        (auth.permissions ?? []).filter((permission) =>
-            permission.startsWith('menu:'),
-        ),
-    );
-    const canAccessMenu = (key: string, fallback: boolean) =>
-        menuPermissions.size > 0 ? menuPermissions.has(`menu:${key}`) : fallback;
-
+    const allowedSlugs = currentRole ? (roleMenuSlugs[currentRole] ?? []) : [];
     const showMenu = (slug: string) => allowedSlugs.includes(slug);
 
-    const showDosenPenelitian = isDosen && canAccessMenu('pt-penelitian-dosen', isDosen);
-    const showAdminPenelitian = (isAdminPt || isSuperAdmin) && canAccessMenu('pt-penelitian-admin', isAdminPt || isSuperAdmin);
-    const showAssignReviewer = (isAdminPt || isSuperAdmin) && canAccessMenu('assign-reviewer', isAdminPt || isSuperAdmin);
-    const showApprovals = isAdminPt && canAccessMenu('user-approvals', isAdminPt);
-    const showSkema = isSuperAdmin && canAccessMenu('skema', isSuperAdmin);
-    const showSkemaAktif = isAdminPt && canAccessMenu('skema', isAdminPt);
-    const showRoleAssignment = isSuperAdmin && canAccessMenu('role-assignment', isSuperAdmin);
-    const showRoleMenus = isSuperAdmin && canAccessMenu('role-menus', isSuperAdmin);
+    const extraMenus = menus.filter(
+        (menu: MenuItem) => menu.href && !knownSlugs.has(menu.slug) && showMenu(menu.slug),
+    );
 
     return (
         <div className="w-full bg-[#182e6b] text-white">
             <div className="mx-auto max-w-7xl px-4">
                 <nav className="flex items-center gap-6 py-3 text-sm font-medium">
+
                     {/* Dashboard */}
                     <div className="flex items-center gap-2">
-                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
+                        <span className="inline-flex h-6 w-6 items-center justify-center  bg-white/10">
                             <Home className="h-5 w-5 text-white" />
                         </span>
-                        <Link href={dashboardUrl} className="inline-flex items-center gap-1 hover:text-blue-200">
+                        <Link href={resolveDashboardUrl(currentRole, menus)} className="inline-flex items-center gap-1 hover:text-blue-200">
                             Dashboard
                         </Link>
                     </div>
 
-                    {/* Penelitian */}
-                    {(showDosenPenelitian || showAdminPenelitian || isKetuaLppm) && (
-                        <div className="group relative flex items-center gap-2">
-                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
-                                <FlaskConical className="h-5 w-5 text-white" />
-                            </span>
-                            <button className="inline-flex items-center gap-1 hover:text-blue-200">
-                                Usulan Regular
-                                <ChevronDown className="h-3.5 w-3.5" />
-                            </button>
+                    {currentRole === 'dosen'       && <NavDosen showMenu={showMenu} />}
+                    {currentRole === 'admin-pt'    && <NavAdminPt showMenu={showMenu} />}
+                    {currentRole === 'ketua-lppm'  && <NavKetuaLppm />}
+                    {currentRole === 'reviewer'    && <NavReviewer showMenu={showMenu}/>}
+                    {currentRole === 'super-admin' && <NavSuperAdmin showMenu={showMenu} />}
 
-                            {/* Mega dropdown */}
-                            <div className="invisible absolute top-full left-0 z-50 mt-2 w-[calc(100vw-2rem)] max-w-[1200px] translate-y-1 rounded-xl border border-gray-200 bg-white p-6 opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
-                                    {/* Penelitian - Dosen */}
-                                    {showDosenPenelitian && (
-                                        <div className="col-span-2 grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                            <div>
-                                                <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
-                                                    Penelitian
-                                                </h4>
-                                                <ul className="space-y-2 text-sm text-gray-700">
-                                                    {[
-                                                        { name: 'Usulan', href: '/pt-penelitian', slug: 'pt-penelitian' },
-                                                        { name: 'Perbaikan Usulan', href: '/pt-penelitian/perbaikan', slug: 'pt-penelitian-perbaikan' },
-                                                    ]
-                                                        .filter((item) => showMenu(item.slug))
-                                                        .map((item) => (
-                                                            <li key={item.name}>
-                                                                <Link href={item.href} className="hover:text-blue-700">
-                                                                    {item.name}
-                                                                </Link>
-                                                            </li>
-                                                        ))}
-                                                </ul>
-                                            </div>
-
-                                        <div>
-                                            <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
-                                                Pengabdian
-                                            </h4>
-                                            <ul className="space-y-2 text-sm text-gray-700">
-                                                {/* Placeholder pengabdian; adjust when menus tersedia */}
-                                                {[
-                                                    { name: 'Usulan', href: '/pt-pengabdian' },
-                                                ].map((item) => (
-                                                    <li key={item.name}>
-                                                        <Link href={item.href} className="hover:text-blue-700">
-                                                            {item.name}
-                                                        </Link>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                        </div>
-                                    )}
-
-                                    {/* Penelitian - Admin PT */}
-                                    {(showAdminPenelitian || showAssignReviewer) && (
-                                        <>
-                                            <div>
-                                                <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
-                                                    Penelitian
-                                                </h4>
-                                                <ul className="space-y-2 text-sm text-gray-700">
-                                                    {[
-                                                        { name: 'Usulan Regular', href: '/admin/pt-penelitian', visible: showAdminPenelitian },
-                                                        { name: 'Assign Reviewer', href: '/admin/pt-penelitian/assign-reviewer', visible: showAssignReviewer },
-                                                        { name: 'Catatan Harian', href: '/admin/pt-penelitian/catatan-harian', visible: true },
-                                                        { name: 'Perbaikan Usulan', href: '/admin/pt-penelitian/perbaikan', visible: true },
-                                                        { name: 'Laporan Kemajuan', href: '/admin/pt-penelitian/laporan-kemajuan', visible: true },
-                                                        { name: 'Laporan Akhir', href: '/admin/pt-penelitian/laporan-akhir', visible: true },
-                                                        { name: 'Monitoring Pelaksanaan', href: '/admin/pt-penelitian/monitoring', visible: true },
-                                                    ].filter((item) => item.visible !== false).map((item) => (
-                                                        <li key={item.name}>
-                                                            <Link href={item.href} className="hover:text-blue-700">
-                                                                {item.name}
-                                                            </Link>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                            <div>
-                                                <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
-                                                    Pengabdian
-                                                </h4>
-                                                <ul className="space-y-2 text-sm text-gray-700">
-                                                    {[
-                                                        { name: 'Usulan Regular', href: '/admin/pt-pengabdian' },
-                                                        { name: 'Catatan Harian', href: '/admin/pt-pengabdian/catatan-harian' },
-                                                        { name: 'Perbaikan Usulan', href: '/admin/pt-pengabdian/perbaikan' },
-                                                        { name: 'Laporan Kemajuan', href: '/admin/pt-pengabdian/laporan-kemajuan' },
-                                                        { name: 'Laporan Akhir', href: '/admin/pt-pengabdian/laporan-akhir' },
-                                                        { name: 'Monitoring Pelaksanaan', href: '/admin/pt-pengabdian/monitoring' },
-                                                    ].map((item) => (
-                                                        <li key={item.name}>
-                                                            <Link href={item.href} className="hover:text-blue-700">
-                                                                {item.name}
-                                                            </Link>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </>
-                                    )}
-                                    {isKetuaLppm && showMenu('admin-pt-penelitian') && (
-                                        <div>
-                                            <h4 className="mb-3 text-base font-semibold text-[#1f3a8a]">
-                                                Monitoring LPPM
-                                            </h4>
-                                            <ul className="space-y-2 text-sm text-gray-700">
-                                                {[
-                                                    {
-                                                        name: 'Persetujuan Penelitian',
-                                                        href: '/admin/pt-penelitian',
-                                                    },
-                                                ].map((item) => (
-                                                    <li key={item.name}>
-                                                        <Link
-                                                            href={item.href}
-                                                            className="hover:text-blue-700"
-                                                        >
-                                                            {item.name}
-                                                        </Link>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                    {/* Admin PT right menu */}
+         
+                    {/* Extra Menus */}
+                    {/* {extraMenus.length > 0 && (
+                        <div className="ml-auto flex items-center gap-6">
+                            {extraMenus.map((menu: MenuItem) => (
+                                <Link key={menu.id} href={menu.href ?? '#'} className="inline-flex items-center gap-2 hover:text-blue-200">
+                                    {menu.name}
+                                </Link>
+                            ))}
                         </div>
-                    )}
+                    )} */}
 
-                    {/* Skema Aktif - Admin PT */}
-                    {isAdminPt && (
-                        <div className="flex items-center gap-2">
-                            <Link
-                                href="/admin/pt-skema"
-                                className="inline-flex items-center gap-1 hover:text-blue-200"
-                            >
-                                Skema Aktif
-                            </Link>
-                        </div>
-                    )}
-
-                    {isReviewer && showMenu('reviewer-dashboard') && (
-                        <div className="flex items-center gap-2">
-                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
-                                <ClipboardList className="h-5 w-5 text-white" />
-                            </span>
-                            <Link
-                                href="/reviewer/pt-penelitian"
-                                className="inline-flex items-center gap-1 hover:text-blue-200"
-                            >
-                                Review Proposal
-                            </Link>
-                        </div>
-                    )}
-
-                    <div className="ml-auto flex items-center gap-6">
-                       
-
-                        {showApprovals && (
-                            <Link
-                                href="/users/approvals"
-                                className="inline-flex items-center gap-2 hover:text-blue-200"
-                            >
-                                Approve Akun Baru
-                            </Link>
-                        )}
-
-                        {showSkema && (
-                            <Link
-                                href="/admin/pt-skema"
-                                className="inline-flex items-center gap-2 hover:text-blue-200"
-                            >
-                                Skema
-                            </Link>
-                        )}
-                        {showSkemaAktif && (
-                            <Link
-                                href="/admin/pt-skema"
-                                className="inline-flex items-center gap-2 hover:text-blue-200"
-                            >
-                                Skema Aktif
-                            </Link>
-                        )}
-
-                        {showRoleAssignment && (
-                            <Link
-                                href="/settings/role-assignment"
-                                className="inline-flex items-center gap-2 hover:text-blue-200"
-                            >
-                                Role Assignment
-                            </Link>
-                        )}
-                        {showRoleMenus && (
-                            <Link
-                                href="/settings/role-menus"
-                                className="inline-flex items-center gap-2 hover:text-blue-200"
-                            >
-                                Menu Akses Role
-                            </Link>
-                        )}
-                    </div>
                 </nav>
             </div>
         </div>
     );
 }
-
-function resolveDashboardUrl(currentRole: string | null, menus: MenuItem[]): string {
-    const prioritized = [
-        { role: 'super-admin', href: '/dashboard/super-admin' },
-        { role: 'ketua-lppm', href: '/dashboard/ketua-lppm' },
-        { role: 'admin-pt', href: '/dashboard/admin-pt' },
-        { role: 'reviewer', href: '/dashboard/reviewer' },
-        { role: 'dosen', href: '/dashboard/dosen' },
-    ];
-
-    const menuHref = menus.find((menu) => menu.slug === 'dashboard')?.href;
-
-    if (currentRole) {
-        const match = prioritized.find((item) => item.role === currentRole);
-        if (match) {
-            return match.href;
-        }
-    }
-
-    if (menuHref) {
-        return menuHref;
-    }
-
-    const fallback = prioritized[prioritized.length - 1];
-    return fallback.href;
-}
+ 

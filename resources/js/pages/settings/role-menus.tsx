@@ -179,13 +179,13 @@ export default function RoleMenusPage() {
                                 Pilih role kemudian centang menu yang boleh diakses. Setiap perubahan langsung diterapkan ke permission role.
                             </p>
                             {flash?.success && (
-                                <div className="inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                                <div className="inline-flex items-center gap-2  bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                                     <CheckCircle2 className="h-4 w-4" />
                                     {flash.success}
                                 </div>
                             )}
                         </div>
-                        <div className="rounded-xl border border-blue-100 bg-white px-4 py-3 shadow-sm">
+                        <div className=" border border-blue-100 bg-white px-4 py-3 shadow-sm">
                             <p className="text-xs font-semibold uppercase tracking-wide text-blue-800">
                                 Total Menu
                             </p>
@@ -222,7 +222,7 @@ export default function RoleMenusPage() {
                                             key={role.id}
                                             type="button"
                                             onClick={() => setActiveRoleId(role.id)}
-                                            className={`flex w-full items-center justify-between rounded-lg border px-3 py-3 text-left transition ${isActive ? 'border-indigo-200 bg-indigo-50 text-indigo-700 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                                            className={`flex w-full items-center justify-between  border px-3 py-3 text-left transition ${isActive ? 'border-indigo-200 bg-indigo-50 text-indigo-700 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'}`}
                                         >
                                             <div>
                                                 <p className="text-sm font-semibold">
@@ -334,7 +334,7 @@ export default function RoleMenusPage() {
                                     return (
                                         <label
                                             key={menu.key}
-                                            className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-xs transition hover:border-indigo-200"
+                                            className="flex items-start gap-3  border border-gray-200 bg-white px-4 py-3 shadow-xs transition hover:border-indigo-200"
                                         >
                                             <Checkbox
                                                 checked={checked}

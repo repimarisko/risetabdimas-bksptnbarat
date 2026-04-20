@@ -15,13 +15,24 @@ class LoginResponse implements LoginResponseContract
      */
     public function toResponse($request)
     {
-        $redirectUrl = $request instanceof Request
-            ? $this->resolveSecureRedirectUrl($request)
-            : (string) Fortify::redirects('login');
+        $default = (string) Fortify::redirects('login');
+
+        $target = $request instanceof Request && $request->hasSession()
+            ? $request->session()->pull('url.intended', $default)
+            : $default;
+
+        if (! is_string($target) || trim($target) === '') {
+            $target = $default;
+        }
+
+        // Ikuti force_https dari config — tidak hardcode
+        if (config('app.force_https')) {
+            $target = preg_replace('/^http:\/\//i', 'https://', $target, 1) ?? $default;
+        }
 
         return $request->wantsJson()
             ? response()->json(['two_factor' => false])
-            : redirect()->to($redirectUrl);
+            : redirect()->to($target);
     }
 
     protected function resolveSecureRedirectUrl(Request $request): string
@@ -74,7 +85,7 @@ class LoginResponse implements LoginResponseContract
 
     protected function buildSecureAbsoluteUrl(string $path): string
     {
-        $normalizedPath = '/'.ltrim($path, '/');
+        $normalizedPath = '/' . ltrim($path, '/');
 
         return url($normalizedPath, [], true);
     }

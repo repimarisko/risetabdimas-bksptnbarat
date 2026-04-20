@@ -108,7 +108,7 @@ export default function MenuSettingsPage() {
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="lg:col-span-2 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <div className="lg:col-span-2 overflow-hidden  border border-gray-200 bg-white shadow-sm">
                         <div className="grid grid-cols-5 bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
                             <div className="col-span-2">Menu</div>
                             <div>Slug</div>
@@ -131,7 +131,7 @@ export default function MenuSettingsPage() {
                                             menu.roles.map((role) => (
                                                 <span
                                                     key={role}
-                                                    className="rounded-full bg-indigo-50 px-2 py-1 font-semibold text-indigo-700"
+                                                    className=" bg-indigo-50 px-2 py-1 font-semibold text-indigo-700"
                                                 >
                                                     {role}
                                                 </span>
@@ -144,7 +144,7 @@ export default function MenuSettingsPage() {
                                         <button
                                             type="button"
                                             onClick={() => startEdit(menu)}
-                                            className="rounded-lg border border-gray-200 bg-white p-2 text-gray-600 hover:border-indigo-200 hover:text-indigo-700"
+                                            className=" border border-gray-200 bg-white p-2 text-gray-600 hover:border-indigo-200 hover:text-indigo-700"
                                             title="Edit"
                                         >
                                             <Edit2 className="h-4 w-4" />
@@ -152,7 +152,7 @@ export default function MenuSettingsPage() {
                                         <button
                                             type="button"
                                             onClick={() => handleDelete(menu.id)}
-                                            className="rounded-lg border border-rose-200 bg-white p-2 text-rose-500 hover:bg-rose-50"
+                                            className=" border border-rose-200 bg-white p-2 text-rose-500 hover:bg-rose-50"
                                             title="Hapus"
                                         >
                                             <Trash className="h-4 w-4" />
@@ -168,7 +168,7 @@ export default function MenuSettingsPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-4">
+                    <div className=" border border-gray-200 bg-white p-5 shadow-sm space-y-4">
                         <div className="flex items-center gap-2 text-gray-900 font-semibold">
                             <Plus className="h-5 w-5 text-indigo-600" />
                             {editingId ? 'Edit Menu' : 'Tambah Menu'}
@@ -194,7 +194,7 @@ export default function MenuSettingsPage() {
                                                 key={role}
                                                 type="button"
                                                 onClick={() => handleToggleRole(role)}
-                                                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                                                className={` px-3 py-1 text-xs font-semibold transition ${
                                                     selected
                                                         ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
                                                         : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
@@ -211,7 +211,7 @@ export default function MenuSettingsPage() {
                             <button
                                 type="button"
                                 onClick={handleSubmit}
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
+                                className="inline-flex w-full items-center justify-center gap-2  bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
                             >
                                 <Save className="h-4 w-4" />
                                 {editingId ? 'Update Menu' : 'Simpan Menu'}
@@ -220,7 +220,7 @@ export default function MenuSettingsPage() {
                                 <button
                                     type="button"
                                     onClick={resetForm}
-                                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                                    className=" border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                                 >
                                     Batal
                                 </button>
@@ -248,7 +248,7 @@ function Input({ label, value, onChange, type = 'text' }: InputProps) {
                 type={type}
                 value={value ?? ''}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                className="w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
             />
         </div>
     );

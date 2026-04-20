@@ -16,6 +16,7 @@ type PenelitianItem = {
     biaya_usulan_3?: number | null;
     biaya_usulan_4?: number | null;
     created_at?: string | null;
+    approved_at?: string | null;
 };
 
 type PageProps = SharedData & {
@@ -49,6 +50,7 @@ function getStatusMeta(status?: string | null) {
         case 'mengajukan':
             return { label: 'Mengajukan', badgeClass: 'bg-blue-100 text-blue-700' };
         case 'disetujui':
+            return { label: 'disetujui', badgeClass: 'bg-green-100 text-green-700'  };
         case 'didanai':
             return { label: 'Didanai', badgeClass: 'bg-green-100 text-green-700' };
         case 'ditolak':
@@ -125,22 +127,22 @@ export default function PenelitianIndexAll() {
                             {showDeletedLink ? (
                                 <Link
                                     href="/admin/pt-penelitian/deleted"
-                                    className="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 shadow-sm transition hover:bg-rose-100"
+                                    className="inline-flex items-center gap-2 border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700  transition hover:bg-rose-100"
                                 >
                                     Arsip Dihapus
                                 </Link>
                             ) : null}
                             <a
                                 href="/admin/pt-penelitian/export"
-                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100"
+                                className="inline-flex items-center gap-2   border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700  transition hover:bg-gray-100"
                             >
                                 {exportLabel}
                             </a>
                         </div>
                     </div>
-
-                    {!showDeletedLink && deletedPenelitian.length > 0 ? (
-                        <div className="mb-6 overflow-hidden rounded-2xl border border-rose-100 bg-rose-50 shadow-sm">
+                            
+                    {/* {!showDeletedLink && deletedPenelitian.length > 0 ? (
+                        <div className="mb-6 overflow-hidden  border border-rose-100 bg-rose-50 ">
                             <div className="flex items-center justify-between px-6 py-4">
                                 <div>
                                     <h2 className="text-sm font-semibold text-rose-700">
@@ -150,7 +152,7 @@ export default function PenelitianIndexAll() {
                                         Daftar singkat 10 terakhir. Hubungi admin jika perlu pemulihan.
                                     </p>
                                 </div>
-                                <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                                <span className=" bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
                                     {deletedPenelitian.length} item
                                 </span>
                             </div>
@@ -168,9 +170,9 @@ export default function PenelitianIndexAll() {
                                 ))}
                             </div>
                         </div>
-                    ) : null}
+                    ) : null} */}
 
-                    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+                    <div className="overflow-hidden  border border-gray-200 bg-white">
                         {penelitian?.data?.length ? (
                             <div className="overflow-x-auto">
                                 <table className="min-w-full text-left text-sm text-gray-900">
@@ -197,7 +199,7 @@ export default function PenelitianIndexAll() {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase ${statusMeta.badgeClass}`}>
+                                                        <span className={`inline-flex items-center  px-3 py-1 text-xs font-semibold uppercase ${statusMeta.badgeClass}`}>
                                                             {statusMeta.label}
                                                         </span>
                                                     </td>
@@ -231,21 +233,21 @@ export default function PenelitianIndexAll() {
                                                         <div className="flex flex-wrap items-center justify-end gap-2">
                                                             <button
                                                                 onClick={() => handleStatusChange(item.uuid, 'approve')}
-                                                                className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300"
+                                                                className=" bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white  transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300"
                                                                 disabled={item.status?.toLowerCase().includes('disetujui')}
                                                             >
                                                                 Setujui
                                                             </button>
                                                             <button
                                                                 onClick={() => handleStatusChange(item.uuid, 'reject')}
-                                                                className="rounded-lg bg-rose-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
+                                                                className=" bg-rose-500 px-3 py-1.5 text-xs font-semibold text-white  transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
                                                                 disabled={item.status?.toLowerCase().includes('ditolak')}
                                                             >
                                                                 Tolak
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDelete(item.uuid)}
-                                                                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
+                                                                className=" border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
                                                             >
                                                                 Hapus
                                                             </button>

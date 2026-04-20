@@ -59,7 +59,7 @@ export default function Login({
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="ml-auto text-black text-sm text-blue-600 hover:text-blue-700"
+                                            className="ml-auto text-black text-sm  hover:text-blue-700"
                                             tabIndex={5}
                                         >
                                             Lupa kata sandi?
@@ -90,7 +90,7 @@ export default function Login({
 
                             <Button
                                 type="submit"
-                                className="mt-2 w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm"
+                                className="mt-2 w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold  shadow-sm"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"

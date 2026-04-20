@@ -1,42 +1,81 @@
 # Riset Abdimas BKS PTN Barat
 
-Setup cepat untuk menjalankan aplikasi Laravel + Vite di Docker.
+Setup Docker produksi dengan ketentuan:
+- MySQL berjalan internal Docker (service `mysql`).
+- Import database otomatis dari file `sql.sql` saat inisialisasi pertama.
+- Aplikasi berjalan pada service `app` (App + Web Server).
+- Adminer berjalan sebagai service internal dan diproxy lewat aplikasi.
+- Aplikasi diakses lewat port `9090`.
 
 ## Prasyarat
 - Docker dan Docker Compose (plugin bawaan Docker Desktop sudah cukup).
+- File dump database tersedia di root project dengan nama `sql.sql`.
 
-## Langkah awal
-1. Review dan sesuaikan nilai di `.env.docker` (APP_URL, DB_HOST ke IP/hostname VM MySQL, DB_*, dsb). APP_KEY dibiarkan kosong dulu.
-2. Build image:  
-   ```bash
-   docker compose build
-   ```
-3. Install dependency PHP:  
-   ```bash
-   docker compose run --rm web composer install
-   ```
-4. (Opsional, hanya pertama kali) siapkan dependency JS agar volume `node_modules` terisi:  
-   ```bash
-   docker compose run --rm vite npm install
-   ```
-5. Buat APP_KEY dan tempel ke `.env.docker`:  
-   ```bash
-   docker compose run --rm web php artisan key:generate --ansi --show
-   ```
-6. Jalankan seluruh stack (Nginx+PHP-FPM dalam satu kontainer, Vite dev server; MySQL di VM terpisah):  
-   ```bash
-   docker compose up -d
-   ```
-7. Migrasi database:  
-   ```bash
-   docker compose exec web php artisan migrate --force
-   ```
+## Konfigurasi `.env.docker`
+Pastikan nilai DB mengarah ke service MySQL internal:
 
-Backend dapat diakses di http://localhost:8000 dan Vite HMR di http://localhost:5173.
+```env
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=db_risetabdimas_bksptnbarat
+DB_USERNAME=docker
+DB_PASSWORD=us3R@dev.2025
+```
 
-## Perintah tambahan
-- Hentikan kontainer: `docker compose down`
-- Lihat log: `docker compose logs -f web` atau `docker compose logs -f vite`
-- Build aset produksi: `docker compose run --rm vite npm run build`
+`APP_URL` juga harus mengarah ke:
 
-> Catatan: kontainer menggunakan env dari `.env.docker`, jadi `.env` pribadi Anda tidak disentuh.
+```env
+APP_URL=http://localhost:9090
+```
+
+## Jalankan
+Build dan jalankan container:
+
+```bash
+docker compose up -d --build
+```
+
+Import `sql.sql` dijalankan otomatis oleh container MySQL saat volume database masih kosong (first run).
+
+## Verifikasi Menyeluruh
+Pastikan service `app`, `mysql`, dan `adminer` aktif:
+
+```bash
+docker compose ps
+```
+
+Lihat log aplikasi:
+
+```bash
+docker compose logs -f app
+```
+
+Lihat log import MySQL:
+
+```bash
+docker compose logs -f mysql
+```
+
+Akses aplikasi:
+
+```text
+http://localhost:9090
+```
+
+Akses Adminer:
+
+```text
+http://localhost:9090/adminer.php
+```
+
+Jika dipasang di domain production, path-nya tetap:
+
+```text
+https://risetabdimas-bksptnbarat.unand.ac.id/adminer.php
+```
+
+## Perintah Tambahan
+- Jalankan migrasi: `docker compose exec app php artisan migrate --force`
+- Stop container: `docker compose down`
+- Reset DB + import ulang `sql.sql`: `docker compose down -v && docker compose up -d --build`

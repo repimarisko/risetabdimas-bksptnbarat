@@ -40,7 +40,7 @@ export default function AuthCustomLayout({
                 {/* Content Section */}
                 <section className="flex flex-1 items-center justify-center px-6 py-16">
                     <div className="w-full max-w-md">
-                        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-8">
+                        <div className=" border border-gray-200 bg-gray-50 p-8">
                             <div className="mb-6 space-y-2">
                                 <h2 className="text-2xl font-bold text-gray-900">
                                     {title}

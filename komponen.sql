@@ -1,0 +1,137 @@
+-- Adminer 5.3.0 MariaDB 10.11.6-MariaDB-0+deb12u1 dump
+
+SET NAMES utf8;
+SET time_zone = '+00:00';
+SET foreign_key_checks = 0;
+SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
+
+SET NAMES utf8mb4;
+
+DROP TABLE IF EXISTS `pt_komponen_biaya`;
+CREATE TABLE `pt_komponen_biaya` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id_komponen_rab` int(11) DEFAULT NULL,
+  `jenis` varchar(10) DEFAULT NULL,
+  `nama` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `keterangan` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+INSERT INTO `pt_komponen_biaya` (`id`, `id_komponen_rab`, `jenis`, `nama`, `keterangan`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1,	1,	'P',	'ATK',	'',	'2023-10-15 07:18:32',	'2023-11-09 19:02:14',	NULL),
+(2,	1,	'P',	'Bahan Penelitian',	'',	'2023-11-09 19:02:27',	'2025-02-24 07:07:51',	NULL),
+(3,	1,	'P',	'Barang Persediaan',	'',	'2023-11-09 19:02:45',	'2023-11-09 19:02:45',	NULL),
+(4,	2,	'P',	'FGD Persiapan Penelitian',	'',	NULL,	'2025-02-24 07:08:27',	NULL),
+(5,	2,	'P',	'HR Pembantu Peneliti',	NULL,	NULL,	NULL,	NULL),
+(6,	2,	'P',	'HR Sekretaris/Administrasi Penelitian',	NULL,	NULL,	NULL,	NULL),
+(7,	2,	'P',	'HR Petugas Survei',	NULL,	NULL,	NULL,	NULL),
+(8,	2,	'P',	'Transport',	NULL,	NULL,	NULL,	NULL),
+(9,	2,	'P',	'Tiket Bus/Travel',	NULL,	NULL,	NULL,	NULL),
+(10,	2,	'P',	'Tiket Pesawat',	NULL,	NULL,	NULL,	NULL),
+(11,	2,	'P',	'Penginapan',	NULL,	NULL,	NULL,	NULL),
+(12,	2,	'P',	'Uang harian rapat di dalam kantor',	NULL,	NULL,	NULL,	NULL),
+(13,	2,	'P',	'Uang harian rapat di luar kantor',	NULL,	NULL,	NULL,	NULL),
+(14,	2,	'P',	'Biaya Konsumsi',	NULL,	NULL,	NULL,	NULL),
+(15,	2,	'P',	'HR Pembantu Lapangan',	NULL,	NULL,	NULL,	NULL),
+(16,	3,	'P',	'Peralatan penelitian',	NULL,	NULL,	NULL,	NULL),
+(17,	3,	'P',	'Kebun percobaan',	NULL,	NULL,	NULL,	NULL),
+(18,	3,	'P',	'Obyek Penelitian',	NULL,	NULL,	NULL,	NULL),
+(19,	3,	'P',	'Ruang penunjang penelitian',	NULL,	NULL,	NULL,	NULL),
+(20,	3,	'P',	'Transport Penelitian',	NULL,	NULL,	NULL,	NULL),
+(21,	4,	'P',	'HR Sekretaris/Administrasi Penelitian',	NULL,	NULL,	NULL,	NULL),
+(22,	4,	'P',	'HR Pengolah Data',	NULL,	NULL,	NULL,	NULL),
+(23,	4,	'P',	'Honorarium narasumber',	NULL,	NULL,	NULL,	NULL),
+(24,	4,	'P',	'Biaya analisis sampel',	NULL,	NULL,	NULL,	NULL),
+(25,	4,	'P',	'Tiket',	NULL,	NULL,	NULL,	NULL),
+(26,	4,	'P',	'Uang Harian',	NULL,	NULL,	NULL,	NULL),
+(27,	4,	'P',	'Transport Lokal',	NULL,	NULL,	NULL,	NULL),
+(28,	4,	'P',	'Penginapan',	NULL,	NULL,	NULL,	NULL),
+(29,	4,	'P',	'Biaya Konsumsi Rapat',	NULL,	NULL,	NULL,	NULL),
+(30,	5,	'P',	'HR Sekretaris/Administrasi Penelitian',	NULL,	NULL,	NULL,	NULL),
+(31,	5,	'P',	'Uang harian rapat di dalam kantor',	NULL,	NULL,	NULL,	NULL),
+(32,	5,	'P',	'Uang harian rapat di luar kantor',	NULL,	NULL,	NULL,	NULL),
+(33,	5,	'P',	'Biaya Konsumsi Rapat',	NULL,	NULL,	NULL,	NULL),
+(34,	5,	'P',	'Biaya Seminar Nasional',	NULL,	NULL,	NULL,	NULL),
+(35,	5,	'P',	'Biaya Seminar Internasional',	NULL,	NULL,	NULL,	NULL),
+(36,	5,	'P',	'Biaya Publikasi Artikel di Jurnal Nasional',	NULL,	NULL,	NULL,	NULL),
+(37,	5,	'P',	'Biaya Publikasi artikel di Jurnal Internasional',	NULL,	NULL,	NULL,	NULL),
+(38,	5,	'P',	'Luaran KI (paten, hak cipta)',	NULL,	NULL,	NULL,	NULL),
+(39,	5,	'P',	'Biaya Luaran IPTEK Lainnya (purwa rupa, TTG)',	NULL,	NULL,	NULL,	NULL),
+(40,	5,	'P',	'Biaya pembuatan dokumen feasibility study',	NULL,	NULL,	NULL,	NULL),
+(41,	5,	'P',	'Biaya Penyusunan Buku termasuk Book Chapter',	NULL,	NULL,	NULL,	NULL),
+(42,	5,	'P',	'Peralatan dan mesin',	NULL,	NULL,	NULL,	NULL),
+(43,	6,	'P',	'Dan Lain-lain',	NULL,	NULL,	NULL,	NULL),
+(44,	6,	'P',	'Biaya penulisan artikel jurnal nasional',	NULL,	NULL,	NULL,	NULL),
+(45,	6,	'P',	'Biaya penulisan artikel jurnal internasional',	NULL,	NULL,	NULL,	NULL),
+(46,	4,	'P',	'Biaya Analisis Data',	NULL,	NULL,	NULL,	NULL),
+(47,	7,	'PkM',	'Pengadaan Alat & Teknologi',	'',	NULL,	'2026-03-28 02:37:46',	NULL),
+(48,	7,	'PkM',	'Pengabdian-Bahan Baku Produksi',	NULL,	NULL,	NULL,	NULL),
+(49,	8,	'PkM',	'Pengabdian-Biaya pembuatan dokumen poster',	NULL,	NULL,	NULL,	NULL),
+(50,	8,	'PkM',	'Pengabdian-Biaya pembuatan dokumen video',	NULL,	NULL,	NULL,	NULL),
+(51,	8,	'PkM',	'Pengabdian-Biaya pendaftaran Luaran KI berupa paten',	NULL,	NULL,	NULL,	NULL),
+(52,	8,	'PkM',	'Pengabdian-Biaya Publikasi artikel di Jurnal Nasional',	NULL,	NULL,	NULL,	NULL),
+(53,	8,	'PkM',	'Pengabdian-Biaya publikasi di media masa',	NULL,	NULL,	NULL,	NULL),
+(54,	11,	'PkM',	'Transport Pengabdian-HR Pembantu lapangan',	'',	NULL,	'2026-03-28 02:26:12',	NULL),
+(55,	10,	'PkM',	'Pengabdian-Biaya Paket Ruangan dan Konsumsi',	NULL,	NULL,	NULL,	NULL),
+(56,	11,	'PkM',	'Pengabdian-Transport Lokal',	NULL,	NULL,	NULL,	NULL),
+(57,	12,	'PkM',	'Pengabdian-HR Pembantu teknis/ Asisten Pelaksanaan kegiatan',	NULL,	NULL,	NULL,	NULL),
+(58,	12,	'PkM',	'Pengabdian-Uang Harian',	NULL,	NULL,	NULL,	NULL),
+(59,	13,	'PkM',	'Pengabdian-Biaya Konsumsi',	NULL,	NULL,	NULL,	NULL),
+(61,	6,	'P',	'Honor peneliti Posdoctoral (Rp.4.500.000/bulan)',	NULL,	NULL,	NULL,	NULL),
+(62,	1,	'PkM',	'Bahan Pengabdian',	'',	'2025-02-24 07:08:03',	'2025-02-24 07:08:03',	NULL),
+(63,	2,	'PkM',	'FGD Persiapan Pengabdian',	'',	'2025-02-24 07:08:43',	'2025-02-24 07:08:43',	NULL),
+(64,	1,	'PkM',	'Barang Persediaan',	'',	'2025-02-24 07:09:20',	'2025-02-24 07:09:20',	NULL),
+(65,	1,	'PkM',	'ATK',	'',	'2025-02-24 07:09:45',	'2025-02-24 07:09:45',	NULL),
+(66,	1,	'PkM',	'Bahan Pengabdian',	'',	'2025-02-24 07:16:28',	'2025-02-24 07:16:28',	NULL),
+(67,	3,	'PkM',	'Sewa Transportasi',	'',	'2025-02-24 07:18:15',	'2025-02-24 07:34:44',	NULL),
+(68,	15,	'PkM',	'Honor Ketua Pelaksana',	'Honor untuk ketua pelaksana penelitian',	'2026-03-26 02:16:42',	'2026-03-26 02:22:37',	NULL),
+(69,	15,	'PkM',	'Honor anggota pelaksana',	'Honor untuk anggota pelaksana penelitian',	'2026-03-26 02:17:35',	'2026-03-26 02:22:49',	NULL),
+(70,	15,	'PkM',	'Honor mahasiswa',	'Honor untuk anggota mahasiswa penelitian',	'2026-03-26 02:17:57',	'2026-03-26 02:23:04',	NULL),
+(71,	15,	'PkM',	'Honor tenaga administrasi',	'Honor tenaga administrasi/keuangan penelitian',	'2026-03-26 02:18:52',	'2026-03-26 02:24:52',	NULL),
+(72,	16,	'P',	'Honor Ketua Pelaksana',	'',	'2026-03-26 02:54:36',	'2026-03-26 02:57:28',	NULL),
+(73,	16,	'P',	'Honor anggota pelaksana',	'',	'2026-03-26 02:54:47',	'2026-03-26 02:57:20',	NULL),
+(74,	16,	'P',	'Honor mahasiswa',	'',	'2026-03-26 02:54:58',	'2026-03-26 02:57:12',	NULL),
+(75,	16,	'P',	'Honor tenaga administrasi',	'',	'2026-03-26 02:55:11',	'2026-03-26 02:57:03',	NULL),
+(76,	11,	'PkM',	'Transportasi',	'',	'2026-03-28 02:13:41',	'2026-03-28 02:13:41',	NULL),
+(77,	11,	'PkM',	'Akomodasi/Penginapan',	'',	'2026-03-28 02:14:23',	'2026-03-28 02:14:23',	NULL),
+(78,	11,	'PkM',	'Uang Harian',	'',	'2026-03-28 02:14:55',	'2026-03-28 02:14:55',	NULL),
+(79,	11,	'PkM',	'Biaya tol/parkir',	'',	'2026-03-28 02:15:24',	'2026-03-28 02:15:24',	NULL),
+(80,	11,	'PkM',	'Biaya Pengiriman & Logistik',	'',	'2026-03-28 02:15:43',	'2026-03-28 02:15:43',	NULL),
+(81,	11,	'PkM',	'Sewa Kendaraan/Driver',	'',	'2026-03-28 02:16:08',	'2026-03-28 02:16:08',	NULL),
+(82,	13,	'PkM',	'Honorarium Narasumber & Instruktur',	'',	'2026-03-28 02:21:43',	'2026-03-28 02:21:43',	NULL),
+(83,	13,	'PkM',	'Bahan & Perlengkapan Pelatihan',	'',	'2026-03-28 02:23:26',	'2026-03-28 02:23:26',	NULL),
+(84,	13,	'PkM',	'Sewa Tempat & Peralatan',	'',	'2026-03-28 02:23:40',	'2026-03-28 02:23:40',	NULL),
+(85,	13,	'PkM',	'Transport Lokal Peserta/Narasumber',	'',	'2026-03-28 02:24:23',	'2026-03-28 02:24:23',	NULL),
+(86,	7,	'PkM',	'Pengembangan Produk/Inovasi',	'',	'2026-03-28 02:34:58',	'2026-03-28 02:34:58',	NULL),
+(87,	7,	'PkM',	'Software & Sistem Digital',	'',	'2026-03-28 02:35:17',	'2026-03-28 02:35:17',	NULL),
+(88,	7,	'PkM',	'Bahan Habis Pakai untuk Inovasi',	'',	'2026-03-28 02:35:58',	'2026-03-28 02:35:58',	NULL);
+
+DROP TABLE IF EXISTS `ref_komponen_rab`;
+CREATE TABLE `ref_komponen_rab` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `jenis` varchar(4) DEFAULT NULL,
+  `nama_komponen` text DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `ref_komponen_rab` (`id`, `jenis`, `nama_komponen`) VALUES
+(1,	'P',	'Bahan '),
+(2,	'P',	'Pengumpulan Data'),
+(3,	'P',	'Sewa '),
+(4,	'P',	'Analisis Data'),
+(5,	'P',	'Pelaporan, Luaran Wajib, dan Luaran Tambahan'),
+(6,	'P',	'Honorarium'),
+(7,	'PkM',	'Teknologi dan Inovasi Pengabdian'),
+(8,	'PkM',	'Biaya Lainnya Pengabdian'),
+(9,	NULL,	'Biaya Updah dan Jasa Pengabdian'),
+(10,	'',	'Biaya Pelatihan Pengabdian'),
+(11,	'PkM',	'Biaya Perjalanan Pengabdian'),
+(12,	'PkM',	'Biaya Upah dan Jasa Pengabdian'),
+(13,	'PkM',	'Biaya Pelatihan Pengabdian'),
+(15,	'PkM',	'Belanja Pegawai Pengabdian'),
+(16,	'P',	'Belanja Pegawai');
+
+-- 2026-04-20 03:21:51 UTC

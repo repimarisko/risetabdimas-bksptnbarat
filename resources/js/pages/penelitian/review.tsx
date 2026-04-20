@@ -103,7 +103,7 @@ export default function PenelitianReviewPage() {
 
             <div className="bg-gray-50">
                 <div className="mx-auto max-w-6xl px-4 py-10 space-y-6">
-                    <header className="rounded-2xl bg-white p-6 shadow-sm border border-gray-200">
+                    <header className=" bg-white p-6 shadow-sm border border-gray-200">
                         <div className="flex items-start justify-between gap-4">
                             <div>
                                 <p className="text-xs uppercase tracking-wide text-gray-500">
@@ -121,7 +121,7 @@ export default function PenelitianReviewPage() {
                             </div>
                             <Link
                                 href={`/pt-penelitian/${penelitian.uuid}/preview`}
-                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"
+                                className="inline-flex items-center gap-2  border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"
                             >
                                 Lihat Proposal
                             </Link>
@@ -130,7 +130,7 @@ export default function PenelitianReviewPage() {
 
                     <div className="grid gap-6 lg:grid-cols-3">
                         <section className="lg:col-span-2 space-y-6">
-                            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+                            <div className=" border border-gray-200 bg-white p-6 shadow-sm space-y-4">
                                 <div className="flex items-center gap-2 text-gray-900 font-semibold">
                                     <ClipboardList className="h-5 w-5 text-indigo-600" />
                                     Penilaian
@@ -146,7 +146,7 @@ export default function PenelitianReviewPage() {
                                             max={100}
                                             value={form.skor_kualitas ?? ''}
                                             onChange={(e) => handleChange('skor_kualitas', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                                            className="mt-1 w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                                             placeholder="Contoh: 85"
                                         />
                                     </div>
@@ -160,14 +160,14 @@ export default function PenelitianReviewPage() {
                                             max={100}
                                             value={form.skor_rab ?? ''}
                                             onChange={(e) => handleChange('skor_rab', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                                            className="mt-1 w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                                             placeholder="Contoh: 80"
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+                            <div className=" border border-gray-200 bg-white p-6 shadow-sm space-y-4">
                                 <div className="flex items-center gap-2 text-gray-900 font-semibold">
                                     <ClipboardList className="h-5 w-5 text-indigo-600" />
                                     Bobot Penilaian (dummy)
@@ -176,7 +176,7 @@ export default function PenelitianReviewPage() {
                                     {weightList.map((item) => (
                                         <div
                                             key={item.key}
-                                            className="rounded-lg border border-gray-100 bg-gray-50 p-3"
+                                            className=" border border-gray-100 bg-gray-50 p-3"
                                         >
                                             <p className="text-sm font-semibold text-gray-900">{item.label}</p>
                                             <p className="text-xs text-gray-500">Bobot: {item.weight}%</p>
@@ -188,7 +188,7 @@ export default function PenelitianReviewPage() {
                                 </p>
                             </div>
 
-                            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+                            <div className=" border border-gray-200 bg-white p-6 shadow-sm space-y-4">
                                 <div className="flex items-center gap-2 text-gray-900 font-semibold">
                                     <MessageSquare className="h-5 w-5 text-indigo-600" />
                                     Catatan Reviewer
@@ -202,7 +202,7 @@ export default function PenelitianReviewPage() {
                                             rows={3}
                                             value={form.catatan_umum ?? ''}
                                             onChange={(e) => handleChange('catatan_umum', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                                            className="mt-1 w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                                             placeholder="Tuliskan evaluasi umum proposal..."
                                         />
                                     </div>
@@ -214,7 +214,7 @@ export default function PenelitianReviewPage() {
                                             rows={3}
                                             value={form.catatan_rab ?? ''}
                                             onChange={(e) => handleChange('catatan_rab', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                                            className="mt-1 w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                                             placeholder="Sorot revisi atau penyesuaian RAB..."
                                         />
                                     </div>
@@ -223,7 +223,7 @@ export default function PenelitianReviewPage() {
                         </section>
 
                         <aside className="space-y-4">
-                            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-4">
+                            <div className=" border border-gray-200 bg-white p-5 shadow-sm space-y-4">
                                 <div className="flex items-center gap-2 text-gray-900 font-semibold">
                                     <CheckCircle className="h-5 w-5 text-indigo-600" />
                                     Rekomendasi
@@ -232,7 +232,7 @@ export default function PenelitianReviewPage() {
                                     {recommendationList.map(([value, label]) => (
                                         <label
                                             key={value}
-                                            className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 hover:border-indigo-400"
+                                            className="flex items-center gap-2  border border-gray-200 px-3 py-2 hover:border-indigo-400"
                                         >
                                             <input
                                                 type="radio"
@@ -248,7 +248,7 @@ export default function PenelitianReviewPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-3">
+                            <div className=" border border-gray-200 bg-white p-5 shadow-sm space-y-3">
                                 <div className="flex items-center gap-2 text-gray-900 font-semibold">
                                     <XCircle className="h-5 w-5 text-rose-500" />
                                     Aksi
@@ -256,7 +256,7 @@ export default function PenelitianReviewPage() {
                                 <button
                                     type="button"
                                     onClick={handleSubmit}
-                                    className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
+                                    className="w-full  bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
                                 >
                                     Simpan Review
                                 </button>

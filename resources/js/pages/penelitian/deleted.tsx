@@ -58,13 +58,13 @@ export default function DeletedPenelitian() {
                         </div>
                         <Link
                             href="/admin/pt-penelitian"
-                            className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100"
+                            className="inline-flex items-center gap-2  bg-white px-4 py-2 text-sm font-semibold text-gray-700  transition hover:bg-gray-100"
                         >
                             Kembali
                         </Link>
                     </div>
 
-                    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+                    <div className="overflow-hidden  border border-gray-200 bg-white ">
                         {penelitian?.data?.length ? (
                             <div className="overflow-x-auto">
                                 <table className="min-w-full text-left text-sm text-gray-900">
@@ -107,7 +107,7 @@ export default function DeletedPenelitian() {
                                                     <button
                                                         type="button"
                                                         onClick={() => handleRestore(item.uuid)}
-                                                        className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-500"
+                                                        className=" bg-emerald-600 px-3 py-2 text-xs font-semibold text-white  transition hover:bg-emerald-500"
                                                     >
                                                     Restore
                                                     </button>

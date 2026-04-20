@@ -31,9 +31,10 @@ COPY Docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 COPY Docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY Docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY Docker/nginx/default.conf /etc/nginx/conf.d/app.conf
 
 RUN rm -f /etc/nginx/sites-enabled/default || true \
+  && rm -rf /etc/nginx/conf.d/default.conf || true \
   && ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log
 

@@ -33,6 +33,7 @@ type StepTwoViewProps = {
     kelompokOptions: RabKelompokOption[];
     kelompokLookup: Record<string, RabKelompokOption>;
     lockedKetuaDosenUuid?: string;
+    skemaBudget?: { min: number | null; max: number | null };
     onBack: () => void;
     onNext: () => void;
     onAddAnggota: () => void;
@@ -132,7 +133,7 @@ function SearchableSelect({
                     }}
                     placeholder={placeholder}
                     disabled={disabled}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+                    className="w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-gray-100"
                 />
                 <button
                     type="button"
@@ -168,7 +169,7 @@ function SearchableSelect({
                 </button>
             </div>
             {open && !disabled ? (
-                <div className="absolute z-20 mt-1 max-h-52 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+                <div className="absolute z-20 mt-1 max-h-52 w-full overflow-auto  border border-gray-200 bg-white ">
                     {filteredOptions.length ? (
                         filteredOptions.map((option) => {
                             const isSelected = option.value === value;
@@ -227,11 +228,11 @@ export default function StepTwoView({
     removeRabItem,
 }: StepTwoViewProps) {
     return (
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-white   p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Anggota Penelitian & RAB
             </h2>
-            <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <div className="mb-6  border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 Anggota selain ketua akan menerima permintaan persetujuan
                 keikutsertaan. Proposal hanya dapat diajukan setelah seluruh anggota
                 menyetujui permintaan tersebut.
@@ -244,14 +245,14 @@ export default function StepTwoView({
                         </h3>
                         <button
                             onClick={onAddAnggota}
-                            className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                            className="px-4 py-2 bg-green-600 text-white text-sm font-medium  hover:bg-green-700 transition-colors"
                         >
                             + Tambah Anggota
                         </button>
                     </div>
 
                     {anggotaTim.length === 0 ? (
-                        <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                        <div className="text-center py-8 bg-gray-50  border-2 border-dashed border-gray-300">
                             <p className="text-gray-500">
                                 Belum ada anggota tim. Klik tombol di atas untuk menambah
                                 anggota.
@@ -268,7 +269,7 @@ export default function StepTwoView({
                                 return (
                                     <div
                                         key={index}
-                                        className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                                        className="border border-gray-200  p-4 bg-gray-50"
                                     >
                                         <div className="flex items-start gap-4">
                                             <div className="flex-1 space-y-4">
@@ -334,10 +335,10 @@ export default function StepTwoView({
                                                                 )
                                                             }
                                                             disabled={isKetuaLocked}
-                                                            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:cursor-not-allowed disabled:bg-gray-100"
+                                                            className="w-full px-3 py-2 text-sm  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:cursor-not-allowed disabled:bg-gray-100"
                                                         >
                                                             <option value="">Pilih peran...</option>
-                                                            {PERAN_OPTIONS.map((peran) => (
+                                                            {PERAN_OPTIONS.filter((p) => isKetuaLocked || p !== 'Ketua Peneliti' || anggota.peran === 'Ketua Peneliti').map((peran) => (
                                                                 <option key={peran} value={peran}>
                                                                     {peran}
                                                                 </option>
@@ -360,7 +361,7 @@ export default function StepTwoView({
                                                                 )
                                                             }
                                                             placeholder="Contoh: Analisis Data"
-                                                            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                                            className="w-full px-3 py-2 text-sm  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                                         />
                                                     </div>
                                                 </div>
@@ -402,13 +403,23 @@ export default function StepTwoView({
                     )}
                 </div>
 
-                <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        Rencana Anggaran Biaya (RAB)
-                    </h3>
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            Rencana Anggaran Biaya (RAB)
+                        </h3>
+                        {skemaBudget && (skemaBudget.min || skemaBudget.max) ? (
+                            <div className="text-sm font-medium px-4 py-2 bg-indigo-50 text-indigo-700  border border-indigo-100">
+                                Pagu Anggaran:{' '}
+                                {skemaBudget.min ? `Rp ${skemaBudget.min.toLocaleString('id-ID')}` : 'Rp 0'}{' '}
+                                -{' '}
+                                {skemaBudget.max ? `Rp ${skemaBudget.max.toLocaleString('id-ID')}` : 'Maksimal'}
+                            </div>
+                        ) : null}
+                    </div>
 
                     {!lamaWaktu ? (
-                        <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                        <div className="text-center py-8 bg-gray-50  border-2 border-dashed border-gray-300">
                             <p className="text-gray-500">
                                 Silakan isi lama waktu pelaksanaan di langkah sebelumnya
                                 terlebih dahulu.
@@ -425,7 +436,7 @@ export default function StepTwoView({
                                 return (
                                     <div
                                         key={year}
-                                        className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm"
+                                        className="border border-gray-200  p-4 bg-white shadow-sm"
                                     >
                                         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                                             <div>
@@ -438,7 +449,7 @@ export default function StepTwoView({
                                             <button
                                                 type="button"
                                                 onClick={() => addRabItem(year)}
-                                                className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
+                                                className="inline-flex items-center  bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
                                             >
                                                 + Tambah Baris
                                             </button>
@@ -484,7 +495,7 @@ export default function StepTwoView({
                                                                                 event.target.value,
                                                                             )
                                                                         }
-                                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                                                                        className="w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                                                                     >
                                                                         <option value="">Pilih kelompok...</option>
                                                                         {kelompokOptions.map((option) => (
@@ -521,7 +532,7 @@ export default function StepTwoView({
                                                                                     )
                                                                                 }
                                                                                 disabled={!item.kelompok_id}
-                                                                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                                                                                className="w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                                                                             >
                                                                                 <option value="">
                                                                                     {item.kelompok_id
@@ -553,7 +564,7 @@ export default function StepTwoView({
                                                                             )
                                                                         }
                                                                         placeholder="Contoh: Honor ketua peneliti"
-                                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                                                                        className="w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                                                                     />
                                                                 </td>
                                                                 <td className="px-4 py-3">
@@ -571,7 +582,7 @@ export default function StepTwoView({
                                                                             )
                                                                         }
                                                                         placeholder="0"
-                                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                                                                        className="w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                                                                     />
                                                                 </td>
                                                                 <td className="px-4 py-3">
@@ -589,7 +600,7 @@ export default function StepTwoView({
                                                                             )
                                                                         }
                                                                         placeholder="0"
-                                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                                                                        className="w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                                                                     />
                                                                 </td>
                                                                 <td className="px-4 py-3">
@@ -597,6 +608,7 @@ export default function StepTwoView({
                                                                         type="number"
                                                                         min="0"
                                                                         step="any"
+                                                                        readOnly={true}
                                                                         value={item.total_biaya}
                                                                         onChange={(event) =>
                                                                             updateRabItem(
@@ -607,14 +619,14 @@ export default function StepTwoView({
                                                                             )
                                                                         }
                                                                         placeholder="0"
-                                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                                                                        className="w-full  border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                                                                     />
                                                                 </td>
                                                                 <td className="px-4 py-3">
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => removeRabItem(year, item.id)}
-                                                                        className="rounded-md border border-red-200 px-3 py-1 text-sm text-red-600 transition hover:bg-red-50"
+                                                                        className=" border border-red-200 px-3 py-1 text-sm text-red-600 transition hover:bg-red-50"
                                                                     >
                                                                         Hapus
                                                                     </button>
@@ -625,7 +637,7 @@ export default function StepTwoView({
                                                 </table>
                                             </div>
                                         ) : (
-                                            <div className="rounded-lg border-2 border-dashed border-gray-300 py-8 text-center text-sm text-gray-500">
+                                            <div className=" border-2 border-dashed border-gray-300 py-8 text-center text-sm text-gray-500">
                                                 Belum ada baris anggaran. Klik tombol "Tambah Baris"
                                                 untuk menambahkan komponen biaya.
                                             </div>
@@ -642,7 +654,7 @@ export default function StepTwoView({
                                     </div>
                                 );
                             })}
-                            <div className="bg-indigo-50 rounded-lg p-6 border border-indigo-200">
+                            <div className="bg-indigo-50  p-6 border border-indigo-200">
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm font-medium text-gray-700">
                                         Total RAB:
@@ -660,13 +672,13 @@ export default function StepTwoView({
             <div className="flex justify-between mt-8">
                 <button
                     onClick={onBack}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold  hover:bg-gray-50 transition-colors"
                 >
                     Kembali
                 </button>
                 <button
                     onClick={onNext}
-                    className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+                    className="px-6 py-3 bg-indigo-600 text-white font-semibold  hover:bg-indigo-700 transition-colors"
                 >
                     Selanjutnya
                 </button>

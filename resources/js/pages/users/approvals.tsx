@@ -72,7 +72,7 @@ export default function UserApprovals() {
                     </p>
                 </div>
 
-                <section className="mb-10 rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <section className="mb-10  border border-gray-200 bg-white shadow-sm">
                     <header className="border-b border-gray-200 px-6 py-4">
                         <h2 className="text-lg font-semibold text-gray-900">Menunggu Persetujuan</h2>
                         <p className="text-sm text-gray-500">
@@ -109,7 +109,7 @@ export default function UserApprovals() {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleApprove(item.uuid)}
-                                                    className="inline-flex items-center rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-emerald-600"
+                                                    className="inline-flex items-center  bg-emerald-500 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-emerald-600"
                                                 >
                                                     Setujui
                                                 </button>
@@ -126,7 +126,7 @@ export default function UserApprovals() {
                     )}
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <section className=" border border-gray-200 bg-white shadow-sm">
                     <header className="border-b border-gray-200 px-6 py-4">
                         <h2 className="text-lg font-semibold text-gray-900">Riwayat Persetujuan Terbaru</h2>
                         <p className="text-sm text-gray-500">
