@@ -2,25 +2,38 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class ReviewerSeeder extends Seeder
 {
     public function run(): void
     {
-        $users = [6, 7, 8, 9];
+        $reviewers = [
+            [
+                'name' => 'Reviewer 1',
+                'email' => 'reviewer1@example.com',
+            ],
+            [
+                'name' => 'Reviewer 2',
+                'email' => 'reviewer2@example.com',
+            ],
+        ];
 
-        foreach ($users as $userId) {
-            // Drop if exists
-            DB::table('reviewer')->where('id_user', $userId)->delete();
+        foreach ($reviewers as $data) {
+            $user = User::firstOrCreate(
+                ['email' => $data['email']],
+                [
+                    'name' => $data['name'],
+                    'password' => Hash::make('password'),
+                    'email_verified_at' => now(),
+                    'role' =>  'reviewer',
+                    'uuid_pt' => null,
+                ]
+            );
 
-            DB::table('reviewer')->insert([
-                'id_user'    => $userId,
-                'email'      => DB::table('users')->where('id', $userId)->value('email'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            $user->assignRole('reviewer');
         }
     }
 }
