@@ -148,6 +148,99 @@ class AdminPtSkemaController extends Controller
             ->with('success', 'Skema baru berhasil dibuat.');
     }
 
+    public function edit(Request $request, string $uuid): InertiaResponse
+    {
+        if (! $request->user()?->hasRole('super-admin')) {
+            abort(Response::HTTP_FORBIDDEN, 'Hanya super admin yang dapat mengedit skema.');
+        }
+
+        $skema = RefSkema::where('uuid', $uuid)->firstOrFail();
+
+        return Inertia::render('penelitian/skema/edit', [
+            'breadcrumbs' => [
+                $this->resolveDashboardBreadcrumb($request),
+                ['title' => 'Kelola Skema', 'href' => '/admin/pt-skema'],
+                ['title' => 'Edit Skema', 'href' => "/admin/pt-skema/{$uuid}/edit"],
+            ],
+            'skema' => [
+                'uuid'          => $skema->uuid,
+                'jenis_skema'   => $skema->jenis_skema,
+                'nama'          => $skema->nama,
+                'nama_singkat'  => $skema->nama_singkat,
+                'multi_tahun'   => (bool) $skema->multi_tahun,
+                'biaya_minimal' => $skema->biaya_minimal,
+                'biaya_maksimal'=> $skema->biaya_maksimal,
+                'sumber_dana'   => $skema->sumber_dana,
+                'anggota_min'   => $skema->anggota_min,
+                'anggota_max'   => $skema->anggota_max,
+                'mulai'         => optional($skema->mulai)?->format('Y-m-d'),
+                'selesai'       => optional($skema->selesai)?->format('Y-m-d'),
+                'status'        => $skema->status,
+            ],
+            'statusOptions' => [
+                ['value' => 'aktif',    'label' => 'Aktif'],
+                ['value' => 'nonaktif', 'label' => 'Nonaktif'],
+            ],
+            'redirectBackUrl' => $request->query('back', '/admin/pt-skema'),
+        ]);
+    }
+
+    public function update(Request $request, string $uuid): RedirectResponse
+    {
+        if (! $request->user()?->hasRole('super-admin')) {
+            abort(Response::HTTP_FORBIDDEN, 'Hanya super admin yang dapat mengedit skema.');
+        }
+
+        $skema = RefSkema::where('uuid', $uuid)->firstOrFail();
+
+        $validated = $request->validate([
+            'jenis_skema'    => ['required', 'string', 'max:255'],
+            'nama'           => ['required', 'string', 'max:255'],
+            'nama_singkat'   => ['nullable', 'string', 'max:100'],
+            'multi_tahun'    => ['required', 'boolean'],
+            'biaya_minimal'  => ['nullable', 'numeric', 'min:0'],
+            'biaya_maksimal' => ['nullable', 'numeric', 'min:0'],
+            'sumber_dana'    => ['nullable', 'string', 'max:255'],
+            'anggota_min'    => ['nullable', 'integer', 'min:1'],
+            'anggota_max'    => ['nullable', 'integer', 'min:1'],
+            'mulai'          => ['nullable', 'date'],
+            'selesai'        => ['nullable', 'date', 'after_or_equal:mulai'],
+            'status'         => ['nullable', 'in:aktif,nonaktif'],
+        ]);
+
+        if (
+            isset($validated['anggota_min'], $validated['anggota_max']) &&
+            $validated['anggota_min'] > $validated['anggota_max']
+        ) {
+            return back()
+                ->withErrors([
+                    'anggota_max' => 'Anggota maksimal harus lebih besar atau sama dengan anggota minimal.',
+                ])
+                ->withInput();
+        }
+
+        $skema->update([
+            'jenis_skema'    => $validated['jenis_skema'],
+            'nama'           => $validated['nama'],
+            'nama_singkat'   => $validated['nama_singkat'] ?? null,
+            'multi_tahun'    => $validated['multi_tahun'],
+            'biaya_minimal'  => $validated['biaya_minimal'] ?? null,
+            'biaya_maksimal' => $validated['biaya_maksimal'] ?? null,
+            'sumber_dana'    => $validated['sumber_dana'] ?? null,
+            'anggota_min'    => $validated['anggota_min'] ?? null,
+            'anggota_max'    => $validated['anggota_max'] ?? null,
+            'mulai'          => $validated['mulai'] ?? null,
+            'selesai'        => $validated['selesai'] ?? null,
+            'status'         => $validated['status'] ?? 'aktif',
+            'updated_at'     => now(),
+        ]);
+
+        return redirect()
+            ->route('admin.pt-skema.index')
+            ->with('success', 'Skema berhasil diperbarui.');
+    }
+
+
     protected function resolveDashboardBreadcrumb(Request $request): array
     {
         $user = $request->user();

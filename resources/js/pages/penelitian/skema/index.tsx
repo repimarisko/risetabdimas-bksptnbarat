@@ -3,7 +3,7 @@ import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigge
 import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import type { SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { MoreHorizontal, Settings } from 'lucide-react';
+import { MoreHorizontal, Pencil, Settings } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 
 type SkemaItem = {
@@ -235,6 +235,16 @@ export default function AdminPtSkemaIndex() {
                                                                 </button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent className="min-w-[180px]  border border-gray-200 bg-white p-1 text-sm text-gray-700  focus:outline-none">
+                                                                <DropdownMenuItem
+                                                                    className="cursor-pointer rounded px-3 py-2 text-gray-700 outline-none hover:bg-gray-100"
+                                                                    onSelect={() =>
+                                                                        router.visit(
+                                                                            `/admin/pt-skema/${item.uuid}/edit`,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                <Pencil className="h-4 w-4" /> Edit Skema
+                                                                </DropdownMenuItem>
                                                                 <DropdownMenuItem
                                                                     className="cursor-pointer rounded px-3 py-2 text-gray-700 outline-none hover:bg-gray-100"
                                                                     onSelect={() =>
