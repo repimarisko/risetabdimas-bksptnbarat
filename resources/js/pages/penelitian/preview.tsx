@@ -97,7 +97,7 @@ type PenelitianPreviewProps = {
     references: {
         skema: ReferenceRecord | null;
         fokus: ReferenceRecord | null;
-        sdg: ReferenceRecord | null;
+        sdg: ReferenceRecord[] | null;
         tkt: ReferenceRecord | null;
     };
     budget: BudgetSummary;
@@ -270,10 +270,10 @@ export default function PenelitianPreview({
         >
             <Head title="Preview Penelitian" />
             <DashboardNav />
-            <div className="bg-gray-50 min-h-screen">
-                <div className="mx-auto max-w-5xl px-4 py-10">
+            <div className="bg-gray-50 ">
+                <div className="mx-auto px-4 py-10">
                     {pendingApprovalForUser ? (
-                        <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        <div className="mb-6  border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <div>
                                     <p className="font-semibold">Persetujuan Anda dibutuhkan.</p>
@@ -285,7 +285,7 @@ export default function PenelitianPreview({
                                     type="button"
                                     onClick={handleApproveMembership}
                                     disabled={isApproving}
-                                    className="inline-flex items-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:bg-amber-400"
+                                    className="inline-flex items-center  bg-amber-600 px-4 py-2 text-sm font-semibold text-white  transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:bg-amber-400"
                                 >
                                     {isApproving ? 'Memproses...' : 'Setujui Keikutsertaan'}
                                 </button>
@@ -306,7 +306,7 @@ export default function PenelitianPreview({
                                     <button
                                         type="button"
                                         onClick={() => handleStatusChange('approve')}
-                                        className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300"
+                                        className=" bg-emerald-500 px-4 py-2 text-sm font-semibold text-white  transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300"
                                         disabled={isApproved}
                                     >
                                         Setujui Usulan
@@ -314,7 +314,7 @@ export default function PenelitianPreview({
                                     <button
                                         type="button"
                                         onClick={() => handleStatusChange('reject')}
-                                        className="rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
+                                        className=" bg-rose-500 px-4 py-2 text-sm font-semibold text-white  transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
                                         disabled={isRejected}
                                     >
                                         Tolak Usulan
@@ -323,20 +323,20 @@ export default function PenelitianPreview({
                             ) : null}
                             <Link
                                 href={resolvedBackLink.href}
-                                className="inline-flex items-center rounded-lg bg-gray-200 px-5 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-300"
+                                className="inline-flex items-center  bg-gray-200 px-5 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-300"
                             >
                                 {resolvedBackLink.label ?? 'Kembali'}
                             </Link>
                         </div>
                     </div>
 
-                    <div className="overflow-hidden rounded-2xl bg-white shadow-lg">
+                    <div className="overflow-hidden  bg-white ">
                         <div className="flex gap-2 border-b border-gray-200 px-6 pt-6">
                             {TABS.map((tab) => (
                                 <button
                                     key={tab.key}
                                     onClick={() => setActiveTab(tab.key)}
-                                    className={`rounded-t-lg px-4 py-2 text-sm font-medium transition ${
+                                    className={` px-4 py-2 text-sm font-medium transition ${
                                         activeTab === tab.key
                                             ? 'border-b-2 border-indigo-600 text-indigo-700'
                                             : 'border-b-2 border-transparent text-gray-500 hover:text-indigo-700'
@@ -354,7 +354,7 @@ export default function PenelitianPreview({
                                         <h2 className="text-lg font-semibold text-gray-900">
                                             Informasi Umum
                                         </h2>
-                                        <div className="mt-4 grid gap-4 rounded-xl border border-gray-200 bg-gray-50 p-6 text-sm text-gray-700 md:grid-cols-2">
+                                        <div className="mt-4 grid gap-4  border border-gray-200 bg-gray-50 p-6 text-sm text-gray-700 md:grid-cols-2">
                                             <DetailItem label="Judul">
                                                 {penelitian.title || '—'}
                                             </DetailItem>
@@ -385,7 +385,7 @@ export default function PenelitianPreview({
                                         <h2 className="text-lg font-semibold text-gray-900">
                                             Ringkasan Anggaran
                                         </h2>
-                                        <div className="mt-4 grid gap-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm md:grid-cols-2">
+                                        <div className="mt-4 grid gap-6  border border-gray-200 bg-white p-6  md:grid-cols-2">
                                             <div>
                                                 <span className="text-sm font-medium text-gray-500">
                                                     Total Biaya Usulan
@@ -415,7 +415,7 @@ export default function PenelitianPreview({
                                                         budget.items.map((item) => (
                                                             <div
                                                                 key={item.label}
-                                                                className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3"
+                                                                className="flex items-center justify-between  border border-gray-200 px-4 py-3"
                                                             >
                                                                 <span>{item.label}</span>
                                                                 <span className="font-semibold text-gray-900">
@@ -424,7 +424,7 @@ export default function PenelitianPreview({
                                                             </div>
                                                         ))
                                                     ) : (
-                                                        <div className="rounded-lg border border-dashed border-gray-200 px-4 py-3 text-gray-400">
+                                                        <div className=" border border-dashed border-gray-200 px-4 py-3 text-gray-400">
                                                             Belum ada rincian anggaran.
                                                         </div>
                                                     )}
@@ -437,7 +437,7 @@ export default function PenelitianPreview({
                                                     </span>
                                                     <div className="mt-4 space-y-4">
                                                         {budgetDetailEntries.map(({ year, label, items }) => (
-                                                            <div key={year} className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+                                                            <div key={year} className="overflow-hidden  border border-gray-200 bg-gray-50">
                                                                 <div className="border-b border-gray-200 bg-white px-4 py-3">
                                                                     <div className="flex items-center justify-between text-sm">
                                                                         <span className="font-semibold text-gray-900">
@@ -552,8 +552,8 @@ export default function PenelitianPreview({
                                         <DetailLine
                                             label="SDG Terkait"
                                             value={
-                                                references.sdg
-                                                    ? `${references.sdg.sdg} (Level ${references.sdg.level ?? '—'})`
+                                                references.sdg && references.sdg.length > 0
+                                                    ? references.sdg.map(s => `${s.sdg} (Level ${s.level ?? '—'})`).join(', ')
                                                     : 'Belum ditentukan'
                                             }
                                         />
@@ -605,7 +605,7 @@ export default function PenelitianPreview({
                                         icon={<Users className="h-5 w-5 text-indigo-500" />}
                                     >
                                         {anggota.length > 0 ? (
-                                            <div className="overflow-hidden rounded-lg border border-gray-200">
+                                            <div className="overflow-hidden  border border-gray-200">
                                                 <table className="min-w-full divide-y divide-gray-200 text-sm text-gray-700">
                                                     <thead className="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
                                                         <tr>
@@ -723,14 +723,14 @@ function ApprovalBadge({ status }: ApprovalBadgeProps) {
 
     if (normalized === 'approved') {
         return (
-            <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <span className="inline-flex items-center  bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                 Disetujui
             </span>
         );
     }
 
     return (
-        <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+        <span className="inline-flex items-center  bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
             Menunggu Persetujuan
         </span>
     );
@@ -760,9 +760,9 @@ type SectionCardProps = {
 
 function SectionCard({ title, icon, children }: SectionCardProps) {
     return (
-        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className=" border border-gray-200 bg-white p-6 ">
             <div className="flex items-center gap-2">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50">
+                <span className="flex h-10 w-10 items-center justify-center  bg-indigo-50">
                     {icon}
                 </span>
                 <h3 className="text-base font-semibold text-gray-900">{title}</h3>
@@ -794,14 +794,14 @@ type DocumentRowProps = {
 
 function DocumentRow({ label, dokumen, fallback }: DocumentRowProps) {
     return dokumen.url ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+        <div className="flex flex-wrap items-center justify-between gap-3  border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
             <div>
                 <p className="font-semibold text-gray-900">{label}</p>
                 <p className="text-xs text-gray-500">{dokumen.filename ?? 'Tanpa nama'}</p>
             </div>
             <a
                 href={dokumen.url}
-                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+                className="inline-flex items-center gap-2  bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
             >
                 <Download className="h-4 w-4" />
                 Unduh
@@ -818,7 +818,7 @@ type EmptyStateProps = {
 
 function EmptyState({ message }: EmptyStateProps) {
     return (
-        <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
+        <div className=" border border-dashed border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
             {message}
         </div>
     );

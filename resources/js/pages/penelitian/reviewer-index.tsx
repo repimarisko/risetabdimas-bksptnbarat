@@ -72,7 +72,7 @@ export default function ReviewerIndexPage() {
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+                        <div className="flex items-center gap-2  border border-gray-200 bg-white px-3 py-2 shadow-sm">
                             <Filter className="h-4 w-4 text-gray-400" />
                             <input
                                 value={search}
@@ -95,18 +95,18 @@ export default function ReviewerIndexPage() {
                                     return (
                                         <article
                                             key={item.uuid}
-                                            className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                                            className=" border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                                         >
                                             <div className="flex flex-wrap items-start justify-between gap-3">
                                                 <div className="space-y-1">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                                                        <span className=" bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
                                                             {item.tahun_pelaksanaan ?? item.tahun ?? 'n/a'}
                                                         </span>
-                                                        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+                                                        <span className=" bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
                                                             {formatStatus(item.status)}
                                                         </span>
-                                                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                                        <span className=" bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                                                             {item.perguruan_tinggi ?? 'PT n/a'}
                                                         </span>
                                                     </div>
@@ -118,7 +118,7 @@ export default function ReviewerIndexPage() {
 
                                                 <div className="flex items-center gap-2">
                                                     <span
-                                                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                                        className={` px-3 py-1 text-xs font-semibold ${
                                                             hasReview
                                                                 ? 'bg-emerald-50 text-emerald-700'
                                                                 : 'bg-amber-50 text-amber-700'
@@ -130,19 +130,19 @@ export default function ReviewerIndexPage() {
                                             </div>
 
                                             <div className="mt-4 grid gap-3 md:grid-cols-3">
-                                                <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm">
+                                                <div className=" border border-gray-100 bg-gray-50 px-3 py-2 text-sm">
                                                     <p className="text-xs text-gray-500">Rekomendasi</p>
                                                     <p className="font-semibold text-gray-800">
                                                         {formatRecommendation(item.review?.rekomendasi)}
                                                     </p>
                                                 </div>
-                                                <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm">
+                                                <div className=" border border-gray-100 bg-gray-50 px-3 py-2 text-sm">
                                                     <p className="text-xs text-gray-500">Skor Substansi</p>
                                                     <p className="font-semibold text-gray-800">
                                                         {item.review?.skor_kualitas ?? '-'}
                                                     </p>
                                                 </div>
-                                                <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm">
+                                                <div className=" border border-gray-100 bg-gray-50 px-3 py-2 text-sm">
                                                     <p className="text-xs text-gray-500">Skor RAB</p>
                                                     <p className="font-semibold text-gray-800">
                                                         {item.review?.skor_rab ?? '-'}
@@ -153,14 +153,14 @@ export default function ReviewerIndexPage() {
                                             <div className="mt-4 flex flex-wrap gap-3">
                                                 <Link
                                                     href={item.links.preview}
-                                                    className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
+                                                    className="inline-flex items-center gap-2  border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
                                                 >
                                                     <FolderOpen className="h-4 w-4" />
                                                     Lihat Proposal &amp; RAB
                                                 </Link>
                                                 <Link
                                                     href={item.links.review}
-                                                    className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
+                                                    className="inline-flex items-center gap-2  bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
                                                 >
                                                     <BadgeCheck className="h-4 w-4" />
                                                     Isi Form Review
@@ -170,14 +170,14 @@ export default function ReviewerIndexPage() {
                                     );
                                 })
                             ) : (
-                                <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center text-sm text-gray-500">
+                                <div className=" border border-dashed border-gray-300 bg-white p-10 text-center text-sm text-gray-500">
                                     Belum ada penugasan review. Pastikan admin sudah melakukan plotting reviewer.
                                 </div>
                             )}
                         </div>
 
                         <aside className="space-y-4">
-                            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                            <div className=" border border-gray-200 bg-white p-5 shadow-sm">
                                 <div className="flex items-center gap-2 text-gray-900 font-semibold">
                                     <BookOpen className="h-5 w-5 text-indigo-600" />
                                     Bobot Penilaian (dummy)
@@ -186,13 +186,13 @@ export default function ReviewerIndexPage() {
                                     {(weights?.length ? weights : defaultWeights).map((item) => (
                                         <div
                                             key={item.key}
-                                            className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm"
+                                            className="flex items-center justify-between  bg-gray-50 px-3 py-2 text-sm"
                                         >
                                             <div>
                                                 <p className="font-semibold text-gray-800">{item.label}</p>
                                                 <p className="text-xs text-gray-500">Aspek {item.key}</p>
                                             </div>
-                                            <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                                            <span className=" bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
                                                 {item.weight}%
                                             </span>
                                         </div>

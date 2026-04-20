@@ -23,12 +23,14 @@ trait BuildsPenelitianPreview
                 ->first()
             : null;
 
-        $sdg = $ptPenelitian->id_sdg
+        $sdgIds = $ptPenelitian->id_sdg ?: [];
+        $sdgs = !empty($sdgIds)
             ? DB::table('ref_sdg')
                 ->select('uuid', 'sdg', 'level')
-                ->where('uuid', $ptPenelitian->id_sdg)
-                ->first()
-            : null;
+                ->whereIn('uuid', (array) $sdgIds)
+                ->get()
+                ->toArray()
+            : [];
 
         $tkt = $ptPenelitian->id_tkt
             ? DB::table('ref_tkt')
@@ -40,7 +42,7 @@ trait BuildsPenelitianPreview
         $references = [
             'skema' => $skema ? (array) $skema : null,
             'fokus' => $fokus ? (array) $fokus : null,
-            'sdg' => $sdg ? (array) $sdg : null,
+            'sdg' => $sdgs,
             'tkt' => $tkt ? (array) $tkt : null,
         ];
 
@@ -146,8 +148,8 @@ trait BuildsPenelitianPreview
 
     protected function resolveRabDetails(PtPenelitian $ptPenelitian): array
     {
-        $komponenMap = DB::table('ref_komponen_biaya')
-            ->select('id', 'nama_komponen')
+        $komponenMap = DB::table('pt_komponen_biaya')
+            ->select('id', 'nama as nama_komponen')
             ->pluck('nama_komponen', 'id')
             ->toArray();
 

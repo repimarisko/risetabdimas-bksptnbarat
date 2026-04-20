@@ -1,30 +1,35 @@
-#!/usr/bin/env sh
+#!/bin/sh
 set -e
 
-REPO_DIR="/var/www/html"
-COMPOSER_HOME="/tmp/composer"
+echo "==> Starting entrypoint..."
 
-if command -v git >/dev/null 2>&1; then
-  git config --global --add safe.directory "$REPO_DIR" || true
-  if command -v su >/dev/null 2>&1; then
-    su -s /bin/sh -c "HOME=/tmp git config --global --add safe.directory $REPO_DIR || true" www-data || true
-  fi
+cd /var/www/html
+
+if [ ! -f artisan ]; then
+  echo "ERROR: artisan file not found in /var/www/html"
+  ls -la /var/www/html || true
+  exit 1
 fi
 
-mkdir -p "$REPO_DIR/storage/logs" "$REPO_DIR/bootstrap/cache" "$COMPOSER_HOME"
-chown -R www-data:www-data "$REPO_DIR/storage" "$REPO_DIR/bootstrap/cache" "$COMPOSER_HOME" 2>/dev/null || true
-chmod -R ug+rwX "$REPO_DIR/storage" "$REPO_DIR/bootstrap/cache" 2>/dev/null || true
+mkdir -p storage/framework/cache
+mkdir -p storage/framework/sessions
+mkdir -p storage/framework/views
+mkdir -p storage/logs
+mkdir -p bootstrap/cache
 
-if [ ! -f "$REPO_DIR/vendor/autoload.php" ]; then
-  echo "vendor/ belum ada, menjalankan composer install..."
-  mkdir -p "$REPO_DIR/vendor"
-  chown -R www-data:www-data "$REPO_DIR/vendor" 2>/dev/null || true
-  if command -v su >/dev/null 2>&1; then
-    su -s /bin/sh -c "HOME=/tmp COMPOSER_HOME=$COMPOSER_HOME composer install --no-interaction --prefer-dist" www-data
-  else
-    HOME=/tmp COMPOSER_HOME=$COMPOSER_HOME COMPOSER_ALLOW_SUPERUSER=1 \
-      composer install --no-interaction --prefer-dist
-  fi
-fi
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
 
+# Remove vite hot file if exists
+rm -f public/hot || true
+
+echo "==> Running Laravel cache clear..."
+php artisan optimize:clear || true
+
+echo "==> Caching config, routes, and views..."
+php artisan config:cache || true
+php artisan route:cache || true
+php artisan view:cache || true
+
+echo "==> Entry point finished."
 exec "$@"

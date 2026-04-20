@@ -1,36 +1,59 @@
 services:
-  web:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: risetabdimas-web
+    container_name: risetabdimas-app
     restart: unless-stopped
     env_file:
       - .env.docker
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: db_risetabdimas_bksptnbarat
+      DB_USERNAME: docker
+      DB_PASSWORD: us3R@dev.2025
     ports:
-      - "8000:80"
-    volumes:
-      - ./:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - "9090:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
     networks:
       - risetabdimas
 
-  vite:
-    build:
-      context: .
-      dockerfile: docker/vite/Dockerfile
-    container_name: risetabdimas-vite
-    working_dir: /var/www/html
-    command: sh -c "npm install && npm run dev -- --host --port 5173"
-    env_file:
-      - .env.docker
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./:/var/www/html
-      - node_modules:/var/www/html/node_modules
+  adminer:
+    image: adminer:standalone
+    container_name: risetabdimas-adminer
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
     depends_on:
-      - web
+      mysql:
+        condition: service_healthy
+    networks:
+      - risetabdimas
+
+  mysql:
+    image: mysql:8.0
+    container_name: risetabdimas-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: db_risetabdimas_bksptnbarat
+      MYSQL_USER: docker
+      MYSQL_PASSWORD: us3R@dev.2025
+      MYSQL_ROOT_PASSWORD: root@docker2026
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -udocker -p$${MYSQL_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql.sql:/docker-entrypoint-initdb.d/01-import.sql:ro
     networks:
       - risetabdimas
 
@@ -39,4 +62,4 @@ networks:
     driver: bridge
 
 volumes:
-  node_modules:
+  mysql_data:

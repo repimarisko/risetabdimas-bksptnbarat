@@ -31,16 +31,11 @@ export default function PenelitianPerbaikan() {
 
     const filteredItems = useMemo(() => {
         const normalized = query.trim().toLowerCase();
-        if (!normalized) {
-            return items;
-        }
-
-        return items.filter((item) => {
-            return (
-                item.title.toLowerCase().includes(normalized) ||
-                (item.status ?? '').toLowerCase().includes(normalized)
-            );
-        });
+        if (!normalized) return items;
+        return items.filter((item) =>
+            item.title.toLowerCase().includes(normalized) ||
+            (item.status ?? '').toLowerCase().includes(normalized),
+        );
     }, [items, query]);
 
     return (
@@ -55,8 +50,10 @@ export default function PenelitianPerbaikan() {
 
             <div className="bg-gray-50">
                 <div className="mx-auto max-w-7xl px-4 py-10">
-                    <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 flex items-start gap-3">
-                        <Search className="h-5 w-5 mt-0.5 text-amber-500" />
+
+                    {/* Banner info perbaikan */}
+                    <div className="mb-6 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 flex items-start gap-3">
+                        <Search className="h-5 w-5 mt-0.5 text-amber-500 shrink-0" />
                         <div>
                             <p className="font-semibold">Perbaikan Usulan</p>
                             <p>
@@ -66,12 +63,13 @@ export default function PenelitianPerbaikan() {
                         </div>
                     </div>
 
-                    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
-                        <div className="flex flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                            <Search className="h-4 w-4 text-gray-400" />
+                    {/* Search bar */}
+                    <div className="mb-4 flex flex-wrap items-center gap-3 border border-gray-200 bg-white px-4 py-3 ">
+                        <div className="flex flex-1 items-center gap-3 border border-gray-200 bg-gray-50 px-3 py-2">
+                            <Search className="h-4 w-4 text-gray-400 shrink-0" />
                             <input
                                 value={query}
-                                onChange={(event) => setQuery(event.target.value)}
+                                onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Cari judul atau status..."
                                 className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
                             />
@@ -81,7 +79,8 @@ export default function PenelitianPerbaikan() {
                         </span>
                     </div>
 
-                    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+                    {/* List usulan */}
+                    <div className="overflow-hidden border border-gray-200 bg-white  ">
                         {filteredItems.length ? (
                             <div className="divide-y divide-gray-100">
                                 {filteredItems.map((item) => (
@@ -89,6 +88,7 @@ export default function PenelitianPerbaikan() {
                                         key={item.uuid}
                                         className="flex flex-col gap-3 px-6 py-5 md:flex-row md:items-center md:justify-between"
                                     >
+                                        {/* Info usulan */}
                                         <div className="space-y-1">
                                             <p className="text-base font-semibold text-gray-900">
                                                 {item.title}
@@ -104,14 +104,15 @@ export default function PenelitianPerbaikan() {
                                                 Total Usulan:{' '}
                                                 {typeof item.total_usulan === 'number'
                                                     ? currencyFormatter.format(item.total_usulan)
-                                                    : 'Rp 0'}
+                                                    : 'Rp 0'}
                                             </p>
                                         </div>
 
+                                        {/* Aksi */}
                                         <div className="flex flex-col gap-2 md:items-end">
                                             <Link
                                                 href={`/pt-penelitian/${item.uuid}/edit#rab`}
-                                                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
+                                                className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-semibold text-white  transition hover:bg-blue-500"
                                             >
                                                 <ClipboardEdit className="h-4 w-4" />
                                                 Perbaiki RAB
@@ -132,6 +133,7 @@ export default function PenelitianPerbaikan() {
                             </div>
                         )}
                     </div>
+
                 </div>
             </div>
         </AppHeaderLayout>
@@ -139,15 +141,9 @@ export default function PenelitianPerbaikan() {
 }
 
 function formatDate(value?: string | null) {
-    if (!value) {
-        return '—';
-    }
-
+    if (!value) return '—';
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return '—';
-    }
-
+    if (Number.isNaN(date.getTime())) return '—';
     return new Intl.DateTimeFormat('id-ID', {
         day: '2-digit',
         month: 'short',

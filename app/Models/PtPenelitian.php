@@ -63,6 +63,7 @@ class PtPenelitian extends Model
         'biaya_disetujui' => 'float',
         'tahun' => 'integer',
         'tahun_pelaksanaan' => 'integer',
+        'id_sdg' => 'array',
     ];
 
     protected $hidden = [

@@ -199,16 +199,9 @@ export default function PenelitianIndexAll() {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <div className="flex flex-col gap-1 items-start">
-                                                            <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold uppercase ${statusMeta.badgeClass}`}>
-                                                                {statusMeta.label}
-                                                            </span>
-                                                            {item.status?.toLowerCase() === 'disetujui' && item.approved_at && (
-                                                                <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 mt-1 border border-emerald-100">
-                                                                    {dateFormatter.format(new Date(item.approved_at))}
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                                        <span className={`inline-flex items-center  px-3 py-1 text-xs font-semibold uppercase ${statusMeta.badgeClass}`}>
+                                                            {statusMeta.label}
+                                                        </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-sm text-gray-600">{item.email_pengusul ?? '—'}</td>
                                                     <td className="px-6 py-4">

@@ -459,14 +459,10 @@ function buildStatusTimeline(item: PenelitianItem): StatusTimelineEntry[] {
         ? `${approvalSummary.approved ?? 0}/${approvalSummary.total ?? 0} setuju`
         : null;
 
-    const adminApproved = (item.status ?? '').toLowerCase() === 'disetujui';
-    const adminApprovedAt = item.approved_at ? formatDate(item.approved_at) : null;
-
     return [
         { key: 'created', label: 'Dibuat', value: formatDate(item.created_at), dotClass: 'bg-gray-400' },
         { key: 'submitted', label: 'Mengajukan', value: submitted ? formatDate(item.updated_at ?? item.created_at) : null, dotClass: submitted ? 'bg-blue-500' : 'bg-gray-300' },
         { key: 'approved', label: 'Disetujui Anggota', value: approvedValue, dotClass: allApproved ? 'bg-emerald-500' : (approvalSummary?.approved ?? 0) > 0 ? 'bg-amber-500' : 'bg-gray-300' },
-        { key: 'admin_approved', label: 'Disetujui PT', value: adminApprovedAt, dotClass: adminApproved ? 'bg-emerald-600' : 'bg-gray-300' },
     ];
 }
 

@@ -8,6 +8,7 @@ use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -27,7 +28,7 @@ class AdminPtSkemaController extends Controller
 
         $skema = $skemaQuery
             ->get()
-            ->map(fn (RefSkema $record) => [
+            ->map(fn(RefSkema $record) => [
                 'uuid' => $record->uuid,
                 'jenis_skema' => $record->jenis_skema,
                 'nama' => $record->nama,
@@ -51,7 +52,7 @@ class AdminPtSkemaController extends Controller
             ->whereNotNull('jenis_skema')
             ->orderBy('jenis_skema')
             ->pluck('jenis_skema')
-            ->map(fn (string $jenis) => [
+            ->map(fn(string $jenis) => [
                 'value' => $jenis,
                 'label' => $jenis,
             ])
@@ -160,5 +161,247 @@ class AdminPtSkemaController extends Controller
         }
 
         return ['title' => 'Dashboard Admin PT', 'href' => '/dashboard/admin-pt'];
+    }
+
+    // =========================================================================
+    // HELPER
+    // =========================================================================
+
+    private function resolveSkema(string $uuid): object
+    {
+        $skema = DB::table('ref_skema')
+            ->where('uuid', $uuid)
+            ->first();
+
+        abort_if(is_null($skema), 404, 'Skema tidak ditemukan.');
+
+        return $skema;
+    }
+
+    // =========================================================================
+    // HALAMAN KONFIGURASI
+    // =========================================================================
+
+    public function konfigurasi(string $uuid)
+    {
+        $skema = $this->resolveSkema($uuid);
+
+        $jenisPertanyaanList = DB::table('ref_jenis_pertanyaan')
+            ->orderBy('nomor_urut', 'asc')
+            ->orderBy('jenis', 'asc')
+            ->get();
+
+        // Masalah: orderBy('j.nomor_urut', ...) pada join mungkin tidak bekerja karena orderBy pada kolom dari table alias
+        // Solusi: Pastikan select juga nomor_urut & tambahkan orderBy pada query builder setelah select
+        $pertanyaanSkemaList = DB::table('ref_pertanyaan_skema as p')
+            ->join('ref_jenis_pertanyaan as j', 'p.uuid_jenis', '=', 'j.id')
+            ->where('p.uuid_skema', $skema->uuid)
+            ->select(
+                'p.id',
+                'p.uuid_skema',
+                'p.uuid_jenis',
+                'j.jenis as jenis_label',
+                'j.nomor_urut as jenis_nomor_urut',
+                'p.pertanyaan',
+                'p.bobot',
+                'p.created_at',
+                'p.updated_at',
+            )
+            ->orderBy('j.nomor_urut', 'ASC')
+            ->orderBy('p.created_at', 'ASC')
+            ->get();
+        // Alternatif (jika orderBy pada kolom alias tetap gagal, urutkan setelah get di collection):
+        // $pertanyaanSkemaList = $pertanyaanSkemaList->sortBy(['jenis_nomor_urut', 'created_at'])->values();
+
+        return Inertia::render('penelitian/skema/konfigurasi', [
+            'uuid'                => $skema->uuid,
+            'redirectBackUrl'     => route('admin.pt-skema.index'),
+            'jenisPertanyaanList' => $jenisPertanyaanList,
+            'pertanyaanSkemaList' => $pertanyaanSkemaList,
+            'breadcrumbs'         => [
+                ['title' => 'Skema Penelitian', 'href' => route('admin.pt-skema.index')],
+                ['title' => 'Konfigurasi',      'href' => route('admin.pt-skema.konfigurasi.index', ['uuid' => $uuid])],
+            ],
+        ]);
+    }
+
+    // =========================================================================
+    // JENIS PERTANYAAN — CRUD
+    // =========================================================================
+
+    // ── CREATE ────────────────────────────────────────────────────────────────
+
+    public function storeJenisPertanyaan(Request $request, string $uuid)
+    {
+        $this->resolveSkema($uuid);
+
+        $validated = $request->validate([
+            'nomor_urut' => ['nullable', 'integer', 'min:0'],
+            'jenis'      => ['required', 'string', 'max:100', 'unique:ref_jenis_pertanyaan,jenis'],
+        ], [
+            'jenis.required'     => 'Jenis pertanyaan wajib diisi.',
+            'jenis.max'          => 'Jenis pertanyaan maksimal 100 karakter.',
+            'jenis.unique'       => 'Jenis pertanyaan ini sudah terdaftar.',
+            'nomor_urut.integer' => 'Nomor urut harus berupa angka.',
+            'nomor_urut.min'     => 'Nomor urut minimal 0.',
+        ]);
+
+        DB::table('ref_jenis_pertanyaan')->insert([
+            'id'         => (string) Str::uuid(),
+            'nomor_urut' => $validated['nomor_urut'] ?? 0,
+            'jenis'      => $validated['jenis'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('admin.pt-skema.konfigurasi.index', ['uuid' => $uuid])
+            ->with('success', 'Jenis pertanyaan berhasil ditambahkan.');
+    }
+
+    // ── UPDATE ────────────────────────────────────────────────────────────────
+
+    public function updateJenisPertanyaan(Request $request, string $uuid, string $id)
+    {
+        $this->resolveSkema($uuid);
+
+        $jenis = DB::table('ref_jenis_pertanyaan')->where('id', $id)->first();
+        abort_if(is_null($jenis), 404, 'Jenis pertanyaan tidak ditemukan.');
+
+        $validated = $request->validate([
+            'nomor_urut' => ['nullable', 'integer', 'min:0'],
+            'jenis'      => [
+                'required',
+                'string',
+                'max:100',
+                "unique:ref_jenis_pertanyaan,jenis,{$id}",
+            ],
+        ], [
+            'jenis.required'     => 'Jenis pertanyaan wajib diisi.',
+            'jenis.max'          => 'Jenis pertanyaan maksimal 100 karakter.',
+            'jenis.unique'       => 'Jenis pertanyaan ini sudah terdaftar.',
+            'nomor_urut.integer' => 'Nomor urut harus berupa angka.',
+            'nomor_urut.min'     => 'Nomor urut minimal 0.',
+        ]);
+
+        DB::table('ref_jenis_pertanyaan')
+            ->where('id', $id)
+            ->update([
+                'nomor_urut' => $validated['nomor_urut'] ?? 0,
+                'jenis'      => $validated['jenis'],
+                'updated_at' => now(),
+            ]);
+
+        return redirect()
+            ->route('admin.pt-skema.konfigurasi.index', ['uuid' => $uuid])
+            ->with('success', 'Jenis pertanyaan berhasil diperbarui.');
+    }
+
+    // ── DELETE ────────────────────────────────────────────────────────────────
+
+    public function destroyJenisPertanyaan(string $uuid, string $id)
+    {
+        $this->resolveSkema($uuid);
+
+        $jenis = DB::table('ref_jenis_pertanyaan')->where('id', $id)->first();
+        abort_if(is_null($jenis), 404, 'Jenis pertanyaan tidak ditemukan.');
+
+        DB::table('ref_jenis_pertanyaan')->where('id', $id)->delete();
+
+        return redirect()
+            ->route('admin.pt-skema.konfigurasi.index', ['uuid' => $uuid])
+            ->with('success', 'Jenis pertanyaan berhasil dihapus.');
+    }
+
+    // =========================================================================
+    // PERTANYAAN SKEMA — CRUD
+    // =========================================================================
+
+    // ── CREATE ────────────────────────────────────────────────────────────────
+
+    public function storePertanyaan(Request $request, string $uuid)
+    {
+        $skema = $this->resolveSkema($uuid);
+
+        $validated = $request->validate([
+            'uuid_jenis' => ['required', 'uuid', 'exists:ref_jenis_pertanyaan,id'],
+            'pertanyaan' => ['required', 'string'],
+            'bobot'      => ['required', 'numeric', 'min:0', 'max:999.99'],
+        ], [
+            'uuid_jenis.required' => 'Jenis pertanyaan wajib dipilih.',
+            'uuid_jenis.exists'   => 'Jenis pertanyaan tidak valid.',
+            'pertanyaan.required' => 'Isi pertanyaan wajib diisi.',
+            'bobot.required'      => 'Bobot wajib diisi.',
+            'bobot.numeric'       => 'Bobot harus berupa angka.',
+            'bobot.min'           => 'Bobot minimal 0.',
+            'bobot.max'           => 'Bobot maksimal 999.99.',
+        ]);
+
+        DB::table('ref_pertanyaan_skema')->insert([
+            'id'         => (string) Str::uuid(),
+            'uuid_skema' => $skema->uuid,
+            'uuid_jenis' => $validated['uuid_jenis'],
+            'pertanyaan' => $validated['pertanyaan'],
+            'bobot'      => $validated['bobot'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('admin.pt-skema.konfigurasi.index', ['uuid' => $uuid])
+            ->with('success', 'Pertanyaan berhasil ditambahkan.');
+    }
+
+    // ── UPDATE ────────────────────────────────────────────────────────────────
+
+    public function updatePertanyaan(Request $request, string $uuid, string $id)
+    {
+        $this->resolveSkema($uuid);
+
+        $pertanyaan = DB::table('ref_pertanyaan_skema')->where('id', $id)->first();
+        abort_if(is_null($pertanyaan), 404, 'Pertanyaan tidak ditemukan.');
+
+        $validated = $request->validate([
+            'uuid_jenis' => ['required', 'uuid', 'exists:ref_jenis_pertanyaan,id'],
+            'pertanyaan' => ['required', 'string'],
+            'bobot'      => ['required', 'numeric', 'min:0', 'max:999.99'],
+        ], [
+            'uuid_jenis.required' => 'Jenis pertanyaan wajib dipilih.',
+            'uuid_jenis.exists'   => 'Jenis pertanyaan tidak valid.',
+            'pertanyaan.required' => 'Isi pertanyaan wajib diisi.',
+            'bobot.required'      => 'Bobot wajib diisi.',
+            'bobot.numeric'       => 'Bobot harus berupa angka.',
+            'bobot.min'           => 'Bobot minimal 0.',
+            'bobot.max'           => 'Bobot maksimal 999.99.',
+        ]);
+
+        DB::table('ref_pertanyaan_skema')
+            ->where('id', $id)
+            ->update([
+                'uuid_jenis' => $validated['uuid_jenis'],
+                'pertanyaan' => $validated['pertanyaan'],
+                'bobot'      => $validated['bobot'],
+                'updated_at' => now(),
+            ]);
+
+        return redirect()
+            ->route('admin.pt-skema.konfigurasi.index', ['uuid' => $uuid])
+            ->with('success', 'Pertanyaan berhasil diperbarui.');
+    }
+
+    // ── DELETE ────────────────────────────────────────────────────────────────
+
+    public function destroyPertanyaan(string $uuid, string $id)
+    {
+        $this->resolveSkema($uuid);
+
+        $pertanyaan = DB::table('ref_pertanyaan_skema')->where('id', $id)->first();
+        abort_if(is_null($pertanyaan), 404, 'Pertanyaan tidak ditemukan.');
+
+        DB::table('ref_pertanyaan_skema')->where('id', $id)->delete();
+
+        return redirect()
+            ->route('admin.pt-skema.konfigurasi.index', ['uuid' => $uuid])
+            ->with('success', 'Pertanyaan berhasil dihapus.');
     }
 }

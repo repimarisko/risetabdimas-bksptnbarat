@@ -54,7 +54,7 @@ function DashboardCard({
     children: ReactNode;
 }) {
     return (
-        <div className="relative aspect-video overflow-hidden rounded-xl border border-gray-200 bg-white p-6">
+        <div className="relative aspect-video overflow-hidden  border border-gray-200 bg-white p-6">
             <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/10" />
             <div className="relative z-10 flex h-full flex-col justify-between">
                 <div>

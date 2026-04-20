@@ -2,6 +2,8 @@ export type SkemaOptionPayload = {
     uuid: string;
     nama: string | null;
     nama_singkat: string | null;
+    biaya_minimal: number | null;
+    biaya_maksimal: number | null;
 };
 
 export type FokusOptionPayload = {
@@ -91,7 +93,7 @@ export type FormDataState = {
     id_skema: string;
     id_fokus: string;
     ringkasan: string;
-    id_sdg: string;
+    id_sdg: string[];
     id_tkt: string;
     lama_waktu: string;
     tahun_pengajuan: string;

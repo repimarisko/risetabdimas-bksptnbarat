@@ -53,7 +53,7 @@ export default function AdminPtSkemaCreate() {
             <DashboardNav />
 
             <div className="bg-gray-50">
-                <div className="mx-auto max-w-4xl px-4 py-10">
+                <div className="mx-auto  px-4 py-10">
                     <div className="mb-6 flex items-center justify-between gap-3">
                         <div>
                             <h1 className="text-2xl font-semibold text-gray-900">
@@ -67,7 +67,7 @@ export default function AdminPtSkemaCreate() {
                         {redirectBackUrl ? (
                             <Link
                                 href={redirectBackUrl}
-                                className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100"
+                                className="inline-flex items-center  border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700  transition hover:bg-gray-100"
                             >
                                 Kembali
                             </Link>
@@ -85,7 +85,7 @@ export default function AdminPtSkemaCreate() {
 
                     <form
                         onSubmit={handleSubmit}
-                        className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow"
+                        className="overflow-hidden  border border-gray-200 bg-white "
                     >
                         <div className="border-b border-gray-100 bg-gray-50 px-6 py-5">
                             <h2 className="text-lg font-semibold text-gray-900">
@@ -122,7 +122,7 @@ export default function AdminPtSkemaCreate() {
                                     <Label htmlFor="status">Status</Label>
                                     <select
                                         id="status"
-                                        className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                        className="h-10 w-full  border border-gray-300 bg-white px-3 text-sm text-gray-900  focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                                         value={form.data.status}
                                         onChange={(event) => form.setData('status', event.target.value)}
                                     >
@@ -188,7 +188,7 @@ export default function AdminPtSkemaCreate() {
                                 </div>
                             </div>
 
-                            <div className="space-y-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-4">
+                            <div className="space-y-4  border border-gray-100 bg-gray-50 px-4 py-4">
                                 <div className="flex items-center justify-between gap-4">
                                     <div>
                                         <h3 className="text-base font-semibold text-gray-900">
@@ -248,7 +248,7 @@ export default function AdminPtSkemaCreate() {
                                 </div>
                             </div>
 
-                            <div className="space-y-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-4">
+                            <div className="space-y-4  border border-gray-100 bg-gray-50 px-4 py-4">
                                 <div>
                                     <h3 className="text-base font-semibold text-gray-900">
                                         Ketentuan Pendanaan
@@ -301,7 +301,7 @@ export default function AdminPtSkemaCreate() {
                                 </div>
                             </div>
 
-                            <div className="space-y-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-4">
+                            <div className="space-y-4  border border-gray-100 bg-gray-50 px-4 py-4">
                                 <div>
                                     <h3 className="text-base font-semibold text-gray-900">
                                         Komposisi Tim
@@ -359,7 +359,7 @@ export default function AdminPtSkemaCreate() {
                             </p>
                             <button
                                 type="submit"
-                                className="inline-flex items-center rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="inline-flex items-center  bg-blue-600 px-5 py-2 text-sm font-semibold text-white  transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
                                 disabled={form.processing}
                             >
                                 {form.processing ? 'Menyimpan...' : 'Simpan Skema'}

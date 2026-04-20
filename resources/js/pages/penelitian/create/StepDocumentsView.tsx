@@ -60,7 +60,7 @@ export default function StepDocumentsView({
     };
 
     return (
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-white  p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Dokumen Pendukung</h2>
             <div className="space-y-6">
                 <div>
@@ -75,7 +75,7 @@ export default function StepDocumentsView({
                             baru jika ingin mengganti.
                         </p>
                     ) : null}
-                    <div className="border-2 border-dashed rounded-lg p-6 text-center transition-all focus:outline-none border-gray-300 hover:border-indigo-500">
+                    <div className="border-2 border-dashed  p-6 text-center transition-all focus:outline-none border-gray-300 hover:border-indigo-500">
                         <input
                             type="file"
                             accept=".pdf,.doc,.docx"
@@ -112,7 +112,7 @@ export default function StepDocumentsView({
                                     <button
                                         type="button"
                                         onClick={() => openPreview(proposalPreviewUrl, 'proposal')}
-                                        className="mt-2 inline-flex items-center rounded-md bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                        className="mt-2 inline-flex items-center  bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
                                     >
                                         Preview Proposal
                                     </button>
@@ -133,7 +133,7 @@ export default function StepDocumentsView({
                             baru jika ingin mengganti.
                         </p>
                     ) : null}
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-500 transition-all">
+                    <div className="border-2 border-dashed border-gray-300  p-6 text-center hover:border-indigo-500 transition-all">
                         <input
                             type="file"
                             accept=".pdf,.doc,.docx,.zip"
@@ -170,7 +170,7 @@ export default function StepDocumentsView({
                                     <button
                                         type="button"
                                         onClick={() => openPreview(lampiranPreviewUrl, 'lampiran')}
-                                        className="mt-2 inline-flex items-center rounded-md bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                        className="mt-2 inline-flex items-center  bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
                                     >
                                         Preview Lampiran
                                     </button>
@@ -184,13 +184,13 @@ export default function StepDocumentsView({
             <div className="flex justify-between mt-8">
                 <button
                     onClick={onBack}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold  hover:bg-gray-50 transition-colors"
                 >
                     Kembali
                 </button>
                 <button
                     onClick={onNext}
-                    className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-lg"
+                    className="px-8 py-3 bg-indigo-600 text-white font-semibold  hover:bg-indigo-700 transition-colors "
                 >
                     Lanjut
                 </button>

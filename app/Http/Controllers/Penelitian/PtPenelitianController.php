@@ -74,6 +74,7 @@ class PtPenelitianController extends Controller
         $isVerified = $this->userVerified($request->user());
         $isProfileComplete = $this->profileComplete($request->user());
         $eligibilitySkema = DB::table('ref_skema')
+            ->where('jenis_skema', 'penelitian')
             ->select(
                 'uuid',
                 'nama',
@@ -135,15 +136,18 @@ class PtPenelitianController extends Controller
         }
 
         $skemaOptions = DB::table('ref_skema')
-            ->select('uuid', 'nama', 'nama_singkat')
+            ->select('uuid', 'nama', 'nama_singkat', 'biaya_minimal', 'biaya_maksimal')
             ->whereNull('deleted_at')
             ->where(fn($query) => $query->whereNull('status')->orWhere('status', 'aktif'))
+            ->where('jenis_skema', 'penelitian')
             ->orderBy('nama')
             ->get()
             ->map(fn($record) => [
                 'uuid' => $record->uuid,
                 'nama' => $record->nama,
                 'nama_singkat' => $record->nama_singkat,
+                'biaya_minimal' => $record->biaya_minimal ? (float) $record->biaya_minimal : null,
+                'biaya_maksimal' => $record->biaya_maksimal ? (float) $record->biaya_maksimal : null,
             ])
             ->toArray();
 
@@ -208,9 +212,10 @@ class PtPenelitianController extends Controller
             ])
             ->toArray();
 
-        $komponenOptions = DB::table('ref_komponen_biaya')
-            ->select('id', 'id_komponen_rab', 'nama_komponen', 'jenis', 'keterangan')
-            ->orderBy('nama_komponen')
+        $komponenOptions = DB::table('pt_komponen_biaya')
+            ->select('id', 'id_komponen_rab', 'nama as nama_komponen', 'jenis', 'keterangan')
+            ->where('jenis', 'P')
+            ->orderBy('nama')
             ->get()
             ->map(fn($record) => [
                 'id' => $record->id,
@@ -222,7 +227,8 @@ class PtPenelitianController extends Controller
             ->toArray();
 
         $kelompokOptions = DB::table('ref_komponen_rab')
-            ->select('id', 'kategori', 'nama')
+            ->select('id', 'jenis as kategori', 'nama_komponen as nama')
+            ->where('jenis', 'P')
             ->orderBy('id')
             ->get()
             ->map(fn($record) => [
@@ -424,6 +430,7 @@ class PtPenelitianController extends Controller
             $this->normalizePayload($request);
             $this->ensureSupportingTables();
             $validated = $this->validatedData($request);
+
             $data = $validated['fields'];
             $anggotaPayload = $validated['anggota'];
             $rabPayload = $validated['rab'];
@@ -511,7 +518,7 @@ class PtPenelitianController extends Controller
         $this->authorizeOwnership($ptPenelitian);
 
         $skemaOptions = DB::table('ref_skema')
-            ->select('uuid', 'nama', 'nama_singkat')
+            ->select('uuid', 'nama', 'nama_singkat', 'biaya_minimal', 'biaya_maksimal')
             ->whereNull('deleted_at')
             ->where(fn($query) => $query->whereNull('status')->orWhere('status', 'aktif'))
             ->orderBy('nama')
@@ -520,6 +527,8 @@ class PtPenelitianController extends Controller
                 'uuid' => $record->uuid,
                 'nama' => $record->nama,
                 'nama_singkat' => $record->nama_singkat,
+                'biaya_minimal' => $record->biaya_minimal ? (float) $record->biaya_minimal : null,
+                'biaya_maksimal' => $record->biaya_maksimal ? (float) $record->biaya_maksimal : null,
             ])
             ->toArray();
 
@@ -584,9 +593,10 @@ class PtPenelitianController extends Controller
             ])
             ->toArray();
 
-        $komponenOptions = DB::table('ref_komponen_biaya')
-            ->select('id', 'id_komponen_rab', 'nama_komponen', 'jenis', 'keterangan')
-            ->orderBy('nama_komponen')
+        $komponenOptions = DB::table('pt_komponen_biaya')
+            ->select('id', 'id_komponen_rab', 'nama as nama_komponen', 'jenis', 'keterangan')
+            ->where('jenis', 'P')
+            ->orderBy('nama')
             ->get()
             ->map(fn($record) => [
                 'id' => $record->id,
@@ -598,7 +608,8 @@ class PtPenelitianController extends Controller
             ->toArray();
 
         $kelompokOptions = DB::table('ref_komponen_rab')
-            ->select('id', 'kategori', 'nama')
+            ->select('id', 'jenis as kategori', 'nama_komponen as nama')
+            ->where('jenis', 'P')
             ->orderBy('id')
             ->get()
             ->map(fn($record) => [
@@ -685,6 +696,7 @@ class PtPenelitianController extends Controller
                 'rab' => $rabEntries,
                 'anggota' => $anggota,
                 'lama_waktu' => $lamaWaktu,
+                'ringkasan'      => $ptPenelitian->ringkasan,
             ],
             'skemaOptions' => $skemaOptions,
             'fokusOptions' => $fokusOptions,
@@ -865,8 +877,11 @@ class PtPenelitianController extends Controller
             'title' => 'required|string|max:255',
             'id_skema' => 'nullable|string|max:100',
             'id_tkt' => 'nullable|string|max:100',
-            'id_sdg' => 'nullable|string|max:100',
+            'id_sdg' => 'nullable|array',
+            'id_sdg.*' => 'string|max:100',
             'id_fokus' => 'nullable|string|max:100',
+            'ringkasan'      => 'nullable|string',           // ✅ tambahkan
+            'lama_kegiatan'  => 'nullable|integer',          // ✅ tambahkan (sesuaikan nama kolom DB)
             'tahun' => 'nullable|integer',
             'tahun_pelaksanaan' => 'nullable|integer',
             'biaya_usulan_1' => 'nullable|numeric',
@@ -888,7 +903,7 @@ class PtPenelitianController extends Controller
             'rab' => ['nullable', 'array'],
             'rab.*.tahun' => ['required', 'integer', 'min:1', 'max:4'],
             'rab.*.items' => ['required', 'array', 'min:1'],
-            'rab.*.items.*.id_komponen' => ['nullable', 'integer', 'exists:ref_komponen_biaya,id'],
+            'rab.*.items.*.id_komponen' => ['nullable', 'integer', 'exists:pt_komponen_biaya,id'],
             'rab.*.items.*.nama_item' => ['required', 'string', 'max:255'],
             'rab.*.items.*.jumlah_item' => ['nullable', 'numeric'],
             'rab.*.items.*.harga_satuan' => ['nullable', 'numeric'],
@@ -995,7 +1010,7 @@ class PtPenelitianController extends Controller
             }
         }
 
-        $nullableStrings = ['id_skema', 'id_tkt', 'id_sdg', 'id_fokus', 'status'];
+        $nullableStrings = ['id_skema', 'id_tkt', 'id_fokus', 'status'];
 
         foreach ($nullableStrings as $field) {
             if ($request->has($field) && $request->input($field) === '') {
@@ -1021,6 +1036,38 @@ class PtPenelitianController extends Controller
         ]);
     }
 
+    protected function authorizePreviewAccess(Request $request, PtPenelitian $ptPenelitian): void
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            abort(Response::HTTP_FORBIDDEN, 'Anda tidak diizinkan mengakses data ini.');
+        }
+
+        if ($ptPenelitian->created_by === $user->id) {
+            return;
+        }
+
+        $dosenUuid = optional($user->dosen)->uuid;
+
+        if ($dosenUuid && $ptPenelitian->anggota()->where('dosen_uuid', $dosenUuid)->exists()) {
+            return;
+        }
+
+        if ($user->hasRole('reviewer') && $ptPenelitian->reviewers()->where('reviewer_id', $user->id)->exists()) {
+            return;
+        }
+
+        if ($user->hasAnyRole([
+            User::ROLE_SUPER_ADMIN,
+            User::ROLE_ADMIN_PT,
+            User::ROLE_KETUA_LPPM,
+        ])) {
+            return;
+        }
+
+        abort(Response::HTTP_FORBIDDEN, 'Anda tidak diizinkan mengakses data ini.');
+    }
     protected function buildPreviewNavigation(Request $request): array
     {
         $user = $request->user();
@@ -1086,8 +1133,8 @@ class PtPenelitianController extends Controller
 
     public function download(Request $request, PtPenelitian $ptPenelitian, string $type): StreamedResponse
     {
-        // Ketua atau anggota tim dapat mengunduh dokumen proposal/lampiran
-        $this->authorizeOwnershipOrMembership($request, $ptPenelitian);
+        // Pengunggah/anggota tim atau pengguna dengan akses menu yang relevan dapat mengunduh dokumen.
+        $this->authorizeDownloadAccess($request, $ptPenelitian);
 
         $type = $type === 'lampiran' ? 'lampiran' : 'proposal';
 
@@ -1103,6 +1150,79 @@ class PtPenelitianController extends Controller
         abort_if(! $disk->exists($path), Response::HTTP_NOT_FOUND);
 
         return $disk->download($path, $filename);
+    }
+
+    protected function authorizeDownloadAccess(Request $request, PtPenelitian $ptPenelitian): void
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            abort(Response::HTTP_FORBIDDEN, 'Anda tidak diizinkan mengakses data ini.');
+        }
+
+        // Tetap izinkan mekanisme lama: ketua/anggota tim penelitian.
+        if ($ptPenelitian->created_by === $user->id) {
+            return;
+        }
+
+        $dosenUuid = optional($user->dosen)->uuid;
+
+        if ($dosenUuid && $ptPenelitian->anggota()->where('dosen_uuid', $dosenUuid)->exists()) {
+            return;
+        }
+
+        if ($user->hasRole('reviewer')) {
+            $isAssignedReviewer = $ptPenelitian->reviewers()
+                ->where('reviewer_id', $user->id)
+                ->exists();
+
+            if ($isAssignedReviewer) {
+                return;
+            }
+        }
+
+        if (! $this->canAccessPenelitianDownloadMenu($user, $ptPenelitian)) {
+            abort(Response::HTTP_FORBIDDEN, 'Anda tidak diizinkan mengakses dokumen ini.');
+        }
+    }
+
+    protected function canAccessPenelitianDownloadMenu(User $user, PtPenelitian $ptPenelitian): bool
+    {
+        $menuPermissions = collect($user->getAllPermissions()->pluck('name'))
+            ->filter(fn(string $permission) => str_starts_with($permission, 'menu:'))
+            ->values();
+
+        $downloadMenuPermissions = [
+            'menu:pt-penelitian-admin',
+            'menu:assign-reviewer',
+        ];
+
+        // Samakan perilaku backend dengan frontend:
+        // jika permission menu sudah dikonfigurasi, maka harus lolos permission menu;
+        // jika belum, fallback ke role administratif.
+        $hasDownloadMenuAccess = $menuPermissions->isNotEmpty()
+            ? $menuPermissions->intersect($downloadMenuPermissions)->isNotEmpty()
+            : $user->hasAnyRole([
+                User::ROLE_ADMIN_PT,
+                User::ROLE_KETUA_LPPM,
+                User::ROLE_SUPER_ADMIN,
+            ]);
+
+        if (! $hasDownloadMenuAccess) {
+            return false;
+        }
+
+        if ($user->hasRole(User::ROLE_SUPER_ADMIN)) {
+            return true;
+        }
+
+        $userUuidPt = $user->uuid_pt ?? optional($user->dosen)->uuid_pt;
+
+        if (! $userUuidPt || ! $ptPenelitian->uuid_pt) {
+            return true;
+        }
+
+        return $userUuidPt === $ptPenelitian->uuid_pt;
     }
 
     protected function documentColumnsAvailable(): bool
@@ -1198,6 +1318,7 @@ class PtPenelitianController extends Controller
 
             $records = collect($entry['items'] ?? [])
                 ->map(fn(array $item) => [
+                    'uuid' => (string) Str::uuid(), // ✅ tambahkan ini
                     'id_penelitian' => $ptPenelitian->uuid,
                     'id_komponen' => $item['id_komponen'],
                     'nama_item' => $item['nama_item'],
