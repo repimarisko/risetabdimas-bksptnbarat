@@ -404,4 +404,70 @@ class AdminPtSkemaController extends Controller
             ->route('admin.pt-skema.konfigurasi.index', ['uuid' => $uuid])
             ->with('success', 'Pertanyaan berhasil dihapus.');
     }
+
+    // 1. Method untuk Render Halaman Form
+public function updateSkema(Request $request, string $uuid) {
+    $skema = $this->resolveSkema($uuid); // Pastikan ini mengembalikan data, bukan null
+    
+    return Inertia::render('penelitian/skema/update', [ // Sesuaikan path file .tsx Anda
+        'skema' => $skema,
+        'breadcrumbs' => [
+            ['title' => 'Dashboard', 'href' => '/dashboard'],
+            ['title' => 'Skema', 'href' => route('admin.pt-skema.index')],
+            ['title' => 'Update Skema', 'href' => '#'],
+        ]
+    ]);
+}
+
+public function updateSkemaStore(Request $request, string $uuid)
+{
+    // 1. Validasi ketat
+    $validated = $request->validate([
+        'jenis_skema'    => 'required|string',
+        'nama'           => 'required|string|max:255',
+        'nama_singkat'   => 'required|string|max:50',
+        'multi_tahun'    => 'required|boolean',
+        // Anggota: Minimal minimal 0, Maksimal harus >= Minimal
+        'anggota_min'    => 'required|integer|min:0',
+        'anggota_max'    => 'required|integer|gte:anggota_min',
+        // Biaya: Gunakan numeric untuk mendukung desimal tanpa pembulatan
+        'biaya_minimal'  => 'required|numeric|min:0',
+        'biaya_maksimal' => 'required|numeric|gte:biaya_minimal',
+        'sumber_dana'    => 'required|string',
+        'mulai'          => 'required|date',
+        'selesai'        => 'required|date|after_or_equal:mulai',
+        'status'         => 'required|in:aktif,tidak aktif',
+    ], [
+        'anggota_max.gte' => 'Jumlah anggota maksimal tidak boleh lebih kecil dari anggota minimal.',
+        'biaya_maksimal.gte' => 'Biaya maksimal tidak boleh lebih kecil dari biaya minimal.',
+    ]);
+
+    try {
+        // 2. Gunakan Query Builder agar tidak terkena casting otomatis Model (Rounded)
+        $update = DB::table('ref_skema') 
+            ->where('uuid', $uuid)
+            ->update([
+                'jenis_skema'    => $validated['jenis_skema'],
+                'nama'           => $validated['nama'],
+                'nama_singkat'   => $validated['nama_singkat'],
+                'multi_tahun'    => $validated['multi_tahun'],
+                'biaya_minimal'  => $validated['biaya_minimal'], // Tetap float/decimal
+                'biaya_maksimal' => $validated['biaya_maksimal'], 
+                'sumber_dana'    => $validated['sumber_dana'],
+                'anggota_min'    => (int) $validated['anggota_min'],
+                'anggota_max'    => (int) $validated['anggota_max'],
+                'mulai'          => $validated['mulai'],
+                'selesai'        => $validated['selesai'],
+                'status'         => $validated['status'],
+                'updated_at'     => now(),
+            ]);
+
+        return redirect()
+            ->route('admin.pt-skema.index')
+            ->with('success', 'Skema berhasil diperbarui .');
+
+    } catch (\Exception $e) {
+        return back()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()])->withInput();
+    }
+}
 }

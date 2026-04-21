@@ -116,7 +116,10 @@ Route::middleware(['auth', 'verified', 'active_role:admin-pt,ketua-lppm,super-ad
         Route::middleware('active_role:super-admin')->group(function () {
             Route::get('/create', [AdminPtSkemaController::class, 'create'])->name('create');
             Route::post('/', [AdminPtSkemaController::class, 'store'])->name('store');
-
+            // Baru
+            Route::get('/{uuid}/update', [AdminPtSkemaController::class, 'updateSkema'])->name('updateSkema');
+            Route::put('/{uuid}/update-skema', [AdminPtSkemaController::class, 'updateSkemaStore'])->name('updateSkemaStore');
+            // Baru
             Route::prefix('/{uuid}/konfigurasi')->as('konfigurasi.')->group(function () {
                 Route::get('/', [AdminPtSkemaController::class, 'konfigurasi'])->name('index');
 

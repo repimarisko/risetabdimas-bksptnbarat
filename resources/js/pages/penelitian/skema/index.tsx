@@ -3,7 +3,7 @@ import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigge
 import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import type { SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { MoreHorizontal, Settings } from 'lucide-react';
+import { MoreHorizontal, PenLine, Settings } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 
 type SkemaItem = {
@@ -244,6 +244,16 @@ export default function AdminPtSkemaIndex() {
                                                                     }
                                                                 >
                                                                 <Settings /> Konfigurasi Pertanyaan
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    className="cursor-pointer rounded px-3 py-2 text-gray-700 outline-none hover:bg-gray-100"
+                                                                    onSelect={() =>
+                                                                        router.visit(
+                                                                            `/admin/pt-skema/${item.uuid}/update`,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                <PenLine /> Update Skema
                                                                 </DropdownMenuItem>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
