@@ -153,7 +153,7 @@ const MAX_PROPOSAL_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
 
     const initialKetuaUuid = useMemo(() => {
-        return penelitian.anggota?.find(a => a.peran === 'Ketua Peneliti')?.dosen_uuid;
+        return penelitian.anggota?.find(a => a.peran === 'Host')?.dosen_uuid;
     }, [penelitian.anggota]);
 
     const [formData, setFormData] = useState<FormDataState>(() => ({

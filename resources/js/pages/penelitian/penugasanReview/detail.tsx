@@ -290,7 +290,7 @@ export default function PenugasanReviewDetail() {
                                 <div className="space-y-6">
                                     {penelitian.ketua && (
                                         <div>
-                                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Ketua Peneliti</p>
+                                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Host</p>
                                             <div
                                                 className="grid grid-cols-2 md:grid-cols-4 gap-5 p-4 border"
                                                 style={{ backgroundColor: '#eef0f7', borderColor: '#d4daf0' }}

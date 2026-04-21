@@ -265,7 +265,7 @@ export default function StepTwoView({
                                 const isKetuaLocked =
                                     lockedKetuaDosenUuid &&
                                     anggota.dosen_uuid === lockedKetuaDosenUuid &&
-                                    anggota.peran === 'Ketua Peneliti';
+                                    anggota.peran === 'Host';
 
                                 return (
                                     <div
@@ -339,7 +339,7 @@ export default function StepTwoView({
                                                             className="w-full px-3 py-2 text-sm  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:cursor-not-allowed disabled:bg-gray-100"
                                                         >
                                                             <option value="">Pilih peran...</option>
-                                                            {PERAN_OPTIONS.filter((p) => isKetuaLocked || p !== 'Ketua Peneliti' || anggota.peran === 'Ketua Peneliti').map((peran) => (
+                                                            {PERAN_OPTIONS.filter((p) => isKetuaLocked || p !== 'Host' || anggota.peran === 'Host').map((peran) => (
                                                                 <option key={peran} value={peran}>
                                                                     {peran}
                                                                 </option>

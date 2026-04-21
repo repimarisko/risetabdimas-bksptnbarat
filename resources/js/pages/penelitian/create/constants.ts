@@ -25,7 +25,7 @@ export const STEP_ONE_KEYS = STEP_ONE_REQUIREMENTS.map(
 export const STEP_ONE_KEY_SET = new Set<StepOneFieldKey>(STEP_ONE_KEYS);
 
 export const PERAN_OPTIONS: string[] = [
-    'Ketua Peneliti',
-    'Anggota Peneliti',
+    'Host',
+    'Mitra',
     'Peneliti Pendamping',
 ];

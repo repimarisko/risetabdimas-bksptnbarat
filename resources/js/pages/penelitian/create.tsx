@@ -106,7 +106,7 @@ export default function PenelitianCreate() {
         ? {
               uuid_pt: currentUserPtUuid ?? '',
               dosen_uuid: currentUserDosenUuid,
-              peran: 'Ketua Peneliti',
+              peran: 'Host',
               tugas: '',
           }
         : null;
@@ -439,7 +439,7 @@ export default function PenelitianCreate() {
             if (
                 target &&
                 target.dosen_uuid === currentUserDosenUuid &&
-                target.peran === 'Ketua Peneliti'
+                target.peran === 'Host'
             ) {
                 return prev;
             }
@@ -460,7 +460,7 @@ export default function PenelitianCreate() {
             if (
                 current &&
                 current.dosen_uuid === currentUserDosenUuid &&
-                current.peran === 'Ketua Peneliti' &&
+                current.peran === 'Host' &&
                 (field === 'uuid_pt' || field === 'dosen_uuid' || field === 'peran')
             ) {
                 return prev;
