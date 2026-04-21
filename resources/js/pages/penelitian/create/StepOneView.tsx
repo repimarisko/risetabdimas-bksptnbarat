@@ -579,6 +579,7 @@ export default function StepOneView({
 
             <div className="flex justify-end mt-8">
                 <button
+                    type="button"
                     onClick={onNext}
                     className="px-6 py-3 bg-indigo-600 text-white font-semibold  hover:bg-indigo-700 transition-colors"
                 >

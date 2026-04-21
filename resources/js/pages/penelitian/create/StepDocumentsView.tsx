@@ -183,12 +183,14 @@ export default function StepDocumentsView({
 
             <div className="flex justify-between mt-8">
                 <button
+                    type="button"
                     onClick={onBack}
                     className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold  hover:bg-gray-50 transition-colors"
                 >
                     Kembali
                 </button>
                 <button
+                    type="button"
                     onClick={onNext}
                     className="px-8 py-3 bg-indigo-600 text-white font-semibold  hover:bg-indigo-700 transition-colors "
                 >

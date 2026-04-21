@@ -382,18 +382,24 @@ export default function StepThreeView({
                 </div>
             </div>
 
-            <div className="flex justify-between mt-8">
+            <div className="mt-12 flex justify-between">
                 <button
+                    type="button"
                     onClick={onBack}
                     className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold  hover:bg-gray-50 transition-colors"
                 >
                     Kembali
                 </button>
                 <button
-                    onClick={onSubmit}
-                    className="px-8 py-3 bg-green-600 text-white font-semibold  hover:bg-green-700 transition-colors "
+                    type="button"
+                    onClick={() => {
+                        if (confirm('Apakah Anda yakin data ini sudah benar dan siap diajukan?')) {
+                            onSubmit();
+                        }
+                    }}
+                    className="px-6 py-3 bg-indigo-600 text-white font-semibold  hover:bg-indigo-700 transition-colors"
                 >
-                    Ajukan Proposal
+                    Konfirmasi & Ajukan
                 </button>
             </div>
         </div>
