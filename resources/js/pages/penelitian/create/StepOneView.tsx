@@ -137,11 +137,10 @@ export default function StepOneView({
                                 placeholder="Masukkan judul penelitian..."
                                 data-step-one-field="judul"
                                 aria-invalid={showStepOneErrors && hasStepOneError('judul')}
-                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
-                                    showStepOneErrors && hasStepOneError('judul')
+                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${showStepOneErrors && hasStepOneError('judul')
                                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                         : ''
-                                }`}
+                                    }`}
                             />
                             {showStepOneErrors && hasStepOneError('judul') ? (
                                 <p className="mt-2 text-sm text-red-600">
@@ -164,11 +163,10 @@ export default function StepOneView({
                                     aria-invalid={
                                         showStepOneErrors && hasStepOneError('id_skema')
                                     }
-                                    className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
-                                        showStepOneErrors && hasStepOneError('id_skema')
+                                    className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${showStepOneErrors && hasStepOneError('id_skema')
                                             ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                             : ''
-                                    }`}
+                                        }`}
                                 >
                                     <option value="">Pilih skema...</option>
                                     {skemaSelectOptions.map((option) => (
@@ -197,11 +195,10 @@ export default function StepOneView({
                                     aria-invalid={
                                         showStepOneErrors && hasStepOneError('id_fokus')
                                     }
-                                    className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
-                                        showStepOneErrors && hasStepOneError('id_fokus')
+                                    className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${showStepOneErrors && hasStepOneError('id_fokus')
                                             ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                             : ''
-                                    }`}
+                                        }`}
                                 >
                                     <option value="">Pilih bidang fokus...</option>
                                     {fokusSelectOptions.map((option) => (
@@ -231,11 +228,10 @@ export default function StepOneView({
                                 rows={4}
                                 data-step-one-field="ringkasan"
                                 aria-invalid={showStepOneErrors && hasStepOneError('ringkasan')}
-                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
-                                    showStepOneErrors && hasStepOneError('ringkasan')
+                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${showStepOneErrors && hasStepOneError('ringkasan')
                                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                         : ''
-                                }`}
+                                    }`}
                             />
                             {showStepOneErrors && hasStepOneError('ringkasan') ? (
                                 <p className="mt-2 text-sm text-red-600">
@@ -254,8 +250,8 @@ export default function StepOneView({
                             </label>
                             <div className="space-y-3 mt-2 max-h-48 overflow-y-auto w-full px-4 py-3 border border-gray-300 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
                                 {sdgSelectOptions.map((option) => {
-                                    const isChecked = Array.isArray(formData.id_sdg) 
-                                        ? formData.id_sdg.includes(option.value) 
+                                    const isChecked = Array.isArray(formData.id_sdg)
+                                        ? formData.id_sdg.includes(option.value)
                                         : formData.id_sdg === option.value;
                                     return (
                                         <label key={option.value} className="flex items-start space-x-3 cursor-pointer group">
@@ -296,11 +292,10 @@ export default function StepOneView({
                                 aria-invalid={
                                     showStepOneErrors && hasStepOneError('id_tkt')
                                 }
-                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
-                                    showStepOneErrors && hasStepOneError('id_tkt')
+                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${showStepOneErrors && hasStepOneError('id_tkt')
                                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                         : ''
-                                }`}
+                                    }`}
                             >
                                 <option value="">Pilih TKT...</option>
                                 {tktSelectOptions.map((option) => (
@@ -349,17 +344,14 @@ export default function StepOneView({
                                 aria-invalid={
                                     showStepOneErrors && hasStepOneError('lama_waktu')
                                 }
-                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
-                                    showStepOneErrors && hasStepOneError('lama_waktu')
+                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${showStepOneErrors && hasStepOneError('lama_waktu')
                                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                         : ''
-                                }`}
+                                    }`}
                             >
                                 <option value="">Pilih...</option>
                                 <option value="1">1 Tahun</option>
-                                <option value="2">2 Tahun</option>
-                                <option value="3">3 Tahun</option>
-                                <option value="4">4 Tahun</option>
+
                             </select>
                             {showStepOneErrors && hasStepOneError('lama_waktu') ? (
                                 <p className="mt-2 text-sm text-red-600">
@@ -381,11 +373,10 @@ export default function StepOneView({
                                 aria-invalid={
                                     showStepOneErrors && hasStepOneError('tahun_pengajuan')
                                 }
-                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
-                                    showStepOneErrors && hasStepOneError('tahun_pengajuan')
+                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${showStepOneErrors && hasStepOneError('tahun_pengajuan')
                                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                         : ''
-                                }`}
+                                    }`}
                             >
                                 <option value="">Pilih tahun</option>
                                 <option value={new Date().getFullYear()}>
@@ -412,11 +403,10 @@ export default function StepOneView({
                                 aria-invalid={
                                     showStepOneErrors && hasStepOneError('tahun_pelaksanaan')
                                 }
-                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
-                                    showStepOneErrors && hasStepOneError('tahun_pelaksanaan')
+                                className={`w-full px-4 py-3  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${showStepOneErrors && hasStepOneError('tahun_pelaksanaan')
                                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                                         : ''
-                                }`}
+                                    }`}
                             >
                                 <option value="">Pilih tahun...</option>
                                 {[...Array(2)].map((_, index) => {
@@ -457,11 +447,10 @@ export default function StepOneView({
                                 tabIndex={-1}
                                 role="group"
                                 aria-invalid={showStepOneErrors && hasStepOneError('proposal_file')}
-                                className={`border-2 border-dashed  p-6 text-center transition-all focus:outline-none ${
-                                    showStepOneErrors && hasStepOneError('proposal_file')
+                                className={`border-2 border-dashed  p-6 text-center transition-all focus:outline-none ${showStepOneErrors && hasStepOneError('proposal_file')
                                         ? 'border-red-500 bg-red-50'
                                         : 'border-gray-300 hover:border-indigo-500'
-                                }`}
+                                    }`}
                             >
                                 <input
                                     type="file"
