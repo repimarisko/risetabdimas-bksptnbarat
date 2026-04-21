@@ -255,14 +255,24 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className="size-10  p-1"
+                                    className="flex h-10 items-center gap-2 px-2"
                                 >
-                                    <Avatar className="size-8 overflow-hidden ">
+                                    <div className="hidden flex-col items-end lg:flex">
+                                        <span className="text-sm font-medium leading-tight text-neutral-900 dark:text-neutral-100">
+                                            {auth.user.name}
+                                        </span>
+                                        {auth.active_role && (
+                                            <span className="text-xs leading-tight text-neutral-500 dark:text-neutral-400">
+                                                {auth.active_role}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <Avatar className="size-8 overflow-hidden">
                                         <AvatarImage
                                             src={auth.user.avatar}
                                             alt={auth.user.name}
                                         />
-                                        <AvatarFallback className=" bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                        <AvatarFallback className="bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                                             {getInitials(auth.user.name)}
                                         </AvatarFallback>
                                     </Avatar>
