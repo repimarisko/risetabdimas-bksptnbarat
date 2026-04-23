@@ -406,68 +406,156 @@ class AdminPtSkemaController extends Controller
     }
 
     // 1. Method untuk Render Halaman Form
-public function updateSkema(Request $request, string $uuid) {
-    $skema = $this->resolveSkema($uuid); // Pastikan ini mengembalikan data, bukan null
-    
-    return Inertia::render('penelitian/skema/update', [ // Sesuaikan path file .tsx Anda
-        'skema' => $skema,
-        'breadcrumbs' => [
-            ['title' => 'Dashboard', 'href' => '/dashboard'],
-            ['title' => 'Skema', 'href' => route('admin.pt-skema.index')],
-            ['title' => 'Update Skema', 'href' => '#'],
-        ]
-    ]);
-}
+    public function updateSkema(Request $request, string $uuid)
+    {
+        $skema = $this->resolveSkema($uuid);
 
-public function updateSkemaStore(Request $request, string $uuid)
-{
-    // 1. Validasi ketat
-    $validated = $request->validate([
-        'jenis_skema'    => 'required|string',
-        'nama'           => 'required|string|max:255',
-        'nama_singkat'   => 'required|string|max:50',
-        'multi_tahun'    => 'required|boolean',
-        // Anggota: Minimal minimal 0, Maksimal harus >= Minimal
-        'anggota_min'    => 'required|integer|min:0',
-        'anggota_max'    => 'required|integer|gte:anggota_min',
-        // Biaya: Gunakan numeric untuk mendukung desimal tanpa pembulatan
-        'biaya_minimal'  => 'required|numeric|min:0',
-        'biaya_maksimal' => 'required|numeric|gte:biaya_minimal',
-        'sumber_dana'    => 'required|string',
-        'mulai'          => 'required|date',
-        'selesai'        => 'required|date|after_or_equal:mulai',
-        'status'         => 'required|in:aktif,tidak aktif',
-    ], [
-        'anggota_max.gte' => 'Jumlah anggota maksimal tidak boleh lebih kecil dari anggota minimal.',
-        'biaya_maksimal.gte' => 'Biaya maksimal tidak boleh lebih kecil dari biaya minimal.',
-    ]);
+        // Ambil semua periode milik skema ini
+        $periodeList = DB::table('ref_periode_skema')
+            ->where('uuid_skema', $uuid)
+            ->orderBy('tahun', 'desc')
+            ->orderBy('created_at', 'desc') // terbaru di atas dalam tahun yang sama
+            ->get();
 
-    try {
-        // 2. Gunakan Query Builder agar tidak terkena casting otomatis Model (Rounded)
-        $update = DB::table('ref_skema') 
-            ->where('uuid', $uuid)
-            ->update([
-                'jenis_skema'    => $validated['jenis_skema'],
-                'nama'           => $validated['nama'],
-                'nama_singkat'   => $validated['nama_singkat'],
-                'multi_tahun'    => $validated['multi_tahun'],
-                'biaya_minimal'  => $validated['biaya_minimal'], // Tetap float/decimal
-                'biaya_maksimal' => $validated['biaya_maksimal'], 
-                'sumber_dana'    => $validated['sumber_dana'],
-                'anggota_min'    => (int) $validated['anggota_min'],
-                'anggota_max'    => (int) $validated['anggota_max'],
-                'mulai'          => $validated['mulai'],
-                'selesai'        => $validated['selesai'],
-                'status'         => $validated['status'],
-                'updated_at'     => now(),
-            ]);
-
-        return redirect()
-            ->route('admin.pt-skema.index')
-            ->with('success', 'Skema berhasil diperbarui .');
-
-    } catch (\Exception $e) {
-        return back()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()])->withInput();
+        return Inertia::render('penelitian/skema/update', [
+            'skema'       => $skema,
+            'periodeList' => $periodeList,
+            'breadcrumbs' => [
+                ['title' => 'Dashboard', 'href' => '/dashboard'],
+                ['title' => 'Skema', 'href' => route('admin.pt-skema.index')],
+                ['title' => 'Update Skema', 'href' => '#'],
+            ],
+        ]);
     }
-}
+
+
+    public function updateSkemaStore(Request $request, string $uuid)
+    {
+        // 1. Validasi ketat
+        $validated = $request->validate([
+            'jenis_skema'    => 'required|string',
+            'nama'           => 'required|string|max:255',
+            'nama_singkat'   => 'required|string|max:50',
+            'multi_tahun'    => 'required|boolean',
+            // Anggota: Minimal minimal 0, Maksimal harus >= Minimal
+            'anggota_min'    => 'required|integer|min:0',
+            'anggota_max'    => 'required|integer|gte:anggota_min',
+            // Biaya: Gunakan numeric untuk mendukung desimal tanpa pembulatan
+            'biaya_minimal'  => 'required|numeric|min:0',
+            'biaya_maksimal' => 'required|numeric|gte:biaya_minimal',
+            'sumber_dana'    => 'required|string',
+            'mulai'          => 'required|date',
+            'selesai'        => 'required|date|after_or_equal:mulai',
+            'status'         => 'required|in:aktif,tidak aktif',
+        ], [
+            'anggota_max.gte' => 'Jumlah anggota maksimal tidak boleh lebih kecil dari anggota minimal.',
+            'biaya_maksimal.gte' => 'Biaya maksimal tidak boleh lebih kecil dari biaya minimal.',
+        ]);
+
+        try {
+            // 2. Gunakan Query Builder agar tidak terkena casting otomatis Model (Rounded)
+            $update = DB::table('ref_skema')
+                ->where('uuid', $uuid)
+                ->update([
+                    'jenis_skema'    => $validated['jenis_skema'],
+                    'nama'           => $validated['nama'],
+                    'nama_singkat'   => $validated['nama_singkat'],
+                    'multi_tahun'    => $validated['multi_tahun'],
+                    'biaya_minimal'  => $validated['biaya_minimal'], // Tetap float/decimal
+                    'biaya_maksimal' => $validated['biaya_maksimal'],
+                    'sumber_dana'    => $validated['sumber_dana'],
+                    'anggota_min'    => (int) $validated['anggota_min'],
+                    'anggota_max'    => (int) $validated['anggota_max'],
+                    'mulai'          => $validated['mulai'],
+                    'selesai'        => $validated['selesai'],
+                    'status'         => $validated['status'],
+                    'updated_at'     => now(),
+                ]);
+
+            return redirect()
+                ->route('admin.pt-skema.index')
+                ->with('success', 'Skema berhasil diperbarui .');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()])->withInput();
+        }
+    }
+    public function storePeriode(Request $request, string $uuid)
+    {
+        $validated = $request->validate([
+            'periode'              => 'required|string|max:5',
+            'nama_periode'         => 'required|string|max:100',
+            'tahun'                => 'required|digits:4|integer',
+            'tanggal_mulai'        => 'required|date',
+            'tanggal_selesai'      => 'required|date|after_or_equal:tanggal_mulai',
+            'tanggal_akhir_acc'    => 'required|date',
+            'tanggal_akhir_submit' => 'required|date',
+            'is_active'            => 'boolean',
+        ]);
+
+        try {
+            DB::transaction(function () use ($validated, $uuid) {
+                // Jika periode baru langsung diaktifkan, nonaktifkan semua yang lain
+                if (!empty($validated['is_active'])) {
+                    DB::table('ref_periode_skema')
+                        ->where('uuid_skema', $uuid)
+                        ->update(['is_active' => false]);
+                }
+
+                DB::table('ref_periode_skema')->insert([
+                    'id'                   => (string) \Illuminate\Support\Str::uuid(),
+                    'uuid_skema'           => $uuid,
+                    'periode'              => $validated['periode'],
+                    'nama_periode'         => $validated['nama_periode'],
+                    'tahun'                => $validated['tahun'],
+                    'tanggal_mulai'        => $validated['tanggal_mulai'],
+                    'tanggal_selesai'      => $validated['tanggal_selesai'],
+                    'tanggal_akhir_acc'    => $validated['tanggal_akhir_acc'],
+                    'tanggal_akhir_submit' => $validated['tanggal_akhir_submit'],
+                    'is_active'            => $validated['is_active'] ?? false,
+                    'created_at'           => now(),
+                    'updated_at'           => now(),
+                ]);
+            });
+
+            return back()->with('success', 'Periode berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()])->withInput();
+        }
+    }
+
+    public function setAktifPeriode(string $uuid, string $periodeId)
+    {
+        try {
+            DB::transaction(function () use ($uuid, $periodeId) {
+                // Nonaktifkan semua periode dalam skema ini
+                DB::table('ref_periode_skema')
+                    ->where('uuid_skema', $uuid)
+                    ->update(['is_active' => false]);
+
+                // Aktifkan yang dipilih
+                DB::table('ref_periode_skema')
+                    ->where('id', $periodeId)
+                    ->where('uuid_skema', $uuid) // safety check
+                    ->update(['is_active' => true, 'updated_at' => now()]);
+            });
+
+            return back()->with('success', 'Periode berhasil diaktifkan.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function deletePeriode(string $uuid, string $periodeId)
+    {
+        try {
+            DB::table('ref_periode_skema')
+                ->where('id', $periodeId)
+                ->where('uuid_skema', $uuid)
+                ->delete();
+
+            return back()->with('success', 'Periode berhasil dihapus.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
 }

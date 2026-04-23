@@ -119,6 +119,9 @@ Route::middleware(['auth', 'verified', 'active_role:admin-pt,ketua-lppm,super-ad
             // Baru
             Route::get('/{uuid}/update', [AdminPtSkemaController::class, 'updateSkema'])->name('updateSkema');
             Route::put('/{uuid}/update-skema', [AdminPtSkemaController::class, 'updateSkemaStore'])->name('updateSkemaStore');
+            Route::post('/{uuid}/periode', [AdminPtSkemaController::class, 'storePeriode'])->name('admin.pt-skema.periode.store');
+            Route::patch('/{uuid}/periode/{periodeId}/aktif', [AdminPtSkemaController::class, 'setAktifPeriode'])->name('admin.pt-skema.periode.aktif');
+            Route::delete('/{uuid}/periode/{periodeId}', [AdminPtSkemaController::class, 'deletePeriode'])->name('admin.pt-skema.periode.delete');
             // Baru
             Route::prefix('/{uuid}/konfigurasi')->as('konfigurasi.')->group(function () {
                 Route::get('/', [AdminPtSkemaController::class, 'konfigurasi'])->name('index');

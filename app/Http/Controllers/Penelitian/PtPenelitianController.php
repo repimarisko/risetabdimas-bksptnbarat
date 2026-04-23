@@ -39,43 +39,143 @@ class PtPenelitianController extends Controller
 
     public function index(Request $request): InertiaResponse
     {
-        $penelitian = PtPenelitian::query()
-            ->with('user')
-            ->where(function ($query) use ($request): void {
-                $query->where('created_by', $request->user()->id)
-                    ->orWhereHas('anggota', function ($anggotaQuery) use ($request): void {
-                        $anggotaQuery->where('dosen_uuid', optional($request->user()->dosen)->uuid);
+        $user = $request->user();
+        $dosenUuid = optional($user->dosen)->uuid;
+
+        // =========================
+        // MAIN DATA (PURE DB)
+        // =========================
+        $penelitian = DB::table('pt_penelitian as p')
+            ->leftJoin('users as u', 'p.created_by', '=', 'u.id')
+            ->leftJoin('dosen as d', 'u.id', '=', 'd.id_user')
+            ->leftJoin('user_detail as ud', 'u.id', '=', 'ud.id_user')
+
+            ->where(function ($query) use ($user, $dosenUuid) {
+                $query->where('p.created_by', $user->id)
+                    ->orWhereExists(function ($sub) use ($dosenUuid) {
+                        $sub->select(DB::raw(1))
+                            ->from('pt_penelitian_anggotas as a')
+                            ->whereColumn('a.penelitian_uuid', 'p.uuid')
+                            ->where('a.dosen_uuid', $dosenUuid);
                     });
             })
-            ->orderByDesc('created_at')
+            ->whereNull('p.deleted_at')
+            ->select(
+                'p.*',
+
+                // ketua
+                'u.name as ketua_user_name',
+                'ud.nama_lengkap as ketua_nama',
+                'd.nidn as ketua_nidn'
+            )
+
+            ->orderByDesc('p.created_at')
             ->paginate(10)
             ->withQueryString();
 
-        $approvalSummaries = $this->resolveApprovalSummaries(
-            $penelitian->getCollection()->pluck('uuid'),
-        );
+        $ids = collect($penelitian->items())->pluck('uuid');
 
-        $penelitian = $penelitian->through(function ($item) use ($approvalSummaries) {
-            $summary = $approvalSummaries[$item->uuid] ?? [
-                'total' => 0,
-                'approved' => 0,
-                'pending' => 0,
-                'missing' => 0,
-                'all_approved' => false,
+        // =========================
+        // APPROVAL SUMMARY
+        // =========================
+        $approvalSummaries = DB::table('pt_penelitian_anggotas as a')
+            ->leftJoin('pt_penelitian_anggota_approvals as ap', 'a.id', '=', 'ap.anggota_id')
+            ->whereIn('a.penelitian_uuid', $ids)
+            ->select(
+                'a.penelitian_uuid',
+                DB::raw('COUNT(a.id) as total'),
+                DB::raw("SUM(CASE WHEN ap.status = 'approved' THEN 1 ELSE 0 END) as approved"),
+                DB::raw("SUM(CASE WHEN ap.status IS NULL THEN 1 ELSE 0 END) as missing")
+            )
+            ->groupBy('a.penelitian_uuid')
+            ->get()
+            ->keyBy('penelitian_uuid');
+
+        // =========================
+        // ANGGOTA (ANTI N+1)
+        // =========================
+        $approvalSub = DB::table('pt_penelitian_anggota_approvals')
+            ->select('anggota_id', 'status', 'approved_at')
+            ->orderByDesc('approved_at');
+
+        $allAnggota = DB::table('pt_penelitian_anggotas as a')
+            ->whereIn('a.penelitian_uuid', $ids)
+
+            ->join('dosen as d', 'a.dosen_uuid', '=', 'd.uuid')
+            ->join('user_detail as ud', 'd.id_user', '=', 'ud.id_user')
+            ->leftJoin('ref_perguruan_tinggi as pt', 'd.uuid_pt', '=', 'pt.uuid')
+
+            ->leftJoinSub($approvalSub, 'ap', function ($join) {
+                $join->on('a.id', '=', 'ap.anggota_id');
+            })
+
+            ->select(
+                'a.penelitian_uuid',
+                'a.peran',
+                'a.tugas',
+
+                'd.nidn',
+                'ud.nama_lengkap',
+                'pt.nama as nama_universitas',
+
+                'ap.status as approval_status'
+            )
+            ->get()
+            ->groupBy('penelitian_uuid');
+
+        // =========================
+        // TRANSFORM DATA
+        // =========================
+        $penelitian->getCollection()->transform(function ($item) use ($approvalSummaries, $allAnggota) {
+
+            $summaryRaw = $approvalSummaries[$item->uuid] ?? null;
+
+            $summary = [
+                'total' => (int) ($summaryRaw->total ?? 0),
+                'approved' => (int) ($summaryRaw->approved ?? 0),
+                'missing' => (int) ($summaryRaw->missing ?? 0),
             ];
 
+            $summary['pending'] = $summary['total'] - $summary['approved'] - $summary['missing'];
+            $summary['all_approved'] = $summary['total'] > 0 && $summary['approved'] === $summary['total'];
+
             return [
-                ...$item->toArray(),
-                'ketua_nama' => optional($item->user)->name,
+                ...(array) $item,
+
+                // ketua
+                'ketua_nama' => $item->ketua_nama ?: $item->ketua_user_name,
+                'ketua_nidn' => $item->ketua_nidn,
+                // ← tambah dua baris ini secara eksplisit
+
+                // approval
                 'approval_summary' => $summary,
+
+                // anggota
+                'anggotas' => collect($allAnggota[$item->uuid] ?? [])
+                    ->map(fn($a) => [
+                        'nama' => $a->nama_lengkap,
+                        'nidn' => $a->nidn,
+                        'universitas' => $a->nama_universitas,
+                        'peran' => $a->peran,
+                        'tugas' => $a->tugas,
+                        'status' => $a->approval_status,
+                    ])
+                    ->values(),
             ];
         });
 
-        $isVerified = $this->userVerified($request->user());
-        $isProfileComplete = $this->profileComplete($request->user());
+        // =========================
+        // ELIGIBILITY
+        // =========================
+        $isVerified = $this->userVerified($user);
+        $isProfileComplete = $this->profileComplete($user);
+
         $eligibilitySkema = DB::table('ref_skema')
             ->where('jenis_skema', 'penelitian')
-            ->select(
+            ->whereNull('deleted_at')
+            ->where(fn($q) => $q->whereNull('status')->orWhere('status', 'aktif'))
+            ->orderBy('nama')
+            ->get([
                 'uuid',
                 'nama',
                 'nama_singkat',
@@ -86,49 +186,30 @@ class PtPenelitianController extends Controller
                 'multi_tahun',
                 'mulai',
                 'selesai'
-            )
-            ->whereNull('deleted_at')
-            ->where(function ($query) {
-                $query->whereNull('status')->orWhere('status', 'aktif');
-            })
-            ->orderBy('nama')
-            ->get()
-            ->map(fn($row) => [
-                'uuid' => $row->uuid,
-                'nama' => $row->nama,
-                'nama_singkat' => $row->nama_singkat,
-                'anggota_min' => $row->anggota_min,
-                'anggota_max' => $row->anggota_max,
-                'biaya_minimal' => $row->biaya_minimal,
-                'biaya_maksimal' => $row->biaya_maksimal,
-                'multi_tahun' => (bool) $row->multi_tahun,
-                'mulai' => $row->mulai,
-                'selesai' => $row->selesai,
-            ])
-            ->toArray();
-
+            ]);
+        // var_dump($penelitian);
+        // die();
         return Inertia::render('penelitian/index', [
             'penelitian' => $penelitian,
             'submissionLocked' => ! $isVerified || ! $isProfileComplete,
             'lockReason' => ! $isVerified
                 ? 'Akun Anda belum disetujui oleh admin PT.'
                 : (! $isProfileComplete
-                    ? 'Lengkapi data profil (user detail) sebelum mengajukan usulan.'
+                    ? 'Lengkapi data profil sebelum mengajukan usulan.'
                     : null),
             'isAccountVerified' => $isVerified,
             'eligibility' => [
                 'schemes' => $eligibilitySkema,
                 'profile' => [
-                    'has_profile' => (bool) optional($request->user()->dosen)->uuid,
+                    'has_profile' => (bool) $dosenUuid,
                     'verified' => $isVerified,
                     'profile_complete' => $isProfileComplete,
-                    'uuid_pt' => $request->user()->uuid_pt,
-                    'name' => $request->user()->name,
+                    'uuid_pt' => $user->uuid_pt,
+                    'name' => $user->name,
                 ],
             ],
         ]);
     }
-
     public function create(Request $request): InertiaResponse|RedirectResponse
     {
         if ($response = $this->redirectIfNotVerified($request)) {

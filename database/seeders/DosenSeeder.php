@@ -22,13 +22,13 @@ class DosenSeeder extends Seeder
                 [
                     'name' => 'Dosen 1 ' . ($pt->nama_singkat ?: $pt->nama),
                     'email' => 'dosen1.' . strtolower($slug) . '@example.com',
-                    'nidn' => 'NIDN' . str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT) . '01',
+                    'nidn' =>  str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT) . '01',
                     'uuid_pt' => $pt->uuid,
                 ],
                 [
                     'name' => 'Dosen 2 ' . ($pt->nama_singkat ?: $pt->nama),
                     'email' => 'dosen2.' . strtolower($slug) . '@example.com',
-                    'nidn' => 'NIDN' . str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT) . '02',
+                    'nidn' =>  str_pad((string) rand(1, 9999), 4, '0', STR_PAD_LEFT) . '02',
                     'uuid_pt' => $pt->uuid,
                 ],
             ];
