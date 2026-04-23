@@ -6,23 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('pt_penelitian', function (Blueprint $table) {
-            $table->dropForeign(['id_sdg']);
+            // 1. drop foreign key
+            $table->dropForeign('pt_penelitian_id_sdg_foreign');
+
+            // 2. drop index pakai nama yang SAMA
+            $table->dropIndex('pt_penelitian_id_sdg_foreign');
         });
 
         Schema::table('pt_penelitian', function (Blueprint $table) {
+            // 3. baru ubah ke TEXT
             $table->text('id_sdg')->nullable()->change();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('pt_penelitian', function (Blueprint $table) {
@@ -30,7 +29,11 @@ return new class extends Migration
         });
 
         Schema::table('pt_penelitian', function (Blueprint $table) {
-            $table->foreign('id_sdg')->references('uuid')->on('ref_sdg');
+            $table->index('id_sdg');
+            $table->foreign('id_sdg')
+                ->references('uuid')
+                ->on('ref_sdg')
+                ->onDelete('cascade');
         });
     }
 };
