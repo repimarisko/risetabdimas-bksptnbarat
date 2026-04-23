@@ -33,6 +33,7 @@ type StepTwoViewProps = {
     kelompokOptions: RabKelompokOption[];
     kelompokLookup: Record<string, RabKelompokOption>;
     lockedKetuaDosenUuid?: string;
+    skemaBudget?: { min: number | null; max: number | null };
     onBack: () => void;
     onNext: () => void;
     onAddAnggota: () => void;
@@ -337,7 +338,7 @@ export default function StepTwoView({
                                                             className="w-full px-3 py-2 text-sm  border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:cursor-not-allowed disabled:bg-gray-100"
                                                         >
                                                             <option value="">Pilih peran...</option>
-                                                            {PERAN_OPTIONS.map((peran) => (
+                                                            {PERAN_OPTIONS.filter((p) => isKetuaLocked || p !== 'Ketua Peneliti' || anggota.peran === 'Ketua Peneliti').map((peran) => (
                                                                 <option key={peran} value={peran}>
                                                                     {peran}
                                                                 </option>
@@ -402,10 +403,20 @@ export default function StepTwoView({
                     )}
                 </div>
 
-                <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        Rencana Anggaran Biaya (RAB)
-                    </h3>
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            Rencana Anggaran Biaya (RAB)
+                        </h3>
+                        {skemaBudget && (skemaBudget.min || skemaBudget.max) ? (
+                            <div className="text-sm font-medium px-4 py-2 bg-indigo-50 text-indigo-700  border border-indigo-100">
+                                Pagu Anggaran:{' '}
+                                {skemaBudget.min ? `Rp ${skemaBudget.min.toLocaleString('id-ID')}` : 'Rp 0'}{' '}
+                                -{' '}
+                                {skemaBudget.max ? `Rp ${skemaBudget.max.toLocaleString('id-ID')}` : 'Maksimal'}
+                            </div>
+                        ) : null}
+                    </div>
 
                     {!lamaWaktu ? (
                         <div className="text-center py-8 bg-gray-50  border-2 border-dashed border-gray-300">

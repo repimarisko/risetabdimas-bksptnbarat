@@ -64,6 +64,7 @@ type PenelitianItem = {
     created_by?: number | null;
     approval_summary?: ApprovalSummary;
     anggotas?: AnggotaItem[];
+    approved_at?: string | null;
 };
 
 type PageProps = SharedData & {

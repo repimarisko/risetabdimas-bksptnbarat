@@ -239,6 +239,16 @@ export default function AdminPtSkemaIndex() {
                                                                     className="cursor-pointer rounded px-3 py-2 text-gray-700 outline-none hover:bg-gray-100"
                                                                     onSelect={() =>
                                                                         router.visit(
+                                                                            `/admin/pt-skema/${item.uuid}/edit`,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                <Pencil className="h-4 w-4" /> Edit Skema
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    className="cursor-pointer rounded px-3 py-2 text-gray-700 outline-none hover:bg-gray-100"
+                                                                    onSelect={() =>
+                                                                        router.visit(
                                                                             `/admin/pt-skema/${item.uuid}/konfigurasi`,
                                                                         )
                                                                     }

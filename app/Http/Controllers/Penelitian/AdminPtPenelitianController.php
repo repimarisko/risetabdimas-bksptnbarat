@@ -137,6 +137,7 @@ class AdminPtPenelitianController extends Controller
 
         $ptPenelitian->forceFill([
             'status' => 'Disetujui',
+            'approved_at' => now(),
         ])->save();
 
         return redirect()

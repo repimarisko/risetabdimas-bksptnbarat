@@ -16,6 +16,7 @@ type PenelitianItem = {
     biaya_usulan_3?: number | null;
     biaya_usulan_4?: number | null;
     created_at?: string | null;
+    approved_at?: string | null;
 };
 
 type PageProps = SharedData & {

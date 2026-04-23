@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             RefTablesSeeder::class,
+            KomponenSeeder::class,
             MenuSeeder::class,
 
             SuperAdminSeeder::class,

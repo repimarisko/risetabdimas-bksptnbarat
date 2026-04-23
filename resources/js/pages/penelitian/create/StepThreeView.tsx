@@ -103,7 +103,9 @@ export default function StepThreeView({
                                 Keterkaitan SDG:
                             </span>
                             <span className="flex-1 text-gray-900">
-                                {getOptionLabel(sdgSelectOptions, formData.id_sdg)}
+                                {Array.isArray(formData.id_sdg) && formData.id_sdg.length > 0
+                                    ? formData.id_sdg.map(id => getOptionLabel(sdgSelectOptions, id)).join(', ')
+                                    : '-'}
                             </span>
                         </div>
                         <div className="flex">

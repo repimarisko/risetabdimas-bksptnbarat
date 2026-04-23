@@ -217,7 +217,7 @@ class PtPenelitianController extends Controller
         }
 
         $skemaOptions = DB::table('ref_skema')
-            ->select('uuid', 'nama', 'nama_singkat')
+            ->select('uuid', 'nama', 'nama_singkat', 'biaya_minimal', 'biaya_maksimal')
             ->whereNull('deleted_at')
             ->where(fn($query) => $query->whereNull('status')->orWhere('status', 'aktif'))
             ->where('jenis_skema', 'penelitian')
@@ -227,6 +227,8 @@ class PtPenelitianController extends Controller
                 'uuid' => $record->uuid,
                 'nama' => $record->nama,
                 'nama_singkat' => $record->nama_singkat,
+                'biaya_minimal' => $record->biaya_minimal ? (float) $record->biaya_minimal : null,
+                'biaya_maksimal' => $record->biaya_maksimal ? (float) $record->biaya_maksimal : null,
             ])
             ->toArray();
 
@@ -291,9 +293,10 @@ class PtPenelitianController extends Controller
             ])
             ->toArray();
 
-        $komponenOptions = DB::table('ref_komponen_biaya')
-            ->select('id', 'id_komponen_rab', 'nama_komponen', 'jenis', 'keterangan')
-            ->orderBy('nama_komponen')
+        $komponenOptions = DB::table('pt_komponen_biaya')
+            ->select('id', 'id_komponen_rab', 'nama as nama_komponen', 'jenis', 'keterangan')
+            ->where('jenis', 'P')
+            ->orderBy('nama')
             ->get()
             ->map(fn($record) => [
                 'id' => $record->id,
@@ -305,7 +308,8 @@ class PtPenelitianController extends Controller
             ->toArray();
 
         $kelompokOptions = DB::table('ref_komponen_rab')
-            ->select('id', 'kategori', 'nama')
+            ->select('id', 'jenis as kategori', 'nama_komponen as nama')
+            ->where('jenis', 'P')
             ->orderBy('id')
             ->get()
             ->map(fn($record) => [
@@ -595,7 +599,7 @@ class PtPenelitianController extends Controller
         $this->authorizeOwnership($ptPenelitian);
 
         $skemaOptions = DB::table('ref_skema')
-            ->select('uuid', 'nama', 'nama_singkat')
+            ->select('uuid', 'nama', 'nama_singkat', 'biaya_minimal', 'biaya_maksimal')
             ->whereNull('deleted_at')
             ->where(fn($query) => $query->whereNull('status')->orWhere('status', 'aktif'))
             ->orderBy('nama')
@@ -604,6 +608,8 @@ class PtPenelitianController extends Controller
                 'uuid' => $record->uuid,
                 'nama' => $record->nama,
                 'nama_singkat' => $record->nama_singkat,
+                'biaya_minimal' => $record->biaya_minimal ? (float) $record->biaya_minimal : null,
+                'biaya_maksimal' => $record->biaya_maksimal ? (float) $record->biaya_maksimal : null,
             ])
             ->toArray();
 
@@ -668,9 +674,10 @@ class PtPenelitianController extends Controller
             ])
             ->toArray();
 
-        $komponenOptions = DB::table('ref_komponen_biaya')
-            ->select('id', 'id_komponen_rab', 'nama_komponen', 'jenis', 'keterangan')
-            ->orderBy('nama_komponen')
+        $komponenOptions = DB::table('pt_komponen_biaya')
+            ->select('id', 'id_komponen_rab', 'nama as nama_komponen', 'jenis', 'keterangan')
+            ->where('jenis', 'P')
+            ->orderBy('nama')
             ->get()
             ->map(fn($record) => [
                 'id' => $record->id,
@@ -682,7 +689,8 @@ class PtPenelitianController extends Controller
             ->toArray();
 
         $kelompokOptions = DB::table('ref_komponen_rab')
-            ->select('id', 'kategori', 'nama')
+            ->select('id', 'jenis as kategori', 'nama_komponen as nama')
+            ->where('jenis', 'P')
             ->orderBy('id')
             ->get()
             ->map(fn($record) => [
@@ -950,7 +958,8 @@ class PtPenelitianController extends Controller
             'title' => 'required|string|max:255',
             'id_skema' => 'nullable|string|max:100',
             'id_tkt' => 'nullable|string|max:100',
-            'id_sdg' => 'nullable|string|max:100',
+            'id_sdg' => 'nullable|array',
+            'id_sdg.*' => 'string|max:100',
             'id_fokus' => 'nullable|string|max:100',
             'ringkasan'      => 'nullable|string',           // ✅ tambahkan
             'lama_kegiatan'  => 'nullable|integer',          // ✅ tambahkan (sesuaikan nama kolom DB)
@@ -975,7 +984,7 @@ class PtPenelitianController extends Controller
             'rab' => ['nullable', 'array'],
             'rab.*.tahun' => ['required', 'integer', 'min:1', 'max:4'],
             'rab.*.items' => ['required', 'array', 'min:1'],
-            'rab.*.items.*.id_komponen' => ['nullable', 'integer', 'exists:ref_komponen_biaya,id'],
+            'rab.*.items.*.id_komponen' => ['nullable', 'integer', 'exists:pt_komponen_biaya,id'],
             'rab.*.items.*.nama_item' => ['required', 'string', 'max:255'],
             'rab.*.items.*.jumlah_item' => ['nullable', 'numeric'],
             'rab.*.items.*.harga_satuan' => ['nullable', 'numeric'],
@@ -1082,7 +1091,7 @@ class PtPenelitianController extends Controller
             }
         }
 
-        $nullableStrings = ['id_skema', 'id_tkt', 'id_sdg', 'id_fokus', 'status'];
+        $nullableStrings = ['id_skema', 'id_tkt', 'id_fokus', 'status'];
 
         foreach ($nullableStrings as $field) {
             if ($request->has($field) && $request->input($field) === '') {

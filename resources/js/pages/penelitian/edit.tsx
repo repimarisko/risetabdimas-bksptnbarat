@@ -53,7 +53,7 @@ type PenelitianEditPayload = {
     title: string | null;
     id_skema: string | null;
     id_fokus: string | null;
-    id_sdg: string | null;
+    id_sdg: string[] | null;
     id_tkt: string | null;
     ringkasan: string | null;
     target_luaran: string | null;
@@ -152,12 +152,16 @@ const safeInitialLamaWaktu =
 const MAX_PROPOSAL_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
 
+    const initialKetuaUuid = useMemo(() => {
+        return penelitian.anggota?.find(a => a.peran === 'Ketua Peneliti')?.dosen_uuid;
+    }, [penelitian.anggota]);
+
     const [formData, setFormData] = useState<FormDataState>(() => ({
         judul: penelitian.title ?? '',
         id_skema: penelitian.id_skema ?? '',
         id_fokus: penelitian.id_fokus ?? '',
         ringkasan: penelitian.ringkasan ?? '',
-        id_sdg: penelitian.id_sdg ?? '',
+        id_sdg: penelitian.id_sdg ?? [],
         id_tkt: penelitian.id_tkt ?? '',
         lama_waktu: safeInitialLamaWaktu,
         tahun_pengajuan: penelitian.tahun_pengajuan
@@ -491,6 +495,18 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
         });
     }, []);
 
+    const activeSkema = useMemo(() => {
+        return rawSkemaOptions.find((s) => s.uuid === formData.id_skema) ?? null;
+    }, [rawSkemaOptions, formData.id_skema]);
+
+    const skemaBudget = useMemo(() => {
+        if (!activeSkema) return undefined;
+        return {
+            min: activeSkema.biaya_minimal ?? null,
+            max: activeSkema.biaya_maksimal ?? null,
+        };
+    }, [activeSkema]);
+
     const handleNext = () => {
         if (currentStep === 1) {
             const missing = getMissingStepOneFields(formData);
@@ -794,7 +810,7 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
             title: formData.judul,
             id_skema: formData.id_skema || null,
             id_tkt: formData.id_tkt || null,
-            id_sdg: formData.id_sdg || null,
+            id_sdg: formData.id_sdg.length > 0 ? formData.id_sdg : null,
             id_fokus: formData.id_fokus || null,
             ringkasan: formData.ringkasan || null,
             biaya_usulan_1: getYearTotal(1),
@@ -966,6 +982,8 @@ const MAX_LAMPIRAN_SIZE = 10 * 1024 * 1024; // 10 MB
                                     tahunPelaksanaan={tahunPelaksanaan}
                                     kelompokOptions={kelompokOptions}
                                     kelompokLookup={kelompokLookup}
+                                    lockedKetuaDosenUuid={initialKetuaUuid || undefined}
+                                    skemaBudget={skemaBudget}
                                     onBack={handleBack}
                                     onNext={handleNext}
                                     onAddAnggota={handleAddAnggota}

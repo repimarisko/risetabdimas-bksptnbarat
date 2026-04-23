@@ -41,8 +41,7 @@ type Penelitian = {
     nama_skema: string;
     tkt: string;
     level_tkt: number;
-    sdg: string;
-    level_sdg: number;
+    sdgs: { uuid: string; sdg: string; level: number }[];
     fokus: string;
     created_at: string;
     proposal_path: string | null;
@@ -271,7 +270,7 @@ export default function PenugasanReviewDetail() {
                                         <InfoRow label="Skema"             value={penelitian.nama_skema} />
                                         <InfoRow label="Fokus Penelitian"  value={penelitian.fokus} />
                                         <InfoRow label="TKT"               value={`TKT ${penelitian.level_tkt} — ${penelitian.tkt}`} />
-                                        <InfoRow label="SDG"               value={`SDG ${penelitian.level_sdg} — ${penelitian.sdg}`} />
+                                        <InfoRow label="SDG"               value={penelitian.sdgs?.map(s => `SDG ${s.level ?? '—'} — ${s.sdg}`).join(', ') ?? 'Belum ditentukan'} />
                                         <InfoRow label="Tahun Pengajuan"   value={penelitian.tahun} />
                                         <InfoRow label="Tahun Pelaksanaan" value={penelitian.tahun_pelaksanaan} />
                                     </div>
