@@ -55,11 +55,11 @@ function DashboardCard({
     children: ReactNode;
 }) {
     return (
-        <div className="relative aspect-video overflow-hidden  border border-gray-200 bg-white p-6">
+        <div className="relative aspect-video overflow-hidden border border-gray-200 bg-white p-6">
             <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/10" />
             <div className="relative z-10 flex h-full flex-col justify-between">
                 <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                    <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                         {title}
                     </p>
                     <p className="mt-2 text-3xl font-semibold text-gray-900">

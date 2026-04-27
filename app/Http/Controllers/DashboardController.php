@@ -17,7 +17,8 @@ class DashboardController extends Controller
             $activeRole = (string) ($user->getRoleNames()->first() ?? '');
             $request->session()->put('active_role', $activeRole);
         }
-
+        // var_dump($user);
+        // die();
         $dashboardMap = [
             'super-admin' => 'dashboard.super-admin',
             'ketua-lppm'  => 'dashboard.ketua-lppm',

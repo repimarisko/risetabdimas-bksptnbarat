@@ -30,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
 
             $assetUrl = config('app.asset_url');
             if (is_string($assetUrl) && str_starts_with($assetUrl, 'http://')) {
-                URL::useAssetOrigin('https://'.substr($assetUrl, strlen('http://')));
+                URL::useAssetOrigin('https://' . substr($assetUrl, strlen('http://')));
             }
         }
     }

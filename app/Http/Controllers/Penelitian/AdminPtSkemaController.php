@@ -169,7 +169,7 @@ class AdminPtSkemaController extends Controller
                 'nama_singkat'  => $skema->nama_singkat,
                 'multi_tahun'   => (bool) $skema->multi_tahun,
                 'biaya_minimal' => $skema->biaya_minimal,
-                'biaya_maksimal'=> $skema->biaya_maksimal,
+                'biaya_maksimal' => $skema->biaya_maksimal,
                 'sumber_dana'   => $skema->sumber_dana,
                 'anggota_min'   => $skema->anggota_min,
                 'anggota_max'   => $skema->anggota_max,
